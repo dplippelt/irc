@@ -1,36 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 12:36:05 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 13:37:16 by dlippelt         ###   ########.fr       */
+/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/10/27 13:32:53 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+
 #include <iostream>
-#include "Server.hpp"
+#include <string>
+#include <string_view>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include "errno.h"
 
-int	main( int ac, char *av[] )
+class Server
 {
-	if (ac != 3)
-	{
-		std::cerr << "Error: incorrect number of parameters!\n";
-		std::cerr << "Usage: ./ircserv <port> <server password>" << std::endl;
-		return (EXIT_FAILURE);
-	}
+	public:
+		~Server();
+		Server() = delete;
+		Server( const std::string& port, std::string_view pw );
+		Server( const Server& );
+		Server& operator=( const Server& );
 
-	try
-	{
-		Server server {av[1], av[2]};
-	}
-	catch ( const std::exception& e )
-	{
-		std::cerr << e.what();
-		return (EXIT_FAILURE);
-	}
+	private:
+		std::string	m_pw {};
+		int			m_port {};
+		int			m_socket_fd {};
 
-	return (EXIT_SUCCESS);
-}
+};
