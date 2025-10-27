@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 14:08:43 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 14:57:58 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,11 @@
 
 /* ==================== Constructors & Destructors ==================== */
 
-Server::~Server() = default;
+Server::~Server()
+{
+	if (close(m_socket_fd) == -1)
+		throw std::runtime_error("Error: failed to close socket file descriptor\n");
+}
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
