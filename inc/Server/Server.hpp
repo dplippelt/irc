@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 16:36:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 17:52:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <poll.h>
 
 #define LISTEN_BACKLOG 50
+#define DEBUG
 
 class Server
 {
@@ -34,6 +36,8 @@ class Server
 		Server( const Server& );
 		Server& operator=( const Server& );
 
+		void	doPoll();
+
 	private:
 		std::string						m_pw {};
 		int								m_port {};
@@ -41,7 +45,10 @@ class Server
 		struct sockaddr_in				m_addr {};
 		std::vector<int>				m_client_socket_fds {};
 		std::vector<struct sockaddr_in>	m_client_addrss {};
+		std::vector<struct pollfd>		m_pollfds {};
 
-		void setPort( const std::string& port );
-		void acceptConn();
+		void	setPort( const std::string& port );
+		void	acceptConn();
+		void	processClientAct(int client_fd);
+		void	removeClient(int client_fd);
 };

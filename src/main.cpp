@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 12:36:05 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 16:53:18 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 17:19:24 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ int	main( int ac, char *av[] )
 	try
 	{
 		Server server { av[1], av[2] };
+		while (true)
+			server.doPoll();
 	}
 	catch ( const std::exception& e )
 	{
