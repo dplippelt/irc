@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 14:57:58 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 16:24:13 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@
 
 Server::~Server()
 {
-	if (close(m_socket_fd) == -1)
-		throw std::runtime_error("Error: failed to close socket file descriptor\n");
+	if (close(m_listening_socket_fd) == -1)
+		std::cerr << "Error: failed to close socket file descriptor\n";
 }
 
 Server::Server( const std::string& port, std::string_view pw )
@@ -25,11 +25,21 @@ Server::Server( const std::string& port, std::string_view pw )
 {
 	setPort(port);
 
-	m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (m_socket_fd == -1)
+	m_listening_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_listening_socket_fd == -1)
 	{
 		throw std::runtime_error("Error: failed to create socket\n");
 	}
+
+	m_addr.sin_family = AF_INET;
+	m_addr.sin_port = htons(m_port);
+	m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if (bind(m_listening_socket_fd, reinterpret_cast<struct sockaddr *>(&m_addr), sizeof(m_addr)) == -1)
+		throw std::runtime_error("Error: failed to bind address to socket\n");
+
+	if (listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1)
+		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections\n");
 }
 
 Server::Server( const Server& ) = default;
