@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 13:32:53 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 14:10:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <string_view>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "errno.h"
 
 class Server
 {
@@ -33,4 +32,5 @@ class Server
 		int			m_port {};
 		int			m_socket_fd {};
 
+		void setPort( const std::string& port );
 };
