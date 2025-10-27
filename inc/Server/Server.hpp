@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 16:24:40 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 16:36:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #define LISTEN_BACKLOG 50
 
@@ -34,11 +35,13 @@ class Server
 		Server& operator=( const Server& );
 
 	private:
-		std::string			m_pw {};
-		int					m_port {};
-		int					m_listening_socket_fd {};
-		struct sockaddr_in	m_addr {};
-		std::vector<int>	m_client_socket_fds {};
+		std::string						m_pw {};
+		int								m_port {};
+		int								m_listening_socket_fd {};
+		struct sockaddr_in				m_addr {};
+		std::vector<int>				m_client_socket_fds {};
+		std::vector<struct sockaddr_in>	m_client_addrss {};
 
 		void setPort( const std::string& port );
+		void acceptConn();
 };

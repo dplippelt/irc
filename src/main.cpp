@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 12:36:05 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 13:45:15 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/27 16:53:18 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,11 @@ int	main( int ac, char *av[] )
 
 	try
 	{
-		Server server {av[1], av[2]};
+		Server server { av[1], av[2] };
 	}
 	catch ( const std::exception& e )
 	{
-		std::cerr << e.what();
+		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
 
