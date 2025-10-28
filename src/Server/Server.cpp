@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 08:23:33 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 09:04:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,22 +107,42 @@ void	Server::doPoll()
 	std::cout << "Polling..." << std::endl;
 	#endif
 
-	poll(m_pollfds.data(), m_pollfds.size(), -1);
+	int ret = poll(m_pollfds.data(), m_pollfds.size(), -1);
 
-	for ( const auto& pollfd : m_pollfds )
+	if (ret == -1)
 	{
-		if (pollfd.revents & POLLIN)
+		switch (errno)
 		{
-			if (pollfd.fd == m_listening_socket_fd)
-				acceptConn();
-			else
-				processClientAct(pollfd.fd);
+		case EINTR:
+			return ;
+		case EINVAL:
+			throw std::runtime_error("Error: poll called with invalid argument");
+		case ENOMEM:
+			throw std::runtime_error("Error: failed to allocate memory");
+		case EFAULT:
+			throw std::runtime_error("Error: file descriptor(s) out of range");
+		default:
+			break;
+		}
+	}
+
+	for ( int i {static_cast<int>(m_pollfds.size()) - 1}; i >= 0; --i )
+	{
+		if (m_pollfds[i].revents & (POLLHUP | POLLERR))
+		{
+			if (m_pollfds[i].fd != m_listening_socket_fd)
+			{
+				removeClient(m_pollfds[i].fd);
+				continue ;
+			}
 		}
 
-		else if (pollfd.revents & (POLLHUP | POLLERR))
+		if (m_pollfds[i].revents & POLLIN)
 		{
-			if (pollfd.fd != m_listening_socket_fd)
-				removeClient(pollfd.fd);
+			if (m_pollfds[i].fd == m_listening_socket_fd)
+				acceptConn();
+			else
+				processClientAct(m_pollfds[i].fd);
 		}
 	}
 }
