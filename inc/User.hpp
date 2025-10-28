@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/27 17:30:07 by seungah       ########   odam.nl         */
+/*   Updated: 2025/10/28 10:27:12 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 class User
 {
@@ -35,7 +36,7 @@ class User
 		// Channel related
 		std::vector<std::string> _channels;  // List of joined channels
 
-		// Buffer (may need coordination with Person 2)
+		// Buffer
 		std::string _recvBuffer;        // Receive buffer
 
 	public:
