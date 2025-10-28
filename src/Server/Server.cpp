@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 08:06:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 08:20:22 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,10 @@ void	Server::setPort( const std::string& port )
 
 void	Server::acceptConn()
 {
+	#ifdef DEBUG
+	std::cout << "Activity detected on listening socket!" << std::endl;
+	#endif
+
 	struct sockaddr_in	client_addr {};
 	socklen_t			client_addr_len { sizeof(client_addr) };
 
@@ -110,38 +114,28 @@ void	Server::doPoll()
 		if (pollfd.revents & POLLIN)
 		{
 			if (pollfd.fd == m_listening_socket_fd)
-			{
-				#ifdef DEBUG
-				std::cout << "Activity detected on listening socket!" << std::endl;
-				#endif
 				acceptConn();
-			}
 			else
-			{
-				#ifdef DEBUG
-				std::cout << "Activity detected on client socket!" << std::endl;
-				#endif
 				processClientAct(pollfd.fd);
-			}
 		}
 
-		if (pollfd.revents & (POLLHUP | POLLERR))
+		else if (pollfd.revents & (POLLHUP | POLLERR))
 		{
 			if (pollfd.fd != m_listening_socket_fd)
-			{
-				#ifdef DEBUG
-				std::cout << "Client disconnected" << std::endl;
-				#endif
-				if (close(pollfd.fd) == -1)
-					std::cerr << "Warning: failed to close client file descriptor" << std::endl;
 				removeClient(pollfd.fd);
-			}
 		}
 	}
 }
 
 void	Server::removeClient(int client_fd)
 {
+	#ifdef DEBUG
+	std::cout << "Client disconnected" << std::endl;
+	#endif
+
+	if (close(client_fd) == -1)
+		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
+
 	for (auto it {m_pollfds.begin()}; it != m_pollfds.end(); ++it)
 	{
 		if ((*it).fd == client_fd)
@@ -155,20 +149,23 @@ void	Server::removeClient(int client_fd)
 //THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST DISCARDS THE CLIENT ACTIVITY
 void	Server::processClientAct(int client_fd)
 {
-	// (void)client_fd;
-	// std::cout << "Process client acitivty" << std::endl;
+	#ifdef DEBUG
+	std::cout << "Activity detected on client socket!" << std::endl;
+	#endif
 
 	char buffer[512];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes <= 0)
 	{
-		close(client_fd);
 		removeClient(client_fd);
-		return;
+		return ;
 	}
 
-	#ifdef DEBUG
-	std::cout << "Discarded " << bytes << " bytes from fd " << client_fd << '\n';
-	#endif
+	buffer[bytes] = '\0';
+	std::cout << "Client acitivity:\n" << buffer;
+
+	// #ifdef DEBUG
+	// std::cout << "Discarded " << bytes << " bytes from fd " << client_fd << '\n';
+	// #endif
 }
