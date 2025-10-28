@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 09:26:23 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 09:29:05 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,9 @@ void	Server::doPoll()
 	{
 		if ( m_pollfds[i].revents & (POLLHUP | POLLERR) )
 		{
-			if ( m_pollfds[i].fd != m_listening_socket_fd )
+			if ( m_pollfds[i].fd == m_listening_socket_fd )
+				throw std::runtime_error("Error: error on listening socket");
+			else
 			{
 				removeClient(m_pollfds[i].fd);
 				continue ;
