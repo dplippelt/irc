@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 08:02:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 08:06:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Server::~Server()
 	for (auto pollfd : m_pollfds)
 	{
 		if (close(pollfd.fd) == -1)
-			std::cerr << "Error: failed to close socket file descriptor '" << pollfd.fd << "'" << std::endl;
+			std::cerr << "Warning: failed to close socket file descriptor '" << pollfd.fd << "'" << std::endl;
 	}
 }
 
@@ -133,7 +133,7 @@ void	Server::doPoll()
 				std::cout << "Client disconnected" << std::endl;
 				#endif
 				if (close(pollfd.fd) == -1)
-					std::cout << "Warning: failed to close client file descriptor" << std::endl;
+					std::cerr << "Warning: failed to close client file descriptor" << std::endl;
 				removeClient(pollfd.fd);
 			}
 		}
