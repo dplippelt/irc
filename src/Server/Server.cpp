@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 18:07:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 08:02:05 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,11 @@
 
 Server::~Server()
 {
-	if (close(m_listening_socket_fd) == -1)
-		std::cerr << "Error: failed to close listening socket file descriptor";
+	for (auto pollfd : m_pollfds)
+	{
+		if (close(pollfd.fd) == -1)
+			std::cerr << "Error: failed to close socket file descriptor '" << pollfd.fd << "'" << std::endl;
+	}
 }
 
 Server::Server( const std::string& port, std::string_view pw )
