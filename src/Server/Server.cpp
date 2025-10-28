@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 09:12:06 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 09:26:23 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@
 
 Server::~Server()
 {
-	for (auto pollfd : m_pollfds)
+	for ( auto pollfd : m_pollfds )
 	{
-		if (close(pollfd.fd) == -1)
+		if ( close(pollfd.fd) == -1 )
 			std::cerr << "Warning: failed to close socket file descriptor '" << pollfd.fd << "'" << std::endl;
 	}
 }
@@ -29,9 +29,9 @@ Server::Server( const std::string& port, std::string_view pw )
 	setPort(port);
 
 	m_listening_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (m_listening_socket_fd == -1)
+	if ( m_listening_socket_fd == -1 )
 		throw std::runtime_error("Error: failed to create socket");
-	if (fcntl(m_listening_socket_fd, F_SETFL, O_NONBLOCK) == -1)
+	if ( fcntl(m_listening_socket_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set listening socket to non-blocking");
 	m_pollfds.push_back( {m_listening_socket_fd, POLLIN, 0} );
 
@@ -39,10 +39,10 @@ Server::Server( const std::string& port, std::string_view pw )
 	m_addr.sin_port = htons(m_port);
 	m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(m_listening_socket_fd, reinterpret_cast<struct sockaddr *>(&m_addr), sizeof(m_addr)) == -1)
+	if ( bind(m_listening_socket_fd, reinterpret_cast<struct sockaddr *>(&m_addr), sizeof(m_addr)) == -1 )
 		throw std::runtime_error("Error: failed to bind address to socket");
 
-	if (listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1)
+	if ( listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
 }
 
@@ -60,7 +60,7 @@ void	Server::setPort( const std::string& port )
 {
 	for ( char c : port )
 	{
-		if (!std::isdigit(static_cast<unsigned char>(c)))
+		if ( !std::isdigit(static_cast<unsigned char>(c)) )
 			throw std::runtime_error("Error: port '" + port + "' contains non-digit characters");
 	}
 
@@ -68,12 +68,12 @@ void	Server::setPort( const std::string& port )
 	{
 		m_port = std::stoi(port);
 	}
-	catch(const std::exception& e)
+	catch ( const std::exception& e )
 	{
 		throw std::runtime_error("Error: could not convert port '" + port + "' to integer");
 	}
 
-	if (m_port < 1 || m_port > 65535)
+	if ( m_port < 1 || m_port > 65535 )
 		throw std::runtime_error("Error: port '" + port + "' must be between 1 and 65535");
 }
 
@@ -87,9 +87,9 @@ void	Server::acceptConn()
 	socklen_t			client_addr_len { sizeof(client_addr) };
 
 	int client_fd { accept(m_listening_socket_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &client_addr_len) };
-	if (client_fd == -1)
+	if ( client_fd == -1 )
 		throw std::runtime_error("Error: failed to accept incoming connection");
-	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+	if ( fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set client socket to non-blocking");
 
 	m_client_addrss.push_back(client_addr);		// might not need this vector(?)
@@ -109,7 +109,7 @@ void	Server::doPoll()
 
 	int ret = poll(m_pollfds.data(), m_pollfds.size(), -1);
 
-	if (ret == -1)
+	if ( ret == -1 )
 	{
 		switch (errno)
 		{
@@ -128,18 +128,18 @@ void	Server::doPoll()
 
 	for ( int i {static_cast<int>(m_pollfds.size()) - 1}; i >= 0; --i )
 	{
-		if (m_pollfds[i].revents & (POLLHUP | POLLERR))
+		if ( m_pollfds[i].revents & (POLLHUP | POLLERR) )
 		{
-			if (m_pollfds[i].fd != m_listening_socket_fd)
+			if ( m_pollfds[i].fd != m_listening_socket_fd )
 			{
 				removeClient(m_pollfds[i].fd);
 				continue ;
 			}
 		}
 
-		if (m_pollfds[i].revents & POLLIN)
+		if ( m_pollfds[i].revents & POLLIN )
 		{
-			if (m_pollfds[i].fd == m_listening_socket_fd)
+			if ( m_pollfds[i].fd == m_listening_socket_fd )
 				acceptConn();
 			else
 				processClientAct(m_pollfds[i].fd);
@@ -147,18 +147,18 @@ void	Server::doPoll()
 	}
 }
 
-void	Server::removeClient(int client_fd)
+void	Server::removeClient( int client_fd )
 {
 	#ifdef DEBUG
 	std::cout << "Client disconnected" << std::endl;
 	#endif
 
-	if (close(client_fd) == -1)
+	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
 
-	for (auto it {m_pollfds.begin()}; it != m_pollfds.end(); ++it)
+	for ( auto it {m_pollfds.begin()}; it != m_pollfds.end(); ++it )
 	{
-		if ((*it).fd == client_fd)
+		if ( (*it).fd == client_fd )
 		{
 			m_pollfds.erase(it);
 			break ;
@@ -167,7 +167,7 @@ void	Server::removeClient(int client_fd)
 }
 
 //THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST ECHOES THE CLIENT ACTIVITY TO THE TERMINAL
-void	Server::processClientAct(int client_fd)
+void	Server::processClientAct( int client_fd )
 {
 	#ifdef DEBUG
 	std::cout << "Activity detected on client socket!" << std::endl;
@@ -176,7 +176,7 @@ void	Server::processClientAct(int client_fd)
 	char buffer[512];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (bytes <= 0)
+	if ( bytes <= 0 )
 	{
 		removeClient(client_fd);
 		return ;
