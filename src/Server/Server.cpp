@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 09:04:57 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 09:12:06 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ void	Server::doPoll()
 		case EFAULT:
 			throw std::runtime_error("Error: file descriptor(s) out of range");
 		default:
-			break;
+			throw std::runtime_error("Error: an unknown error occurred during polling");
 		}
 	}
 
