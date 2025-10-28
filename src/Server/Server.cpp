@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 08:20:22 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/28 08:23:33 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,7 @@ void	Server::removeClient(int client_fd)
 	}
 }
 
-//THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST DISCARDS THE CLIENT ACTIVITY
+//THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST ECHOES THE CLIENT ACTIVITY TO THE TERMINAL
 void	Server::processClientAct(int client_fd)
 {
 	#ifdef DEBUG
@@ -164,8 +164,4 @@ void	Server::processClientAct(int client_fd)
 
 	buffer[bytes] = '\0';
 	std::cout << "Client acitivity:\n" << buffer;
-
-	// #ifdef DEBUG
-	// std::cout << "Discarded " << bytes << " bytes from fd " << client_fd << '\n';
-	// #endif
 }
