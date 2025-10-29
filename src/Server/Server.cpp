@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 18:07:09 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 18:08:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,7 +257,6 @@ void	Server::userAuthentication( int client_fd )
 			numericReply = getNumericReply(i, "testNick", "testUser", "localhost");
 			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
 				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
-			// std::cout << "Should have sent numeric reply " << i << std::endl;
 		}
 		m_user_auth_status.find(client_fd)->second = true;
 		npoll = 0;
