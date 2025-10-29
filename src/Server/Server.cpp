@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 13:16:57 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 14:15:41 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,9 @@ Server::Server( const std::string& port, std::string_view pw )
 	m_listening_socket_fd = socket(m_addr->ai_family, m_addr->ai_socktype, m_addr->ai_protocol);
 	if ( m_listening_socket_fd == -1 )
 		throw std::runtime_error("Error: failed to create socket");
+	int	opt {1};
+	if ( setsockopt(m_listening_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+		throw std::runtime_error("Error: failed to set socket option SO_REUSEADDR");
 	if ( fcntl(m_listening_socket_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set listening socket to non-blocking");
 	m_pollfds.push_back( {m_listening_socket_fd, POLLIN, 0} );
@@ -180,6 +183,27 @@ void	Server::removeClient( int client_fd )
 	}
 }
 
+bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx )
+{
+	*eom_idx = buffer.find("\r\n", *start_idx);
+
+	if (*eom_idx != std::string::npos)
+	{
+		#ifdef DEBUG
+		std::cout << "End of message found at index " << *eom_idx << std::endl;
+		#endif
+
+		*start_idx = *eom_idx + 2;
+		return (true);
+	}
+	return (false);
+}
+
+void	Server::printMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx )
+{
+	std::cout << buffer.substr(start_idx, end_idx - start_idx);
+}
+
 //THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST ECHOES THE CLIENT ACTIVITY TO THE TERMINAL
 void	Server::processClientAct( int client_fd )
 {
@@ -187,7 +211,7 @@ void	Server::processClientAct( int client_fd )
 	std::cout << "Activity detected on client socket!" << std::endl;
 	#endif
 
-	char buffer[512];
+	char buffer[20];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
 	if ( bytes == 0 )
@@ -205,5 +229,20 @@ void	Server::processClientAct( int client_fd )
 	}
 
 	buffer[bytes] = '\0';
+
+	std::size_t eom_idx {};
+	std::size_t start_idx {};
+	std::size_t start_idx_prev {};
+	while (eom_idx != std::string::npos)
+	{
+		start_idx_prev = start_idx;
+		foundEndOfMessage(buffer, &start_idx, &eom_idx);
+		printMsg(buffer, start_idx_prev, start_idx);
+	}
+	if (start_idx != static_cast<std::size_t>(bytes))
+	{
+		std::cout << "Deal with partial message!" << std::endl;
+	}
+
 	std::cout << "Client acitivity:\n" << buffer;
 }

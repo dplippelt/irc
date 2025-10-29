@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 11:38:18 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 13:59:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,8 @@ class Server
 
 		void	validatePort( const std::string& port );
 		void	acceptConn();
-		void	processClientAct(int client_fd);
-		void	removeClient(int client_fd);
+		void	processClientAct( int client_fd );
+		void	removeClient( int client_fd );
+		bool	foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
+		void	printMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx );
 };
