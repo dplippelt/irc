@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 14:15:41 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 15:45:55 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,16 +183,33 @@ void	Server::removeClient( int client_fd )
 	}
 }
 
+void	Server::processBuffer( const std::string& buffer, ssize_t bytes, int client_fd )
+{
+	static std::map<int, std::string>	remainders {};
+	std::string&						remainder { remainders[client_fd] };
+	std::size_t							eom_idx {};
+	std::size_t							start_idx {};
+	std::size_t							start_idx_prev {};
+
+	while ( eom_idx != std::string::npos )
+	{
+		start_idx_prev = start_idx;
+		if ( !foundEndOfMessage(buffer, &start_idx, &eom_idx) )
+			break ;
+
+		printMsg(remainder + buffer, start_idx_prev, start_idx + remainder.length());
+		remainder.clear();
+	}
+	if ( start_idx != static_cast<std::size_t>(bytes) )
+		remainder += buffer.substr(start_idx);
+}
+
 bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx )
 {
 	*eom_idx = buffer.find("\r\n", *start_idx);
 
-	if (*eom_idx != std::string::npos)
+	if ( *eom_idx != std::string::npos )
 	{
-		#ifdef DEBUG
-		std::cout << "End of message found at index " << *eom_idx << std::endl;
-		#endif
-
 		*start_idx = *eom_idx + 2;
 		return (true);
 	}
@@ -204,7 +221,6 @@ void	Server::printMsg( std::string_view buffer, std::size_t start_idx, std::size
 	std::cout << buffer.substr(start_idx, end_idx - start_idx);
 }
 
-//THIS IS A TEMPORARY PLACEHOLDER FUNCTION THAT JUST ECHOES THE CLIENT ACTIVITY TO THE TERMINAL
 void	Server::processClientAct( int client_fd )
 {
 	#ifdef DEBUG
@@ -229,20 +245,5 @@ void	Server::processClientAct( int client_fd )
 	}
 
 	buffer[bytes] = '\0';
-
-	std::size_t eom_idx {};
-	std::size_t start_idx {};
-	std::size_t start_idx_prev {};
-	while (eom_idx != std::string::npos)
-	{
-		start_idx_prev = start_idx;
-		foundEndOfMessage(buffer, &start_idx, &eom_idx);
-		printMsg(buffer, start_idx_prev, start_idx);
-	}
-	if (start_idx != static_cast<std::size_t>(bytes))
-	{
-		std::cout << "Deal with partial message!" << std::endl;
-	}
-
-	std::cout << "Client acitivity:\n" << buffer;
+	processBuffer(buffer, bytes, client_fd);
 }
