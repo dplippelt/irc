@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 11:17:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 11:45:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,12 +103,11 @@ void	Server::acceptConn()
 	if ( fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set client socket to non-blocking");
 
-	m_client_addrss.push_back(client_addr);		// might not need this vector(?)
-	m_client_socket_fds.push_back(client_fd);	// might not need this vector, m_pollfds already stores the same info
+	m_client_addrss.insert( {client_fd, client_addr} );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
 
 	#ifdef DEBUG
-	std::cout << "Accepted client connection" << std::endl;
+	std::cout << "Accepted client connection (client port: " << client_addr.sin_port << ")" << std::endl;
 	#endif
 }
 
@@ -163,8 +162,10 @@ void	Server::doPoll()
 void	Server::removeClient( int client_fd )
 {
 	#ifdef DEBUG
-	std::cout << "Client disconnected" << std::endl;
+	std::cout << "Client disconnected (client port: " << m_client_addrss.find(client_fd)->second.sin_port << ")" << std::endl;
 	#endif
+
+	m_client_addrss.erase(client_fd);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;

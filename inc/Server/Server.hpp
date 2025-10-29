@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 11:16:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 11:38:18 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,10 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <map>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -41,13 +41,12 @@ class Server
 		void	doPoll();
 
 	private:
-		std::string						m_pw {};
-		int								m_listening_socket_fd {};
-		struct addrinfo					m_hints {};
-		struct addrinfo					*m_addr {};
-		std::vector<int>				m_client_socket_fds {};
-		std::vector<struct sockaddr_in>	m_client_addrss {};
-		std::vector<struct pollfd>		m_pollfds {};
+		std::string							m_pw {};
+		int									m_listening_socket_fd {};
+		struct addrinfo						m_hints {};
+		struct addrinfo						*m_addr {};
+		std::map<int, struct sockaddr_in>	m_client_addrss {};
+		std::vector<struct pollfd>			m_pollfds {};
 
 		void	validatePort( const std::string& port );
 		void	acceptConn();
