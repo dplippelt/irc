@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 11:45:56 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 13:16:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,8 +190,16 @@ void	Server::processClientAct( int client_fd )
 	char buffer[512];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-	if ( bytes <= 0 )
+	if ( bytes == 0 )
 	{
+		removeClient(client_fd);
+		return ;
+	}
+	if ( bytes == -1 )
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			return ;
+		std::cerr << "Error while receiving message from client. Removing client..." << std::endl;
 		removeClient(client_fd);
 		return ;
 	}
