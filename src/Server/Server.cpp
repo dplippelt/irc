@@ -6,16 +6,20 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/28 09:29:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 11:17:12 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server/Server.hpp"
 
+
 /* ==================== Constructors & Destructors ==================== */
 
 Server::~Server()
 {
+	if ( m_addr != nullptr )
+		freeaddrinfo(m_addr);
+
 	for ( auto pollfd : m_pollfds )
 	{
 		if ( close(pollfd.fd) == -1 )
@@ -25,22 +29,27 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
+	, m_hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL }
 {
-	setPort(port);
 
-	m_listening_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	validatePort(port);
+
+	if ( getaddrinfo(NULL, port.data(), &m_hints, &m_addr) )
+		throw std::runtime_error("Error: failed to get required address info");
+	if ( m_addr->ai_next != NULL )
+		std::cerr << "Warning: found more than one matching set of address info";
+
+	m_listening_socket_fd = socket(m_addr->ai_family, m_addr->ai_socktype, m_addr->ai_protocol);
 	if ( m_listening_socket_fd == -1 )
 		throw std::runtime_error("Error: failed to create socket");
 	if ( fcntl(m_listening_socket_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set listening socket to non-blocking");
 	m_pollfds.push_back( {m_listening_socket_fd, POLLIN, 0} );
 
-	m_addr.sin_family = AF_INET;
-	m_addr.sin_port = htons(m_port);
-	m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if ( bind(m_listening_socket_fd, reinterpret_cast<struct sockaddr *>(&m_addr), sizeof(m_addr)) == -1 )
+	if ( bind(m_listening_socket_fd, m_addr->ai_addr, m_addr->ai_addrlen) == -1 )
 		throw std::runtime_error("Error: failed to bind address to socket");
+	freeaddrinfo(m_addr);
+	m_addr = nullptr;
 
 	if ( listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
@@ -56,8 +65,10 @@ Server& Server::operator=( const Server& ) = default;
 
 /* ==================== Helpers ==================== */
 
-void	Server::setPort( const std::string& port )
+void	Server::validatePort( const std::string& port )
 {
+	int	port_int {};
+
 	for ( char c : port )
 	{
 		if ( !std::isdigit(static_cast<unsigned char>(c)) )
@@ -66,14 +77,14 @@ void	Server::setPort( const std::string& port )
 
 	try
 	{
-		m_port = std::stoi(port);
+		port_int = std::stoi(port);
 	}
 	catch ( const std::exception& e )
 	{
 		throw std::runtime_error("Error: could not convert port '" + port + "' to integer");
 	}
 
-	if ( m_port < 1 || m_port > 65535 )
+	if ( port_int < 1 || port_int > 65535 )
 		throw std::runtime_error("Error: port '" + port + "' must be between 1 and 65535");
 }
 
