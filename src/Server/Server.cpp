@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 17:57:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 18:07:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,7 +272,7 @@ void	Server::processClientAct( int client_fd )
 	std::cout << "Activity detected on client socket!" << std::endl;
 	#endif
 
-	char buffer[20];
+	char buffer[512];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
 	if ( bytes == 0 )
