@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:54:03 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 17:00:49 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,11 +281,11 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 			cmd_params.push_back(el);
 	}
 
-	// At the moment nothing is done for a command, this is just a placeholder.
-	(void)client_fd;
+	// At the moment nothing is done for commands (except pong).
 	switch (cmd_idx)
 	{
 	case PING:
+		pong(cmd_params, client_fd);
 		break;
 	case NICK:
 		break;
@@ -355,4 +355,19 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 	default:
 		return ("");
 	}
+}
+
+
+
+
+
+/* ==================== Pong implementation so connection doesn't time out ==================== */
+
+void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
+{
+	std::string pong_str { "PONG :" };
+
+	pong_str.append(cmd_params[0]).append("\r\n");
+
+	send(client_fd, pong_str.data(), pong_str.length(), 0);
 }
