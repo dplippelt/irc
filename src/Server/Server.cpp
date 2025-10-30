@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 12:11:29 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 12:18:01 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ Server::Server( const std::string& port, std::string_view pw )
 
 
 
-/* ==================== Helpers ==================== */
+/* ==================== Initial Server Setup ==================== */
 
 void	Server::validatePort( const std::string& port )
 {
@@ -84,23 +84,6 @@ void	Server::validatePort( const std::string& port )
 
 	if ( port_int < 1 || port_int > 65535 )
 		throw std::runtime_error("Error: port '" + port + "' must be between 1 and 65535");
-}
-
-std::string	Server::getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host )
-{
-	switch (i)
-	{
-	case 1:
-		return (":" + SERVER_NAME + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
-	case 2:
-		return (":" + SERVER_NAME + " 002 " + nick + " :Your host is " + SERVER_NAME + ", running version " + SERVER_VERSION + "\r\n");
-	case 3:
-		return (":" + SERVER_NAME + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
-	case 4:
-		return (":" + SERVER_NAME + " 004 " + nick + " " + SERVER_NAME + " " + SERVER_VERSION + " " + USER_MODES + " " + CHANNEL_MODES + "\r\n");
-	default:
-		return ("");
-	}
 }
 
 void	Server::acceptConn()
@@ -196,6 +179,42 @@ void	Server::removeClient( int client_fd )
 	}
 }
 
+void	Server::processClientAct( int client_fd )
+{
+	#ifdef DEBUG
+	std::cout << "Activity detected on client socket!" << std::endl;
+	#endif
+
+	char buffer[512];
+	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+
+	if ( bytes == 0 )
+	{
+		removeClient(client_fd);
+		return ;
+	}
+	if ( bytes == -1 )
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			return ;
+		std::cerr << "Error while receiving message from client. Removing client..." << std::endl;
+		removeClient(client_fd);
+		return ;
+	}
+
+	buffer[bytes] = '\0';
+	processBuffer(buffer, bytes, client_fd);
+
+	if ( !userIsAuthenticated(client_fd) )
+		userAuthentication(client_fd);
+}
+
+
+
+
+
+/* ==================== Message Processing ==================== */
+
 void	Server::processBuffer( const std::string& buffer, ssize_t bytes, int client_fd )
 {
 	static std::map<int, std::string>	remainders {};
@@ -234,6 +253,12 @@ void	Server::printMsg( std::string_view buffer, std::size_t start_idx, std::size
 	std::cout << buffer.substr(start_idx, end_idx - start_idx);
 }
 
+
+
+
+
+/* ==================== (Mock) Authentication ==================== */
+
 bool	Server::userIsAuthenticated( int client_fd )
 {
 	return ( m_user_auth_status.find(client_fd)->second );
@@ -257,32 +282,19 @@ void	Server::userAuthentication( int client_fd )
 	//else wait to receive more info
 }
 
-void	Server::processClientAct( int client_fd )
+std::string	Server::getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host )
 {
-	#ifdef DEBUG
-	std::cout << "Activity detected on client socket!" << std::endl;
-	#endif
-
-	char buffer[512];
-	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-
-	if ( bytes == 0 )
+	switch (i)
 	{
-		removeClient(client_fd);
-		return ;
+	case 1:
+		return (":" + SERVER_NAME + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
+	case 2:
+		return (":" + SERVER_NAME + " 002 " + nick + " :Your host is " + SERVER_NAME + ", running version " + SERVER_VERSION + "\r\n");
+	case 3:
+		return (":" + SERVER_NAME + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
+	case 4:
+		return (":" + SERVER_NAME + " 004 " + nick + " " + SERVER_NAME + " " + SERVER_VERSION + " " + USER_MODES + " " + CHANNEL_MODES + "\r\n");
+	default:
+		return ("");
 	}
-	if ( bytes == -1 )
-	{
-		if ( errno == EAGAIN || errno == EWOULDBLOCK )
-			return ;
-		std::cerr << "Error while receiving message from client. Removing client..." << std::endl;
-		removeClient(client_fd);
-		return ;
-	}
-
-	buffer[bytes] = '\0';
-	processBuffer(buffer, bytes, client_fd);
-
-	if ( !userIsAuthenticated(client_fd) )
-		userAuthentication(client_fd);
 }
