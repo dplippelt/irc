@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 14:12:17 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 14:17:45 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,9 @@ class Server
 		struct addrinfo						*m_addr {};
 
 		std::map<int, User>					m_client_info {};
-
-
-		std::map<int, struct sockaddr_in>	m_client_addrss {};
 		std::vector<struct pollfd>			m_pollfds {};
 
-		// std::map<int, bool>					m_user_auth_status {};
-
+		// std::map<int, struct sockaddr_in>	m_client_addrss {};
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
