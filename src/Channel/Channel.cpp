@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/29 12:09:31 by seungah       ########   odam.nl         */
+/*   Updated: 2025/10/30 08:59:24 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,5 +72,44 @@ bool Channel::hasKey() const
 bool Channel::hasUserLimit() const
 {
 	return _hasUserLimit;
+}
+
+void Channel::setTopic(const std::string& topic)
+{
+	_topic = topic;
+}
+
+void Channel::setKey(const std::string& key)
+{
+	_key = key;
+}
+
+void Channel::setUserLimit(int limit)
+{
+	_userLimit = limit;
+}
+
+void Channel::setInviteOnly(bool value)
+{
+	_inviteOnly = value;
+}
+
+void Channel::setTopicRestricted(bool value)
+{
+	_topicRestricted = value;
+}
+
+void Channel::setHasKey(bool value)
+{
+	_hasKey = value;
+	if (!value)
+		_key.clear();
+}
+
+void Channel::setHasUserLimit(bool value)
+{
+	_hasUserLimit = value;
+	if (!value)
+		_userLimit = 0;
 }
 
