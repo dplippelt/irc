@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/10/27 11:02:13 by dlippelt          #+#    #+#              #
-#    Updated: 2025/10/27 11:42:54 by dlippelt         ###   ########.fr        #
+#                                                         ::::::::             #
+#    Makefile                                           :+:    :+:             #
+#                                                      +:+                     #
+#    By: dlippelt <dlippelt@student.codam.nl>         +#+                      #
+#                                                    +#+                       #
+#    Created: 2025/10/27 11:02:13 by dlippelt      #+#    #+#                  #
+#    Updated: 2025/10/30 11:22:29 by spyun         ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,25 +39,25 @@ OBJDIRS =	$(sort $(dir $(OBJS)))
 all: $(NAME)
 
 $(OBJDIRS):
-	$(MKDIR) $@
+	@$(MKDIR) $@
 
 $(NAME): $(OBJDIRS) $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) $(OUTPUT) $@
+	@$(CXX) $(CXXFLAGS) $(OBJS) $(OUTPUT) $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(CXXSTD) $(CXXFLAGS) $(DEPFLAGS) $(IFLAGS) $(COMPILE) $< $(OUTPUT) $@
+	@$(CXX) $(CXXSTD) $(CXXFLAGS) $(DEPFLAGS) $(IFLAGS) $(COMPILE) $< $(OUTPUT) $@
 
 clean:
-	$(RM) $(OBJDIR)
-	$(RM) *.xml
+	@$(RM) $(OBJDIR)
+	@$(RM) *.xml
 
 fclean: clean
-	$(RM) $(NAME)
+	@$(RM) $(NAME)
 
 re: fclean all
 
 valg: $(NAME)
-	$(VALG) ./$(NAME) $(ARGS)
+	@$(VALG) ./$(NAME) $(ARGS)
 
 memory: CXXFLAGS += -fsanitize=address
 memory: re

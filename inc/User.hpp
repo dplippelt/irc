@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   User.hpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 16:14:15 by spyun             #+#    #+#             */
-/*   Updated: 2025/10/30 14:03:35 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   User.hpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: spyun <spyun@student.codam.nl>               +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
+/*   Updated: 2025/10/30 20:07:53 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,9 @@ class User
 		int _fd;                        // Client socket file descriptor
 
 		// User identification
-		std::string _nickname;          // IRC nickname (required)
-		std::string _username;          // Username (required)
-		std::string _realname;          // Real name (optional)
+		std::string _nickname;          // IRC nickname
+		std::string _username;          // Username
+		std::string _realname;          // Real name
 		std::string _hostname;          // Hostname
 
 		// Authentication state
