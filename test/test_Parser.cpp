@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 15:13:38 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 18:28:16 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/10/30 18:38:39 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int	main()
 		"KICK #chanell username :me :some reason\r\n", 		// ':' in the last trailing comment 	
 		":prefix PASS   parameter\r\nNICK  	nickname\r\nJOIN   chanell :test    channel\r\n", // multiple messages at a time
 		":prefix JOIN   channel\r\nNICK  	",				// without ending with \r\n
-		"nickname\r\nJOIN   chanell :test    channel",
+		"   \r\nJOIN   chanell :test    channel",
 		"\r\n:prefix PASS  \r\n",							// insaficient params 
 		"nocommand test \r\n",								// incorrect command
 	};

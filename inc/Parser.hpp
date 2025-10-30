@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 13:41:54 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 18:24:37 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/10/30 18:38:02 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ typedef enum e_commands
 }	t_cmds;
 
 # define MINIMUM_PARAMS_PASS 1
-# define MINIMUM_PARAMS_NICK 1
+# define MINIMUM_PARAMS_NICK 0
 # define MINIMUM_PARAMS_USER 4
 # define MINIMUM_PARAMS_JOIN 1
 # define MINIMUM_PARAMS_MSG 0
