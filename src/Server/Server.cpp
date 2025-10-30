@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 12:18:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 12:28:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ Server::Server( const std::string& port, std::string_view pw )
 	freeaddrinfo(m_addr);
 	m_addr = nullptr;
 
-	if ( listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1 )
+	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
 }
 
@@ -209,6 +209,10 @@ void	Server::processClientAct( int client_fd )
 		userAuthentication(client_fd);
 }
 
+Server::Server( const Server& ) = default;
+
+Server& Server::operator=( const Server& ) = default;
+
 
 
 
@@ -287,13 +291,13 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 	switch (i)
 	{
 	case 1:
-		return (":" + SERVER_NAME + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
+		return (":" + s_server_name + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
 	case 2:
-		return (":" + SERVER_NAME + " 002 " + nick + " :Your host is " + SERVER_NAME + ", running version " + SERVER_VERSION + "\r\n");
+		return (":" + s_server_name + " 002 " + nick + " :Your host is " + s_server_name + ", running version " + s_server_version + "\r\n");
 	case 3:
-		return (":" + SERVER_NAME + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
+		return (":" + s_server_name + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
 	case 4:
-		return (":" + SERVER_NAME + " 004 " + nick + " " + SERVER_NAME + " " + SERVER_VERSION + " " + USER_MODES + " " + CHANNEL_MODES + "\r\n");
+		return (":" + s_server_name + " 004 " + nick + " " + s_server_name + " " + s_server_version + " " + s_user_modes + " " + s_channel_modes + "\r\n");
 	default:
 		return ("");
 	}
