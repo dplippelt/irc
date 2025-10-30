@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 14:14:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 16:06:14 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,8 +206,8 @@ void	Server::processClientAct( int client_fd )
 	buffer[bytes] = '\0';
 	processBuffer(buffer, bytes, client_fd);
 
-	if ( !userIsRegistered(client_fd) )
-		userRegistration(client_fd);
+	if ( !userIsAuthenticated(client_fd) )
+		userAuthentication(client_fd);
 }
 
 Server::Server( const Server& ) = default;
@@ -255,12 +255,12 @@ bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx,
 
 void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd )
 {
-	std::string						msg { buffer.substr(start_idx, end_idx - start_idx) };
-	std::string						el {};
-	std::istringstream				iss { msg };
-	std::vector<std::string_view>	cmd_params {};
-	int								i {};
-	int								cmd_idx {};
+	std::string					msg { buffer.substr(start_idx, end_idx - start_idx) };
+	std::string					el {};
+	std::istringstream			iss { msg };
+	std::vector<std::string>	cmd_params {};
+	int							i {};
+	int							cmd_idx {};
 
 	while ( iss >> el )
 	{
@@ -280,10 +280,12 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		pong(cmd_params, client_fd);
 		break;
 	case NICK:
+		nick(cmd_params, client_fd);
 		break;
 	case USER:
 		break;
 	case PASS:
+		pass(cmd_params, client_fd);
 		break;
 	case MODE:
 		break;
@@ -310,15 +312,15 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 
 /* ==================== (Mock) Authentication ==================== */
 
-bool	Server::userIsRegistered( int client_fd )
+bool	Server::userIsAuthenticated( int client_fd )
 {
-	return ( m_client_info.find(client_fd)->second.isRegistered() );
+	return ( m_client_info.find(client_fd)->second.isAuthenticated() );
 }
 
-void	Server::userRegistration( int client_fd )
+void	Server::userAuthentication( int client_fd )
 {
-	//check conditions for user to be registered, this is temporary placeholder check
-	if ( m_client_info.find(client_fd)->second.isRegistered() == false )
+	//check conditions for user to be authenticated, this is temporary placeholder check
+	if ( m_client_info.find(client_fd)->second.isAuthenticated() == false )
 	{
 		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
 		std::string	numericReply;
@@ -328,7 +330,7 @@ void	Server::userRegistration( int client_fd )
 			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
 				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
 		}
-		m_client_info.find(client_fd)->second.setRegistered(true);
+		m_client_info.find(client_fd)->second.setAuthenticated(true);
 	}
 	//else wait to receive more info
 }
@@ -356,7 +358,24 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 
 /* ==================== Command Handling ==================== */
 
-void	Server::pong( std::vector<std::string_view> cmd_params, int client_fd )
+void	Server::broadcast( std::string_view channel, const std::string& message, int excludeFd )
+{
+	(void)channel;
+	(void)message;
+	(void)excludeFd;
+	//Needs Channel class for easy implementation
+	//send msg to every user in the specified channel
+
+	//something like:
+	// Channel&	ch { m_channels.find(channel).second };
+
+	// for ( const auto& member_fd : ch.getMemberfds() )
+	// {
+	// 	send(member_fd, message.data(), message.length(), 0);
+	// }
+}
+
+void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
 {
 	std::string pong_str { "PONG :" };
 
@@ -365,14 +384,56 @@ void	Server::pong( std::vector<std::string_view> cmd_params, int client_fd )
 	send(client_fd, pong_str.data(), pong_str.length(), 0);
 }
 
-void	Server::join( std::vector<std::string_view> cmd_params, int client_fd )
+void	Server::nick( std::vector<std::string>& cmd_params, int client_fd )
+{
+	User&		client { m_client_info.find(client_fd)->second };
+
+	//check for no nickname parameter
+	//check for invalid nickname
+	for ( const auto& cl : m_client_info )
+	{
+		if ( cl.second.getNickname() == cmd_params[0] )
+		{
+			//nickname already in use; can't use new nickname
+			std::string	msg { ":" + s_server_name + " 433 * " + cmd_params[0] + ":Nickname is already in use" };
+			send(client_fd, msg.data(), msg.length(), 0);
+		}
+	}
+
+	if ( !client.getNickname().empty() )
+	{
+		std::string	msg {};
+
+		for ( const auto& channel : client.getChannels() )
+		{
+			//:nick!~nick@host PRIVMSG #channel_name :the message
+			msg = client.getPrefix() + " PRIVMSG " + channel + " :" + client.getNickname() + " changes their nickname to '" + cmd_params[0] + "'\r\n";
+			broadcast(channel, msg);
+		}
+	}
+	client.setNickname(cmd_params[0]);
+}
+
+void	Server::pass( std::vector<std::string>& cmd_params, int client_fd )
+{
+	(void)cmd_params;
+	(void)client_fd;
+	// User&	client { m_client_info.find(client_fd)->second };
+
+	// if ( cmd_params[0] == m_pw )
+	// {
+
+	// }
+}
+
+void	Server::join( std::vector<std::string>& cmd_params, int client_fd )
 {
 	// track that client is in the joined channel / add client to channel
 	(void)cmd_params;
 	(void)client_fd;
 }
 
-void	Server::part( std::vector<std::string_view> cmd_params, int client_fd )
+void	Server::part( std::vector<std::string>& cmd_params, int client_fd )
 {
 	// check if client is in the channel they want to leave
 	// if they are then remove them from the channel

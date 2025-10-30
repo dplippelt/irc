@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 14:17:45 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 14:53:31 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,12 +69,16 @@ class Server
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
 		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
-		bool		userIsRegistered( int client_fd );
-		void		userRegistration( int client_fd );
+		bool		userIsAuthenticated( int client_fd );
+		void		userAuthentication( int client_fd );
 
-		void		pong( std::vector<std::string_view> cmd_params, int client_fd );
-		void		join( std::vector<std::string_view> cmd_params, int client_fd );
-		void		part( std::vector<std::string_view> cmd_params, int client_fd );
+		void	pong( std::vector<std::string>& cmd_params, int client_fd );
+		void	nick( std::vector<std::string>& cmd_params, int client_fd );
+		void	pass( std::vector<std::string>& cmd_params, int client_fd );
+		void	join( std::vector<std::string>& cmd_params, int client_fd );
+		void	part( std::vector<std::string>& cmd_params, int client_fd );
+
+		void	broadcast( const std::string_view channel, const std::string& message, int excludeFd = -1 );
 };
 
 enum Command

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Channel.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 10:31:59 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/28 13:57:45 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 10:31:59 by spyun             #+#    #+#             */
+/*   Updated: 2025/10/30 15:14:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ public:
 	bool isInvited(int fd) const;
 
 	// Utility methods
-	void broadcast(const std::string& message, int excludeFd = -1);
+	// void broadcast(const std::string& message, int excludeFd = -1);
 	std::string getMemberList() const;      // Get list of nicknames
 	bool isEmpty() const;
 };
