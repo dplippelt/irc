@@ -6,12 +6,11 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 12:36:05 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/27 17:19:24 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 14:14:05 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Server/Server.hpp"
+#include "Server.hpp"
 
 int	main( int ac, char *av[] )
 {

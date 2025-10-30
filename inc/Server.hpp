@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 13:30:38 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 14:12:17 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,11 @@
 #include <poll.h>
 #include <errno.h>
 #include <netdb.h>
+#include "User.hpp"
 
 #define DEBUG
+
+class User;
 
 class Server
 {
@@ -52,10 +55,14 @@ class Server
 		int									m_listening_socket_fd {};
 		struct addrinfo						m_hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 		struct addrinfo						*m_addr {};
+
+		std::map<int, User>					m_client_info {};
+
+
 		std::map<int, struct sockaddr_in>	m_client_addrss {};
 		std::vector<struct pollfd>			m_pollfds {};
 
-		std::map<int, bool>					m_user_auth_status {};
+		// std::map<int, bool>					m_user_auth_status {};
 
 
 		void		validatePort( const std::string& port );
@@ -66,8 +73,8 @@ class Server
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
 		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
-		bool		userIsAuthenticated( int client_fd );
-		void		userAuthentication( int client_fd );
+		bool		userIsRegistered( int client_fd );
+		void		userRegistration( int client_fd );
 
 		void		pong( std::vector<std::string_view> cmd_params, int client_fd );
 		void		join( std::vector<std::string_view> cmd_params, int client_fd );

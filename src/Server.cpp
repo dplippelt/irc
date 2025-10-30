@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 13:38:51 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 14:14:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,12 +101,13 @@ void	Server::acceptConn()
 	if ( fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set client socket to non-blocking");
 
-	m_user_auth_status.insert( {client_fd, false} );
-	m_client_addrss.insert( {client_fd, client_addr} );
+	m_client_info.insert( { client_fd, User {client_fd} } );
+	// m_user_auth_status.insert( {client_fd, false} );
+	// m_client_addrss.insert( {client_fd, client_addr} );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
 
 	#ifdef DEBUG
-	std::cout << "Accepted client connection (client port: " << client_addr.sin_port << ")" << std::endl;
+	std::cout << "Accepted client connection (client fd: " << client_fd << ")" << std::endl;
 	#endif
 }
 
@@ -161,10 +162,10 @@ void	Server::doPoll()
 void	Server::removeClient( int client_fd )
 {
 	#ifdef DEBUG
-	std::cout << "Client disconnected (client port: " << m_client_addrss.find(client_fd)->second.sin_port << ")" << std::endl;
+	std::cout << "Client disconnected (client fd: " << client_fd << ")" << std::endl;
 	#endif
 
-	m_client_addrss.erase(client_fd);
+	// m_client_addrss.erase(client_fd);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
@@ -205,8 +206,8 @@ void	Server::processClientAct( int client_fd )
 	buffer[bytes] = '\0';
 	processBuffer(buffer, bytes, client_fd);
 
-	if ( !userIsAuthenticated(client_fd) )
-		userAuthentication(client_fd);
+	if ( !userIsRegistered(client_fd) )
+		userRegistration(client_fd);
 }
 
 Server::Server( const Server& ) = default;
@@ -309,15 +310,15 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 
 /* ==================== (Mock) Authentication ==================== */
 
-bool	Server::userIsAuthenticated( int client_fd )
+bool	Server::userIsRegistered( int client_fd )
 {
-	return ( m_user_auth_status.find(client_fd)->second );
+	return ( m_client_info.find(client_fd)->second.isRegistered() );
 }
 
-void	Server::userAuthentication( int client_fd )
+void	Server::userRegistration( int client_fd )
 {
-	//check conditions for user to be authentiacted, this is temporary placeholder check
-	if (m_user_auth_status.find(client_fd)->second == false)
+	//check conditions for user to be registered, this is temporary placeholder check
+	if ( m_client_info.find(client_fd)->second.isRegistered() == false )
 	{
 		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
 		std::string	numericReply;
@@ -327,7 +328,7 @@ void	Server::userAuthentication( int client_fd )
 			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
 				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
 		}
-		m_user_auth_status.find(client_fd)->second = true;
+		m_client_info.find(client_fd)->second.setRegistered(true);
 	}
 	//else wait to receive more info
 }
@@ -367,6 +368,8 @@ void	Server::pong( std::vector<std::string_view> cmd_params, int client_fd )
 void	Server::join( std::vector<std::string_view> cmd_params, int client_fd )
 {
 	// track that client is in the joined channel / add client to channel
+	(void)cmd_params;
+	(void)client_fd;
 }
 
 void	Server::part( std::vector<std::string_view> cmd_params, int client_fd )
@@ -375,4 +378,6 @@ void	Server::part( std::vector<std::string_view> cmd_params, int client_fd )
 	// if they are then remove them from the channel
 
 	// send confirmation to everyone in the channel
+	(void)cmd_params;
+	(void)client_fd;
 }
