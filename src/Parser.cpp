@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 15:15:41 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 16:39:33 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 18:29:28 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,9 @@
 
 /* ==================== Constructors & Destructor ==================== */
 
-Parser::Parser(const std::string &buffer)
-	: m_raw_input{ buffer }
+Parser::Parser()
+	: m_buffer{}, m_messages{}
 {
-	// TODO: parse to the point where the last delimiter "\r\n" in multiple messages is found
-	// if not found, throw an error
 }
 
 Parser::Parser(const Parser &other)
@@ -30,7 +28,7 @@ const Parser	&Parser::operator=(const Parser &other)
 {
 	if (this == &other)
 		return *this;
-	m_raw_input = other.m_raw_input;
+	m_buffer = other.m_buffer;
 	m_messages = other.m_messages;
 	return *this;
 }
@@ -71,7 +69,7 @@ void	Parser::setCommandType(t_message &elem)
 	elem.cmd_type = index;
 }
 
-void	Parser::partParams(std::istringstream &message, t_message &elem)
+void	Parser::setParams(std::istringstream &message, t_message &elem, int nim)
 {
 	std::string	param{};
 	int			nparam{};
@@ -79,49 +77,99 @@ void	Parser::partParams(std::istringstream &message, t_message &elem)
 	while (message >> param)
 	{
 		elem.params.push_back(param);
-		if (param.front() == ':' && getline(message, param))
+		if (nparam >= nim && param.front() == ':' && getline(message, param))
 			elem.params.back() += param;
 		++nparam;
 	}
 	elem.nparams = nparam;
+	if (nparam < nim)
+		elem.err_type = ERR_NEEDMOREPARAMS;
 }
 
-void	Parser::paramsValidation(t_message &elem)
+void	Parser::partParams(std::istringstream &message, t_message &elem)
 {
 	switch (elem.cmd_type)
 	{
 	case e_pass:
-		if (elem.nparams < 1)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_PASS);
+		break;
+	case e_nick:
+		setParams(message, elem, MINIMUM_PARAMS_NICK);
 		break;
 	case e_user:
-		if (elem.nparams < 4)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_USER);
 		break;
 	case e_join:
-		if (elem.nparams < 1)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_JOIN);
+		break;
+	case e_msg:
+		setParams(message, elem, MINIMUM_PARAMS_MSG);
 		break;
 	case e_kick:
-		if (elem.nparams < 2)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_KICK);
 		break;
 	case e_invite:
-		if (elem.nparams < 2)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_INVITE);
 		break;
 	case e_topic:
-		if (elem.nparams < 1)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_TOPIC);
 		break;
 	case e_mode:
-		if (elem.nparams < 1)
-			elem.err_type = ERR_NEEDMOREPARAMS;
+		setParams(message, elem, MINIMUM_PARAMS_MODE);
 		break;
 	default:
 		break;
 	}
+
+	// std::string	param{};
+	// int			nparam{};
+
+	// while (message >> param)
+	// {
+	// 	elem.params.push_back(param);
+	// 	if (param.front() == ':' && getline(message, param))
+	// 		elem.params.back() += param;
+	// 	++nparam;
+	// }
+	// elem.nparams = nparam;
 }
+
+// void	Parser::paramsValidation(t_message &elem)
+// {
+// 	switch (elem.cmd_type)
+// 	{
+// 	case e_pass:
+// 		if (elem.nparams < 1)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_user:
+// 		if (elem.nparams < 4)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_join:
+// 		if (elem.nparams < 1)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_kick:
+// 		if (elem.nparams < 2)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_invite:
+// 		if (elem.nparams < 2)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_topic:
+// 		if (elem.nparams < 1)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	case e_mode:
+// 		if (elem.nparams < 1)
+// 			elem.err_type = ERR_NEEDMOREPARAMS;
+// 		break;
+// 	default:
+// 		break;
+// 	}
+// }
 
 /*
    The protocol messages must be extracted from the contiguous stream of
@@ -144,7 +192,7 @@ void	Parser::partitioning(const std::string &input)
 	if (elem.cmd_type != e_unkown)
 	{
 		partParams(message, elem);
-		paramsValidation(elem);
+		// paramsValidation(elem);
 	}
 	else
 		elem.err_type = ERR_UNKNOWNCOMMAND;
@@ -176,26 +224,38 @@ void	Parser::partitioning(const std::string &input)
 
 void	Parser::parse()
 {
-	std::istringstream 	messages{ m_raw_input };
+	std::istringstream 	messages{ m_buffer };
 	std::string			message{};
 
+	std::cout << "=== m_buffer at the beginning ===\n";
+	std::cout << m_buffer << '\n';
+	std::cout << "===\n";
 	while (getline(messages, message))
 	{
+		if (messages.eof())
+		{
+			m_buffer = message;
+			return ;
+		}
 		message.pop_back();
 		partitioning(message);
 	}
+	m_buffer.clear();
 	// TODO: authentification check (PASS --> USER --> NICK)
 	// , only after both USER and NICK have been received from a client does a user become registered.
 }
+
+void	Parser::loadInput(const std::string &input)
+{
+	m_buffer += input;
+}
+
 
 /* To debug */
 void	Parser::print() const
 {
 	t_message	elem{};
 
-	std::cout << "=== raw_input ===\n";
-	std::cout << m_raw_input << '\n';
-	std::cout << "===\n";
 	int	n{};
 	for (auto it{m_messages.begin()}; it != m_messages.end(); ++it)
 	{
@@ -211,7 +271,12 @@ void	Parser::print() const
 			i++;
 		}
 		std::cout << "cmd_type: " << elem.cmd_type << '\n';
+		std::cout << "err_type: " << elem.err_type << '\n';
 		std::cout << "==\n";
 		++n;
 	}
+	std::cout << "=== m_buffer at the end ===\n";
+	std::cout << m_buffer << '\n';
+	std::cout << "===\n";
+
 }
