@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:38:55 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 16:43:25 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,7 +257,6 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 	std::istringstream			iss { msg };
 	std::vector<std::string>	cmd_params {};
 	bool						first_param { true };
-	bool						trailing_colon { false };
 	int							cmd_idx {};
 
 	while ( iss >> el )
@@ -273,6 +272,9 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		if ( el[0] == ':' )
 		{
 			el = msg.substr(msg.find_last_of(":"));
+			if ( cmd_idx != NO_CMD )
+				cmd_params.push_back(el);
+			break;
 		}
 
 		if ( cmd_idx != NO_CMD )
