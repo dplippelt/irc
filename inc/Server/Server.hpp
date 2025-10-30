@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 17:51:04 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 12:07:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 #include <errno.h>
 #include <netdb.h>
 
-#define LISTEN_BACKLOG 50
 #define DEBUG
 
 class Server
@@ -35,20 +34,21 @@ class Server
 		~Server();
 		Server() = delete;
 		Server( const std::string& port, std::string_view pw );
-		Server( const Server& );
-		Server& operator=( const Server& );
+		Server( const Server& ) = delete;
+		Server& operator=( const Server& ) = delete;
 
 		void	doPoll();
 
 	private:
-		static inline const std::string	s_server_name {"ft_irc"};
-		static inline const std::string	s_server_version {"0.1"};
-		static inline const std::string	s_user_modes {"o"};
-		static inline const std::string	s_channel_modes {"itkol"};
+		const int			LISTEN_BACKLOG { 50 };
+		const std::string	SERVER_NAME { "ft_irc" };
+		const std::string	SERVER_VERSION { "0.1" };
+		const std::string	USER_MODES { "o" };
+		const std::string	CHANNEL_MODES { "itkol" };
 
 		std::string							m_pw {};
 		int									m_listening_socket_fd {};
-		struct addrinfo						m_hints {};
+		struct addrinfo						m_hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 		struct addrinfo						*m_addr {};
 		std::map<int, struct sockaddr_in>	m_client_addrss {};
 		std::vector<struct pollfd>			m_pollfds {};
@@ -66,5 +66,4 @@ class Server
 		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
 		void		userAuthentication( int client_fd );
-
 };

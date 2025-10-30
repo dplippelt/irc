@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 18:08:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 12:11:29 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
-	, m_hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL }
 {
 
 	validatePort(port);
@@ -57,10 +56,6 @@ Server::Server( const std::string& port, std::string_view pw )
 	if ( listen(m_listening_socket_fd, LISTEN_BACKLOG) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
 }
-
-Server::Server( const Server& ) = default;
-
-Server& Server::operator=( const Server& ) = default;
 
 
 
@@ -96,13 +91,13 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 	switch (i)
 	{
 	case 1:
-		return (":" + s_server_name + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
+		return (":" + SERVER_NAME + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
 	case 2:
-		return (":" + s_server_name + " 002 " + nick + " :Your host is " + s_server_name + ", running version " + s_server_version + "\r\n");
+		return (":" + SERVER_NAME + " 002 " + nick + " :Your host is " + SERVER_NAME + ", running version " + SERVER_VERSION + "\r\n");
 	case 3:
-		return (":" + s_server_name + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
+		return (":" + SERVER_NAME + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
 	case 4:
-		return (":" + s_server_name + " 004 " + nick + " " + s_server_name + " " + s_server_version + " " + s_user_modes + " " + s_channel_modes + "\r\n");
+		return (":" + SERVER_NAME + " 004 " + nick + " " + SERVER_NAME + " " + SERVER_VERSION + " " + USER_MODES + " " + CHANNEL_MODES + "\r\n");
 	default:
 		return ("");
 	}
@@ -247,8 +242,7 @@ bool	Server::userIsAuthenticated( int client_fd )
 void	Server::userAuthentication( int client_fd )
 {
 	//check conditions for user to be authentiacted, this is temporary placeholder check
-	static int npoll {};
-	if (npoll == 4)
+	if (m_user_auth_status.find(client_fd)->second == false)
 	{
 		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
 		std::string	numericReply;
@@ -259,10 +253,8 @@ void	Server::userAuthentication( int client_fd )
 				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
 		}
 		m_user_auth_status.find(client_fd)->second = true;
-		npoll = 0;
 	}
 	//else wait to receive more info
-	npoll++;
 }
 
 void	Server::processClientAct( int client_fd )
