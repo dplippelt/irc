@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   User.cpp                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 16:15:28 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/28 13:31:09 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   User.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 16:15:28 by spyun             #+#    #+#             */
+/*   Updated: 2025/10/30 15:01:01 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,8 @@ std::string User::getPrefix() const
 	std::string prefix = ":" + _nickname;
 	if(!_nickname.empty())
 	{
-		prefix += "!" + _username;
+		// prefix += "!" + _username;
+		prefix += "!~" + _username;
 	};
 	if (!_hostname.empty())
 	{
