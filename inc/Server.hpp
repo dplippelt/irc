@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 12:28:29 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 13:30:38 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <sys/types.h>
@@ -45,7 +46,7 @@ class Server
 		static inline const std::string						s_server_version { "0.1" };
 		static inline const std::string						s_user_modes { "o" };
 		static inline const std::string						s_channel_modes { "itkol" };
-		static inline const std::vector<std::string_view>	s_commands { "PING", "NICK", "USER", "PASS" };
+		static inline const std::vector<std::string_view>	s_commands { "PING", "NICK", "USER", "PASS", "MODE", "WHOIS", "JOIN", "PART", "KICK", "NO_CMD" };
 
 		std::string							m_pw {};
 		int									m_listening_socket_fd {};
@@ -63,8 +64,26 @@ class Server
 		void		removeClient( int client_fd );
 		void		processBuffer( const std::string& buffer, ssize_t bytes, int client_fd );
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
-		void		printMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx );
+		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
 		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
 		void		userAuthentication( int client_fd );
+
+		void		pong( std::vector<std::string_view> cmd_params, int client_fd );
+		void		join( std::vector<std::string_view> cmd_params, int client_fd );
+		void		part( std::vector<std::string_view> cmd_params, int client_fd );
+};
+
+enum Command
+{
+	PING,
+	NICK,
+	USER,
+	PASS,
+	MODE,
+	WHOIS,
+	JOIN,
+	PART,
+	KICK,
+	NO_CMD
 };

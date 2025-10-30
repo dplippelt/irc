@@ -6,11 +6,11 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 12:28:56 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 13:38:51 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server/Server.hpp"
+#include "Server.hpp"
 
 
 /* ==================== Constructors & Destructors ==================== */
@@ -123,7 +123,7 @@ void	Server::doPoll()
 		switch (errno)
 		{
 		case EINTR:
-			return ;
+			return;
 		case EINVAL:
 			throw std::runtime_error("Error: poll called with invalid argument");
 		case ENOMEM:
@@ -144,7 +144,7 @@ void	Server::doPoll()
 			else
 			{
 				removeClient(m_pollfds[i].fd);
-				continue ;
+				continue;
 			}
 		}
 
@@ -174,7 +174,7 @@ void	Server::removeClient( int client_fd )
 		if ( (*it).fd == client_fd )
 		{
 			m_pollfds.erase(it);
-			break ;
+			break;
 		}
 	}
 }
@@ -191,15 +191,15 @@ void	Server::processClientAct( int client_fd )
 	if ( bytes == 0 )
 	{
 		removeClient(client_fd);
-		return ;
+		return;
 	}
 	if ( bytes == -1 )
 	{
 		if ( errno == EAGAIN || errno == EWOULDBLOCK )
-			return ;
+			return;
 		std::cerr << "Error while receiving message from client. Removing client..." << std::endl;
 		removeClient(client_fd);
-		return ;
+		return;
 	}
 
 	buffer[bytes] = '\0';
@@ -231,9 +231,9 @@ void	Server::processBuffer( const std::string& buffer, ssize_t bytes, int client
 	{
 		start_idx_prev = start_idx;
 		if ( !foundEndOfMessage(buffer, &start_idx, &eom_idx) )
-			break ;
+			break;
 
-		printMsg(remainder + buffer, start_idx_prev, start_idx + remainder.length());
+		processMsg(remainder + buffer, start_idx_prev, start_idx + remainder.length(), client_fd);
 		remainder.clear();
 	}
 	if ( start_idx != static_cast<std::size_t>(bytes) )
@@ -252,9 +252,55 @@ bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx,
 	return (false);
 }
 
-void	Server::printMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx )
+void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd )
 {
-	std::cout << buffer.substr(start_idx, end_idx - start_idx);
+	std::string						msg { buffer.substr(start_idx, end_idx - start_idx) };
+	std::string						el {};
+	std::istringstream				iss { msg };
+	std::vector<std::string_view>	cmd_params {};
+	int								i {};
+	int								cmd_idx {};
+
+	while ( iss >> el )
+	{
+		if ( i++ == 0 )
+		{
+			while ( s_commands[cmd_idx] != el && s_commands[cmd_idx] != "NO_CMD" )
+				cmd_idx++;
+			continue;
+		}
+		if ( cmd_idx != NO_CMD )
+			cmd_params.push_back(el);
+	}
+
+	switch (cmd_idx)
+	{
+	case PING:
+		pong(cmd_params, client_fd);
+		break;
+	case NICK:
+		break;
+	case USER:
+		break;
+	case PASS:
+		break;
+	case MODE:
+		break;
+	case WHOIS:
+		break;
+	case JOIN:
+		join(cmd_params, client_fd);
+		break;
+	case PART:
+		break;
+	case KICK:
+		break;
+	default:
+		break;
+	}
+
+	std::cout << msg;
+
 }
 
 
@@ -301,4 +347,32 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 	default:
 		return ("");
 	}
+}
+
+
+
+
+
+/* ==================== Command Handling ==================== */
+
+void	Server::pong( std::vector<std::string_view> cmd_params, int client_fd )
+{
+	std::string pong_str { "PONG :" };
+
+	pong_str.append(cmd_params[0]).append("\r\n");
+
+	send(client_fd, pong_str.data(), pong_str.length(), 0);
+}
+
+void	Server::join( std::vector<std::string_view> cmd_params, int client_fd )
+{
+	// track that client is in the joined channel / add client to channel
+}
+
+void	Server::part( std::vector<std::string_view> cmd_params, int client_fd )
+{
+	// check if client is in the channel they want to leave
+	// if they are then remove them from the channel
+
+	// send confirmation to everyone in the channel
 }
