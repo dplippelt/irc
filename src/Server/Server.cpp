@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/29 11:45:56 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/29 13:37:26 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,6 @@ void	Server::processClientAct( int client_fd )
 
 	char buffer[512];
 	ssize_t bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-
 	if ( bytes <= 0 )
 	{
 		removeClient(client_fd);
