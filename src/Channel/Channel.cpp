@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 08:59:24 by spyun         ########   odam.nl         */
+/*   Updated: 2025/10/30 11:05:20 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,3 +113,106 @@ void Channel::setHasUserLimit(bool value)
 		_userLimit = 0;
 }
 
+void Channel::addMember(User* user)
+{
+	if (user)
+	{
+		_members[user->getFd()] = user;
+		if (_members.size() == 1)
+		{
+			_operators.insert(user->getFd());
+		}
+	}
+}
+
+void Channel::removeMember(int fd)
+{
+	_members.erase(fd);
+	_operators.erase(fd);
+	_inviteList.erase(fd);
+}
+
+bool Channel::isMember(int fd) const
+{
+	return _members.find(fd) != _members.end();
+}
+
+User* Channel::getMember(int fd) const
+{
+	std::map<int, User*>::const_iterator it = _members.find(fd);
+	if (it != _members.end())
+		return it->second;
+	return nullptr;
+}
+
+const std::map<int, User*>& Channel::getMembers() const
+{
+	return _members;
+}
+
+void Channel::addOperator(int fd)
+{
+	if(isMember(fd))
+		_operators.insert(fd);
+}
+
+void Channel::removeOperator(int fd)
+{
+	_operators.erase(fd);
+}
+
+bool Channel::isOperator(int fd) const
+{
+	return _operators.find(fd) != _operators.end();
+}
+
+const std::set<int>& Channel::getOperators() const
+{
+	return _operators;
+}
+
+void Channel::addInvite(int fd)
+{
+	_inviteList.insert(fd);
+}
+
+void Channel::removeInvite(int fd)
+{
+	_inviteList.erase(fd);
+}
+
+bool Channel::isInvited(int fd) const
+{
+	return _inviteList.find(fd) != _inviteList.end();
+}
+
+void Channel::broadcast(const std::string& message, int excludeFd)
+{
+	for (std::map<int, User*>::const_iterator it = _members.begin(); it != _members.end(); ++it)
+	{
+		if (it->first != excludeFd)
+		{
+			//placeholder for sending message to user
+		}
+	}
+}
+
+std::string Channel::getMemberList() const
+{
+	std::string memberList;
+	for (std::map<int, User*>::const_iterator it = _members.begin(); it != _members.end(); ++it)
+	{
+		if (!memberList.empty())
+			memberList += " ";
+		if (isOperator(it->first))
+			memberList += "@";
+		memberList += it->second->getNickname();
+	}
+	return memberList;
+}
+
+
+bool Channel::isEmpty() const
+{
+	return _members.empty();
+}
