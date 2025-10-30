@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:06:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 16:36:14 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,11 @@ Server::~Server()
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
 {
+	struct addrinfo	hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
 	validatePort(port);
 
-	if ( getaddrinfo(NULL, port.data(), &m_hints, &m_addr) )
+	if ( getaddrinfo(NULL, port.data(), &hints, &m_addr) )
 		throw std::runtime_error("Error: failed to get required address info");
 	if ( m_addr->ai_next != NULL )
 		std::cerr << "Warning: found more than one matching set of address info";
@@ -102,8 +103,6 @@ void	Server::acceptConn()
 		throw std::runtime_error("Error: failed to set client socket to non-blocking");
 
 	m_client_info.insert( { client_fd, User {client_fd} } );
-	// m_user_auth_status.insert( {client_fd, false} );
-	// m_client_addrss.insert( {client_fd, client_addr} );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
 
 	#ifdef DEBUG
@@ -164,8 +163,6 @@ void	Server::removeClient( int client_fd )
 	#ifdef DEBUG
 	std::cout << "Client disconnected (client fd: " << client_fd << ")" << std::endl;
 	#endif
-
-	// m_client_addrss.erase(client_fd);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
@@ -259,40 +256,45 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 	std::string					el {};
 	std::istringstream			iss { msg };
 	std::vector<std::string>	cmd_params {};
-	int							i {};
+	bool						first_param { true };
+	bool						trailing_colon { false };
 	int							cmd_idx {};
 
 	while ( iss >> el )
 	{
-		if ( i++ == 0 )
+		if ( first_param )
 		{
 			while ( s_commands[cmd_idx] != el && s_commands[cmd_idx] != "NO_CMD" )
 				cmd_idx++;
+			first_param = false;
 			continue;
 		}
+
+		if ( el[0] == ':' )
+		{
+			el = msg.substr(msg.find_last_of(":"));
+		}
+
 		if ( cmd_idx != NO_CMD )
 			cmd_params.push_back(el);
 	}
 
+	// At the moment nothing is done for a command, this is just a placeholder.
 	switch (cmd_idx)
 	{
 	case PING:
-		pong(cmd_params, client_fd);
 		break;
 	case NICK:
-		nick(cmd_params, client_fd);
 		break;
 	case USER:
 		break;
 	case PASS:
-		pass(cmd_params, client_fd);
 		break;
 	case MODE:
 		break;
 	case WHOIS:
 		break;
 	case JOIN:
-		join(cmd_params, client_fd);
 		break;
 	case PART:
 		break;
@@ -302,8 +304,8 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		break;
 	}
 
+	// Debugging echo of what was received by the server
 	std::cout << msg;
-
 }
 
 
@@ -350,95 +352,4 @@ std::string	Server::getNumericReply( int i, const std::string& nick, const std::
 	default:
 		return ("");
 	}
-}
-
-
-
-
-
-/* ==================== Command Handling ==================== */
-
-void	Server::broadcast( std::string_view channel, const std::string& message, int excludeFd )
-{
-	(void)channel;
-	(void)message;
-	(void)excludeFd;
-	//Needs Channel class for easy implementation
-	//send msg to every user in the specified channel
-
-	//something like:
-	// Channel&	ch { m_channels.find(channel).second };
-
-	// for ( const auto& member_fd : ch.getMemberfds() )
-	// {
-	// 	send(member_fd, message.data(), message.length(), 0);
-	// }
-}
-
-void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
-{
-	std::string pong_str { "PONG :" };
-
-	pong_str.append(cmd_params[0]).append("\r\n");
-
-	send(client_fd, pong_str.data(), pong_str.length(), 0);
-}
-
-void	Server::nick( std::vector<std::string>& cmd_params, int client_fd )
-{
-	User&		client { m_client_info.find(client_fd)->second };
-
-	//check for no nickname parameter
-	//check for invalid nickname
-	for ( const auto& cl : m_client_info )
-	{
-		if ( cl.second.getNickname() == cmd_params[0] )
-		{
-			//nickname already in use; can't use new nickname
-			std::string	msg { ":" + s_server_name + " 433 * " + cmd_params[0] + ":Nickname is already in use" };
-			send(client_fd, msg.data(), msg.length(), 0);
-		}
-	}
-
-	if ( !client.getNickname().empty() )
-	{
-		std::string	msg {};
-
-		for ( const auto& channel : client.getChannels() )
-		{
-			//:nick!~nick@host PRIVMSG #channel_name :the message
-			msg = client.getPrefix() + " PRIVMSG " + channel + " :" + client.getNickname() + " changes their nickname to '" + cmd_params[0] + "'\r\n";
-			broadcast(channel, msg);
-		}
-	}
-	client.setNickname(cmd_params[0]);
-}
-
-void	Server::pass( std::vector<std::string>& cmd_params, int client_fd )
-{
-	(void)cmd_params;
-	(void)client_fd;
-	// User&	client { m_client_info.find(client_fd)->second };
-
-	// if ( cmd_params[0] == m_pw )
-	// {
-
-	// }
-}
-
-void	Server::join( std::vector<std::string>& cmd_params, int client_fd )
-{
-	// track that client is in the joined channel / add client to channel
-	(void)cmd_params;
-	(void)client_fd;
-}
-
-void	Server::part( std::vector<std::string>& cmd_params, int client_fd )
-{
-	// check if client is in the channel they want to leave
-	// if they are then remove them from the channel
-
-	// send confirmation to everyone in the channel
-	(void)cmd_params;
-	(void)client_fd;
 }

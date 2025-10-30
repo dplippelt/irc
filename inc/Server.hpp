@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 14:53:31 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 16:22:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,13 +53,9 @@ class Server
 
 		std::string							m_pw {};
 		int									m_listening_socket_fd {};
-		struct addrinfo						m_hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 		struct addrinfo						*m_addr {};
-
 		std::map<int, User>					m_client_info {};
 		std::vector<struct pollfd>			m_pollfds {};
-
-		// std::map<int, struct sockaddr_in>	m_client_addrss {};
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
@@ -71,14 +67,6 @@ class Server
 		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
 		void		userAuthentication( int client_fd );
-
-		void	pong( std::vector<std::string>& cmd_params, int client_fd );
-		void	nick( std::vector<std::string>& cmd_params, int client_fd );
-		void	pass( std::vector<std::string>& cmd_params, int client_fd );
-		void	join( std::vector<std::string>& cmd_params, int client_fd );
-		void	part( std::vector<std::string>& cmd_params, int client_fd );
-
-		void	broadcast( const std::string_view channel, const std::string& message, int excludeFd = -1 );
 };
 
 enum Command
