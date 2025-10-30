@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:43:25 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 16:54:03 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,7 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 	}
 
 	// At the moment nothing is done for a command, this is just a placeholder.
+	(void)client_fd;
 	switch (cmd_idx)
 	{
 	case PING:
