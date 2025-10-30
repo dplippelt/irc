@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 11:05:20 by spyun         ########   odam.nl         */
+/*   Updated: 2025/10/30 11:17:37 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,7 @@ void Channel::broadcast(const std::string& message, int excludeFd)
 	{
 		if (it->first != excludeFd)
 		{
+			(void)message;
 			//placeholder for sending message to user
 		}
 	}
