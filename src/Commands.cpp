@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 11:28:04 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 13:39:23 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,3 +282,4 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	// Check if registration is now complete
 	checkRegistration(user);
 }
+
