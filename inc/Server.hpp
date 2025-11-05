@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/05 11:08:53 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 11:33:18 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 #include "Channel.hpp"
 #include "Commands.hpp"
 
-#define DEBUG
+// #define DEBUG
 
 class Channel;
 class Commands;

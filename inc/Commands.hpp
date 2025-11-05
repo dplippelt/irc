@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 11:01:40 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 11:27:41 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <sstream>
 #include <sys/socket.h>
 #include <iostream>
+#include <cstring>
+#include <iomanip>
 #include "User.hpp"
 #include "Channel.hpp"
 

@@ -6,12 +6,11 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 11:03:18 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 11:28:04 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
-#include <cstring>
 
 Commands::Commands(std::map<int, User*>& users,
 				   std::map<std::string, Channel*>& channels,
@@ -33,8 +32,6 @@ void Commands::sendResponse(int fd, const std::string& message)
 	if (fullMessage.empty() || fullMessage.back() != '\n')
 		fullMessage += "\r\n";
 
-	send(fd, fullMessage.c_str(), fullMessage.length(), 0);
-
 	#ifdef DEBUG
 	std::cout << "Sent to fd " << fd << ": " << fullMessage;
 	#endif
@@ -50,8 +47,12 @@ void Commands::sendResponse(int fd, const std::string& message)
 void Commands::sendNumericReply(int fd, int code, const std::string& message)
 {
 	std::ostringstream oss;
-	oss << ":ft_irc " << code << " * " << message;
+	oss << ":ft_irc " << std::setw(3) << std::setfill('0') << code << " * " << message;
 	sendResponse(fd, oss.str());
+
+	#ifdef DEBUG
+	std::cout << "Numeric reply " << code << " sent to fd " << fd << std::endl;
+	#endif
 }
 
 void Commands::sendError(int fd, const std::string& command, const std::string& message)
