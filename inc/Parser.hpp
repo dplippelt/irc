@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 13:41:54 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 18:38:02 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/05 16:37:28 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ typedef enum e_commands
 	e_invite,
 	e_topic,
 	e_mode,
+	e_whois,
 	e_unkown,
 }	t_cmds;
 
@@ -64,6 +65,7 @@ typedef enum e_commands
 # define MINIMUM_PARAMS_INVITE 2
 # define MINIMUM_PARAMS_TOPIC 1
 # define MINIMUM_PARAMS_MODE 1
+# define MINIMUM_PARAMS_WHOIS 0
 
 typedef struct s_message
 {
@@ -85,7 +87,7 @@ private:
 
 	static inline const std::vector<std::string>	k_commands ={
 		"PASS", "NICK", "USER", "JOIN", "PRIVMSG", "KICK", "INVITE", 
-		"TOPIC", "MODE",
+		"TOPIC", "MODE", "WHOIS",
 	};
 
 	void	partitioning(const std::string &input);
@@ -102,8 +104,9 @@ public:
 	const Parser	&operator=(const Parser &other);
 	~Parser();
 
-	void	loadInput(const std::string &input);
-	void	parse();
+	Parser	&loadInput(const std::string &input);
+	Parser	&parse();
+	std::list<t_message>	&getMessages();
 	void	print() const;
 };
 

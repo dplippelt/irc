@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 15:15:41 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 18:29:28 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/05 16:38:49 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void	Parser::setParams(std::istringstream &message, t_message &elem, int nim)
 	while (message >> param)
 	{
 		elem.params.push_back(param);
-		if (nparam >= nim && param.front() == ':' && getline(message, param))
+		if (nparam >= nim - 1 && param.front() == ':' && getline(message, param))
 			elem.params.back() += param;
 		++nparam;
 	}
@@ -117,59 +117,13 @@ void	Parser::partParams(std::istringstream &message, t_message &elem)
 	case e_mode:
 		setParams(message, elem, MINIMUM_PARAMS_MODE);
 		break;
+	case e_whois:
+		setParams(message, elem, MINIMUM_PARAMS_WHOIS);
+		break;
 	default:
 		break;
 	}
-
-	// std::string	param{};
-	// int			nparam{};
-
-	// while (message >> param)
-	// {
-	// 	elem.params.push_back(param);
-	// 	if (param.front() == ':' && getline(message, param))
-	// 		elem.params.back() += param;
-	// 	++nparam;
-	// }
-	// elem.nparams = nparam;
 }
-
-// void	Parser::paramsValidation(t_message &elem)
-// {
-// 	switch (elem.cmd_type)
-// 	{
-// 	case e_pass:
-// 		if (elem.nparams < 1)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_user:
-// 		if (elem.nparams < 4)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_join:
-// 		if (elem.nparams < 1)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_kick:
-// 		if (elem.nparams < 2)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_invite:
-// 		if (elem.nparams < 2)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_topic:
-// 		if (elem.nparams < 1)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	case e_mode:
-// 		if (elem.nparams < 1)
-// 			elem.err_type = ERR_NEEDMOREPARAMS;
-// 		break;
-// 	default:
-// 		break;
-// 	}
-// }
 
 /*
    The protocol messages must be extracted from the contiguous stream of
@@ -222,7 +176,7 @@ void	Parser::partitioning(const std::string &input)
    item separator, a reply must be sent for each item.
 */
 
-void	Parser::parse()
+Parser	&Parser::parse()
 {
 	std::istringstream 	messages{ m_buffer };
 	std::string			message{};
@@ -235,21 +189,27 @@ void	Parser::parse()
 		if (messages.eof())
 		{
 			m_buffer = message;
-			return ;
+			return *this;
 		}
 		message.pop_back();
 		partitioning(message);
 	}
 	m_buffer.clear();
+	return *this;
 	// TODO: authentification check (PASS --> USER --> NICK)
 	// , only after both USER and NICK have been received from a client does a user become registered.
 }
 
-void	Parser::loadInput(const std::string &input)
+Parser	&Parser::loadInput(const std::string &input)
 {
 	m_buffer += input;
+	return *this;
 }
 
+std::list<t_message>	&Parser::getMessages()
+{
+	return m_messages;
+}
 
 /* To debug */
 void	Parser::print() const
