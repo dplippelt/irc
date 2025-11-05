@@ -6,14 +6,12 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 09:54:07 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 11:03:18 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
-#include <sstream>
-#include <sys/socket.h>
-#include <sstream>
+#include <cstring>
 
 Commands::Commands(std::map<int, User*>& users,
 				   std::map<std::string, Channel*>& channels,
@@ -32,10 +30,21 @@ Commands::~Commands() {}
 void Commands::sendResponse(int fd, const std::string& message)
 {
 	std::string fullMessage = message;
-	if (fullMessage.back() != '\n')
+	if (fullMessage.empty() || fullMessage.back() != '\n')
 		fullMessage += "\r\n";
 
 	send(fd, fullMessage.c_str(), fullMessage.length(), 0);
+
+	#ifdef DEBUG
+	std::cout << "Sent to fd " << fd << ": " << fullMessage;
+	#endif
+
+	ssize_t sent = send(fd, fullMessage.c_str(), fullMessage.length(), 0);
+	if (sent == -1)
+	{
+		std::cerr << "Error: Failed to send message to fd " << fd << ": "
+				  << strerror(errno) << std::endl;
+	}
 }
 
 void Commands::sendNumericReply(int fd, int code, const std::string& message)

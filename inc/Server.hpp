@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/05 09:49:52 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 11:08:53 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,9 @@ class Server
 		void		processBuffer( const std::string& buffer, ssize_t bytes, int client_fd );
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
-		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
+		// std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
-		void		userAuthentication( int client_fd );
+		// void		userAuthentication( int client_fd );
 
 		void	pong( std::vector<std::string>& cmd_params, int client_fd );
 };
