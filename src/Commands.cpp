@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 09:21:18 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 09:29:01 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,10 @@ bool Commands::isValidNickname(const std::string& nick) const
 	for (size_t i = 1; i < nick.length(); ++i)
 	{
 		char c = nick[i];
-		if (!std::isalnum(static_cast<unsigned char>(c)) &&
-			c != '-' && c != '[' && c != ']' && c != '\\' &&
-			c != '`' && c != '^' && c != '{' && c != '}' && c != '_')
+		if (!std::isalnum(static_cast<unsigned char>(c))
+			&& c != '-' && c != '[' && c != ']' && c != '\\'
+			&& c != '`' && c != '^' && c != '{' && c != '}'
+			&& c != '_')
 			return false;
 	}
 
@@ -93,10 +94,10 @@ void Commands::checkRegistration(User* user)
 	// 2. Has nickname (NICK command)
 	// 3. Has username (USER command)
 
-	if (user->isAuthenticated() &&
-		!user->getNickname().empty() &&
-		!user->getUsername().empty() &&
-		!user->isRegistered())
+	if (user->isAuthenticated()
+		&& !user->getNickname().empty()
+		&& !user->getUsername().empty()
+		&& !user->isRegistered())
 	{
 		user->setRegistered(true);
 		sendWelcome(user);
