@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 11:43:54 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 09:52:26 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,9 @@
 class Commands
 {
 	private:
-		std::map<int, User*>& _users;                    // Reference to users map (from Person 1)
+		std::map<int, User*>& _users;                    // Reference to users map
 		std::map<std::string, Channel*>& _channels;      // Reference to channels map
-		std::string _serverPassword;                      // Server password for PASS command
+		std::string _serverPassword;                     // Server password for PASS command
 
 		void sendResponse(int fd, const std::string& message);
 		bool isValidNickname(const std::string& nick) const;
@@ -45,7 +45,7 @@ class Commands
 		void executeCommand(User* user, const std::string& command,
 						    const std::vector<std::string>& params);
 
-		// Authentication commands (Person 3 responsibility)
+		// Authentication commands
 		void handlePASS(User* user, const std::vector<std::string>& params);
 		void handleNICK(User* user, const std::vector<std::string>& params);
 		void handleUSER(User* user, const std::vector<std::string>& params);

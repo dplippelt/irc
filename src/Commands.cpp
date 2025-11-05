@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 09:29:01 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 09:54:07 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,10 @@ Commands::Commands(std::map<int, User*>& users,
 				   const std::string& password)
 	: _users(users)
 	, _channels(channels)
-	, _serverPassword(password) {}
+	, _serverPassword(password)
+{
+	(void)_channels;
+}
 
 Commands::~Commands() {}
 

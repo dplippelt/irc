@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:59:42 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/05 09:49:52 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,13 @@
 #include <errno.h>
 #include <netdb.h>
 #include "User.hpp"
+#include "Channel.hpp"
+#include "Commands.hpp"
 
 #define DEBUG
 
-class User;
+class Channel;
+class Commands;
 
 class Server
 {
@@ -54,7 +57,9 @@ class Server
 		std::string							m_pw {};
 		int									m_listening_socket_fd {};
 		struct addrinfo						*m_addr {};
-		std::map<int, User>					m_client_info {};
+		std::map<int, User*>				m_users {};
+		std::map<std::string, Channel*>		m_channels {};
+		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
 
 		void		validatePort( const std::string& port );
