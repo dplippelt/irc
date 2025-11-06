@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 09:48:14 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 09:56:28 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,16 +247,14 @@ void Commands::handlePASS(User* user, const std::vector<std::string>& params)
 	// Check if already registered
 	if (user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED,
-						":You may not reregister");
+		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
 		return;
 	}
 
 	// Check parameters
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS,
-						"PASS :Not enough parameters");
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
 		return;
 	}
 
@@ -268,8 +266,7 @@ void Commands::handlePASS(User* user, const std::vector<std::string>& params)
 
 	if (providedPassword != _serverPassword)
 	{
-		sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,
-						":Password incorrect");
+		sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,":Password incorrect");
 		return;
 	}
 
@@ -285,8 +282,7 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params)
 	// Check parameters
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN,
-						":No nickname given");
+		sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, ":No nickname given");
 		return;
 	}
 
@@ -298,16 +294,14 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params)
 	// Validate nickname format
 	if (!isValidNickname(newNick))
 	{
-		sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME,
-						newNick + " :Erroneous nickname");
+		sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
 		return;
 	}
 
 	// Check if nickname is already in use
 	if (isNicknameInUse(newNick))
 	{
-		sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE,
-						newNick + " :Nickname is already in use");
+		sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
 		return;
 	}
 
@@ -331,8 +325,7 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	// Check if already registered
 	if (user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED,
-						":You may not reregister");
+		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
 		return;
 	}
 
@@ -340,8 +333,7 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	// USER <username> <hostname> <servername> :<realname>
 	if (params.size() < 4)
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS,
-						"USER :Not enough parameters");
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
 		return;
 	}
 
@@ -356,7 +348,7 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	// Set user information
 	user->setUsername(username);
 	user->setRealname(realname);
-	user->setHostname("localhost"); // You can get actual hostname if needed
+	user->setHostname("localhost"); // can get actual hostname if needed
 
 	// Check if registration is now complete
 	checkRegistration(user);
