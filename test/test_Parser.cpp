@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   test_Parser.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 15:13:38 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 16:41:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/10/30 18:38:39 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,19 +16,38 @@
 
 int	main()
 {
+	Parser	parser{};
+
 	std::vector<std::string>	inputs = {
-		":prefix PASS   parameter\r\nNICK  	nickname\r\nJOIN   chanell :test    channel\r\n",
+		"KICK #chanell :username :me :some reason\r\n",		// ':' in not the very last parameter (e.g. :user)
+		"KICK #chanell username :me :some reason\r\n", 		// ':' in the last trailing comment 	
+		":prefix PASS   parameter\r\nNICK  	nickname\r\nJOIN   chanell :test    channel\r\n", // multiple messages at a time
+		":prefix JOIN   channel\r\nNICK  	",				// without ending with \r\n
+		"   \r\nJOIN   chanell :test    channel",
+		"\r\n:prefix PASS  \r\n",							// insaficient params 
+		"nocommand test \r\n",								// incorrect command
 	};
+
 	int	n{ 1 };
 	for ( auto it{ inputs.begin() }; it != inputs.end(); ++it)
 	{
 		std::cout << "<  TEST " << n << "  > \n";
-		Parser	parser(*it);
+		std::cout << "raw input: \n" << *it << '\n';
+		parser.loadInput(*it);
 		parser.parse();
 		parser.print();
 		std::cout << '\n';
 		++n;
 	}
+
+	// std::istringstream	line{ inputs.back() };
+	// std::string			elem{};
+	// while(getline(line, elem))
+	// {
+	// 	std::cout << elem << '\n';
+	// 	std::cout << std::boolalpha;
+	// 	std::cout << "line.eof(): " << line.eof() << '\n';
+	// }
 
 	return 0;
 

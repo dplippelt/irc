@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 13:41:54 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/10/30 16:29:14 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/05 16:37:28 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,15 +39,7 @@
            parameters.
  */
 # define ERR_ALREADYREGISTRED 462
-// # define 
-// # define 
-// # define 
-// # define 
-// # define 
-// # define 
-// # define 
-// # define 
-// # define 
+
 
 typedef enum e_commands
 {
@@ -60,8 +52,20 @@ typedef enum e_commands
 	e_invite,
 	e_topic,
 	e_mode,
+	e_whois,
 	e_unkown,
 }	t_cmds;
+
+# define MINIMUM_PARAMS_PASS 1
+# define MINIMUM_PARAMS_NICK 0
+# define MINIMUM_PARAMS_USER 4
+# define MINIMUM_PARAMS_JOIN 1
+# define MINIMUM_PARAMS_MSG 0
+# define MINIMUM_PARAMS_KICK 2
+# define MINIMUM_PARAMS_INVITE 2
+# define MINIMUM_PARAMS_TOPIC 1
+# define MINIMUM_PARAMS_MODE 1
+# define MINIMUM_PARAMS_WHOIS 0
 
 typedef struct s_message
 {
@@ -78,28 +82,31 @@ class Parser
 
 private:
 
-	std::string				m_raw_input{};
+	std::string				m_buffer{};
 	std::list<t_message>	m_messages{};
 
 	static inline const std::vector<std::string>	k_commands ={
 		"PASS", "NICK", "USER", "JOIN", "PRIVMSG", "KICK", "INVITE", 
-		"TOPIC", "MODE",
+		"TOPIC", "MODE", "WHOIS",
 	};
 
 	void	partitioning(const std::string &input);
 	void	partPrefixAndCommand(std::istringstream &message, t_message &elem);
 	void	partParams(std::istringstream &message, t_message &elem);
+	void	setParams(std::istringstream &message, t_message &elem, int nim);
 	void	setCommandType(t_message &elem);
-	void	paramsValidation(t_message &elem);
+	// void	paramsValidation(t_message &elem);
 
 public:
 
-	Parser(const std::string &buffer);
+	Parser();
 	Parser(const Parser &other);
 	const Parser	&operator=(const Parser &other);
 	~Parser();
 
-	void	parse();
+	Parser	&loadInput(const std::string &input);
+	Parser	&parse();
+	std::list<t_message>	&getMessages();
 	void	print() const;
 };
 
