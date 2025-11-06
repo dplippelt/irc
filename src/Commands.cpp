@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 09:56:28 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 11:30:16 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -477,4 +477,105 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
 				  << " joined channel " << channelName << std::endl;
 		#endif
 	}
+}
+
+void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params)
+{
+	// Check if user is registered
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		return;
+	}
+	// PRIVMSG requires at least 2 parameters: <target> :<message>
+	if (params.empty())
+	{
+		sendNumericReply(user->getFd(), ERR_NORECIPIENT, "PRIVMSG :No recipient given");
+		return;
+	}
+	if (params.size() < 2)
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
+		return;
+	}
+
+	std::string target = params[0];
+	std::string message = params[1];
+
+	// Remove leading ':' from message if present
+	if (!message.empty() && message[0] == ':')
+		message = message.substr(1);
+
+	// Reconstruct full message if it was split across multiple params
+	for (size_t i = 2; i < params.size(); ++i)
+		message += " " + params[i];
+
+	// check if target is a channel (starts with # or &)
+	if (target[0] == '#' || target[0] == '&')
+	{
+		std::map<std::string, Channel*>::iterator it = _channels.find(target);
+		if (it == _channels.end())
+		{
+			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, target + " :No such channel");
+			return;
+		}
+
+		Channel* channel = it->second;
+
+		// Check if user is a member of the channel
+		if (!channel->isMember(user->getFd()))
+		{
+			sendNumericReply(user->getFd(), ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
+			return;
+		}
+
+		// Construct and send message to all channel members except sender
+		std::string privmsgToChannel = user->getPrefix() + " PRIVMSG " + target + " :" + message;
+
+		const std::map<int, User*>& members = channel->getMembers();
+		for (std::map<int, User*>::const_iterator it = members.begin();
+			 it != members.end(); ++it)
+		{
+			if (it->first != user->getFd()) // Dont send to sender
+				sendResponse(it->second->getFd(), privmsgToChannel);
+		}
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname()
+				  << " sent message to channel " << target << std::endl;
+		#endif
+	}
+	else
+	{
+		// send to user (direct message)
+		User* targetUser = nullptr;
+
+		//find user by nickname
+		for (std::map<int, User*>::iterator it = _users.begin();
+			 it != _users.end(); ++it)
+		{
+			if (it->second->getNickname() == target)
+			{
+				targetUser = it->second;
+				break;
+			}
+		}
+
+		if (targetUser == nullptr)
+		{
+			sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
+			return;
+		}
+
+		// Construct and send message
+		std::string privmsgToUser = user->getPrefix() + " PRIVMSG " + target + " :" + message;
+		sendResponse(targetUser->getFd(), privmsgToUser);
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname()
+				  << " sent DM to " << target << ": " << message << std::endl;
+		#endif
+
+	}
+
 }
