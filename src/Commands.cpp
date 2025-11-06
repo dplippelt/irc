@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 09:38:24 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 09:48:14 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,6 +231,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handleUSER(user, params);
 	else if (command == "JOIN")
 		handleJOIN(user, params);
+	else if (command == "PRIVMSG")
+		handlePRIVMSG(user, params);
 	// Add more commands here as they are implemented
 	else
 	{
