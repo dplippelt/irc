@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 14:17:49 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 14:37:27 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,9 @@ class Commands
 				 std::map<std::string, Channel*>& channels,
 				 const std::string& password);
 		~Commands();
+
+		void executeCommand(User* user, const std::string& command,
+							const std::vector<std::string>& params);
 
 		// Authentication commands
 		void handlePASS(User* user, const std::list<std::string>& params);

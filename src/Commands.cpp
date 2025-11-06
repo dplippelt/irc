@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 14:24:04 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 14:38:46 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,6 +216,29 @@ void Commands::sendWelcome(User* user)
 	std::ostringstream msg4;
 	msg4 << ":ft_irc 004 " << nick << " ft_irc 1.0 o itkol";
 	sendResponse(user->getFd(), msg4.str());
+}
+
+// ==================== Temporary Wrappers ====================
+
+void Commands::executeCommand(User* user, const std::string& command,
+								const std::vector<std::string>& params)
+{
+	std::list<std::string> paramList(params.begin(), params.end());
+
+	if (command == "PASS")
+		handlePASS(user, paramList);
+	else if (command == "NICK")
+		handleNICK(user, paramList);
+	else if (command == "USER")
+		handleUSER(user, paramList);
+	else if (command == "JOIN")
+		handleJOIN(user, paramList);
+	else if (command == "PRIVMSG")
+		handlePRIVMSG(user, paramList);
+	else
+	{
+		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
+	}
 }
 
 // ==================== Authentication Commands ====================
