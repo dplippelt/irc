@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 14:04:04 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 09:38:24 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -413,5 +413,74 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
 		{
 			keys.push_back(key);
 		}
+	}
+
+	// Process each channel
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		std::string channelName = channels[i];
+		std::string channelKey = (i < keys.size()) ? keys[i] : "";
+
+		// Validate channel name
+		if (!isValidChannelName(channelName))
+		{
+			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL,
+							channelName + " :No such channel");
+			continue;
+		}
+
+		// Get or create channel
+		Channel* channel = getOrCreateChannel(channelName);
+
+		// Check if user is already in the channel
+		if (channel->isMember(user->getFd()))
+		{
+			continue;
+		}
+
+		//check channel modes and restrictions
+		// Invite-only
+		if (channel->isInviteOnly() && !channel->isInvited(user->getFd()))
+		{
+			sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN,
+							channelName + " :Cannot join channel (+i)");
+			continue;
+		}
+		// Check if channel has a key (password)
+		if (channel->hasKey())
+		{
+			if (channelKey.empty() || channelKey != channel->getKey())
+			{
+				sendNumericReply(user->getFd(), ERR_BADCHANNELKEY,
+								channelName + " :Cannot join channel (+k)");
+				continue;
+			}
+		}
+		// Check user limit
+		if (channel->hasUserLimit())
+		{
+			if (static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit())
+			{
+				sendNumericReply(user->getFd(), ERR_CHANNELISFULL,
+								channelName + " :Cannot join channel (+l)");
+				continue;
+			}
+		}
+
+		// add user to channel
+		channel->addMember(user);
+		user->joinChannel(channelName);
+
+		// Remove from invite list if they were invited
+		if (channel->isInvited(user->getFd()))
+			channel->removeInvite(user->getFd());
+
+		// Send JOIN messages
+		sendJoinMessages(user, channel);
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname()
+				  << " joined channel " << channelName << std::endl;
+		#endif
 	}
 }
