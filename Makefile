@@ -6,7 +6,7 @@
 #    By: dlippelt <dlippelt@student.codam.nl>         +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/10/27 11:02:13 by dlippelt      #+#    #+#                  #
-#    Updated: 2025/10/30 11:22:29 by spyun         ########   odam.nl          #
+#    Updated: 2025/11/05 11:32:09 by spyun         ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ MKDIR =		mkdir -p
 VALG =		valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 CXXSTD =	-std=c++17
-CXXFLAGS =	-Wall -Werror -Wextra -g3
+CXXFLAGS =	-Wall -Werror -Wextra -g3 -DDEBUG
 IFLAGS =	-I$(INCDIR)
 DEPFLAGS =	-MMD -MP
 COMPILE =	-c

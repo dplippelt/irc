@@ -1,25 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 17:00:49 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/06 09:52:41 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-
 /* ==================== Constructors & Destructors ==================== */
 
 Server::~Server()
 {
+	delete m_commands;
+
+	for ( std::map<int, User*>::iterator it = m_users.begin(); it != m_users.end(); ++it )
+		delete it->second;
+	for ( std::map<std::string, Channel*>::iterator it = m_channels.begin(); it != m_channels.end(); ++it )
+		delete it->second;
 	if ( m_addr != nullptr )
 		freeaddrinfo(m_addr);
-
 	for ( auto pollfd : m_pollfds )
 	{
 		if ( close(pollfd.fd) == -1 )
@@ -56,11 +60,9 @@ Server::Server( const std::string& port, std::string_view pw )
 
 	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
+
+	m_commands = new Commands(m_users, m_channels, m_pw);
 }
-
-
-
-
 
 /* ==================== Initial Server Setup ==================== */
 
@@ -102,7 +104,8 @@ void	Server::acceptConn()
 	if ( fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1 )
 		throw std::runtime_error("Error: failed to set client socket to non-blocking");
 
-	m_client_info.insert( { client_fd, User {client_fd} } );
+	User* newUser = new User(client_fd);
+	m_users.insert( { client_fd, newUser } );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
 
 	#ifdef DEBUG
@@ -164,6 +167,13 @@ void	Server::removeClient( int client_fd )
 	std::cout << "Client disconnected (client fd: " << client_fd << ")" << std::endl;
 	#endif
 
+	std::map<int, User*>::iterator it = m_users.find(client_fd);
+	if ( it != m_users.end() )
+	{
+		delete it->second;
+		m_users.erase(it);
+	}
+
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
 
@@ -202,18 +212,11 @@ void	Server::processClientAct( int client_fd )
 
 	buffer[bytes] = '\0';
 	processBuffer(buffer, bytes, client_fd);
-
-	if ( !userIsAuthenticated(client_fd) )
-		userAuthentication(client_fd);
 }
 
 Server::Server( const Server& ) = default;
 
 Server& Server::operator=( const Server& ) = default;
-
-
-
-
 
 /* ==================== Message Processing ==================== */
 
@@ -256,110 +259,61 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 	std::string					el {};
 	std::istringstream			iss { msg };
 	std::vector<std::string>	cmd_params {};
+	std::string					command {};
 	bool						first_param { true };
-	int							cmd_idx {};
+
+	#ifdef DEBUG
+	std::cout << "Processing message: " << msg << std::endl;
+	#endif
+
+	std::map<int, User*>::iterator userIt = m_users.find(client_fd);
+	if (userIt == m_users.end())
+	{
+		std::cerr << "Error: User not found for fd " << client_fd << std::endl;
+		return;
+	}
+	User* user = userIt->second;
 
 	while ( iss >> el )
 	{
 		if ( first_param )
 		{
-			while ( s_commands[cmd_idx] != el && s_commands[cmd_idx] != "NO_CMD" )
-				cmd_idx++;
+			command = el;
 			first_param = false;
 			continue;
 		}
 
 		if ( el[0] == ':' )
 		{
-			el = msg.substr(msg.find_last_of(":"));
-			if ( cmd_idx != NO_CMD )
-				cmd_params.push_back(el);
+			std::string rest;
+			std::getline(iss, rest);
+			el += rest;
+			cmd_params.push_back(el);
 			break;
 		}
-
-		if ( cmd_idx != NO_CMD )
-			cmd_params.push_back(el);
+		cmd_params.push_back(el);
 	}
 
-	// At the moment nothing is done for commands (except pong).
-	switch (cmd_idx)
+	if (command == "PING")
 	{
-	case PING:
 		pong(cmd_params, client_fd);
-		break;
-	case NICK:
-		break;
-	case USER:
-		break;
-	case PASS:
-		break;
-	case MODE:
-		break;
-	case WHOIS:
-		break;
-	case JOIN:
-		break;
-	case PART:
-		break;
-	case KICK:
-		break;
-	default:
-		break;
+		return;
 	}
 
-	// Debugging echo of what was received by the server
+	m_commands->executeCommand(user, command, cmd_params);
+
 	std::cout << msg;
 }
-
-
-
-
 
 /* ==================== (Mock) Authentication ==================== */
 
 bool	Server::userIsAuthenticated( int client_fd )
 {
-	return ( m_client_info.find(client_fd)->second.isAuthenticated() );
+	std::map<int, User*>::iterator it = m_users.find(client_fd);
+	if (it != m_users.end())
+		return it->second->isAuthenticated();
+	return false;
 }
-
-void	Server::userAuthentication( int client_fd )
-{
-	//check conditions for user to be authenticated, this is temporary placeholder check
-	if ( m_client_info.find(client_fd)->second.isAuthenticated() == false )
-	{
-		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
-		std::string	numericReply;
-		for ( int i {1}; i < 5; ++i )
-		{
-			numericReply = getNumericReply(i, "testNick", "testUser", "localhost");
-			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
-				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
-		}
-		m_client_info.find(client_fd)->second.setAuthenticated(true);
-	}
-	//else wait to receive more info
-}
-
-std::string	Server::getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host )
-{
-	switch (i)
-	{
-	case 1:
-		return (":" + s_server_name + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
-	case 2:
-		return (":" + s_server_name + " 002 " + nick + " :Your host is " + s_server_name + ", running version " + s_server_version + "\r\n");
-	case 3:
-		return (":" + s_server_name + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
-	case 4:
-		return (":" + s_server_name + " 004 " + nick + " " + s_server_name + " " + s_server_version + " " + s_user_modes + " " + s_channel_modes + "\r\n");
-	default:
-		return ("");
-	}
-}
-
-
-
-
 
 /* ==================== Pong implementation so connection doesn't time out ==================== */
 
@@ -367,7 +321,14 @@ void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
 {
 	std::string pong_str { "PONG :" };
 
-	pong_str.append(cmd_params[0]).append("\r\n");
+	if (!cmd_params.empty())
+		pong_str.append(cmd_params[0]).append("\r\n");
+	else
+		pong_str.append("ft_irc\r\n");
 
 	send(client_fd, pong_str.data(), pong_str.length(), 0);
+
+	#ifdef DEBUG
+	std::cout << "Sent PONG response to client fd " << client_fd << std::endl;
+	#endif
 }

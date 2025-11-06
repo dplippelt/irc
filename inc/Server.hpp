@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/10/30 16:59:42 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/05 11:33:18 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,13 @@
 #include <errno.h>
 #include <netdb.h>
 #include "User.hpp"
+#include "Channel.hpp"
+#include "Commands.hpp"
 
-#define DEBUG
+// #define DEBUG
 
-class User;
+class Channel;
+class Commands;
 
 class Server
 {
@@ -54,7 +57,9 @@ class Server
 		std::string							m_pw {};
 		int									m_listening_socket_fd {};
 		struct addrinfo						*m_addr {};
-		std::map<int, User>					m_client_info {};
+		std::map<int, User*>				m_users {};
+		std::map<std::string, Channel*>		m_channels {};
+		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
 
 		void		validatePort( const std::string& port );
@@ -64,9 +69,9 @@ class Server
 		void		processBuffer( const std::string& buffer, ssize_t bytes, int client_fd );
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
-		std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
+		// std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
-		void		userAuthentication( int client_fd );
+		// void		userAuthentication( int client_fd );
 
 		void	pong( std::vector<std::string>& cmd_params, int client_fd );
 };
