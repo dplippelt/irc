@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 11:30:16 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 14:24:04 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,31 +218,9 @@ void Commands::sendWelcome(User* user)
 	sendResponse(user->getFd(), msg4.str());
 }
 
-// ==================== Command Dispatcher ====================
-
-void Commands::executeCommand(User* user, const std::string& command,
-							  const std::vector<std::string>& params)
-{
-	if (command == "PASS")
-		handlePASS(user, params);
-	else if (command == "NICK")
-		handleNICK(user, params);
-	else if (command == "USER")
-		handleUSER(user, params);
-	else if (command == "JOIN")
-		handleJOIN(user, params);
-	else if (command == "PRIVMSG")
-		handlePRIVMSG(user, params);
-	// Add more commands here as they are implemented
-	else
-	{
-		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
-	}
-}
-
 // ==================== Authentication Commands ====================
 
-void Commands::handlePASS(User* user, const std::vector<std::string>& params)
+void Commands::handlePASS(User* user, const std::list<std::string>& params)
 {
 	// Check if already registered
 	if (user->isRegistered())
@@ -259,7 +237,7 @@ void Commands::handlePASS(User* user, const std::vector<std::string>& params)
 	}
 
 	// Verify password
-	std::string providedPassword = params[0];
+	std::string providedPassword = params.front();
 	// Remove leading ':' if present
 	if (!providedPassword.empty() && providedPassword[0] == ':')
 		providedPassword = providedPassword.substr(1);
@@ -277,7 +255,7 @@ void Commands::handlePASS(User* user, const std::vector<std::string>& params)
 	checkRegistration(user);
 }
 
-void Commands::handleNICK(User* user, const std::vector<std::string>& params)
+void Commands::handleNICK(User* user, const std::list<std::string>& params)
 {
 	// Check parameters
 	if (params.empty())
@@ -286,7 +264,7 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params)
 		return;
 	}
 
-	std::string newNick = params[0];
+	std::string newNick = params.front();
 	// Remove leading ':' if present
 	if (!newNick.empty() && newNick[0] == ':')
 		newNick = newNick.substr(1);
@@ -320,7 +298,7 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params)
 	checkRegistration(user);
 }
 
-void Commands::handleUSER(User* user, const std::vector<std::string>& params)
+void Commands::handleUSER(User* user, const std::list<std::string>& params)
 {
 	// Check if already registered
 	if (user->isRegistered())
@@ -337,11 +315,11 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 		return;
 	}
 
-	std::string username = params[0];
-	// params[1] and params[2] are hostname and servername (ignored in modern IRC)
-	std::string realname = params[3];
+	std::list<std::string>::const_iterator it = params.begin();
+	std::string username = *it++;
+	std::advance(it, 2); // Skip hostname and servername
+	std::string realname = *it;
 
-	// Remove leading ':' from realname if present
 	if (!realname.empty() && realname[0] == ':')
 		realname = realname.substr(1);
 
@@ -354,7 +332,7 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	checkRegistration(user);
 }
 
-void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
+void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 {
 	//check if user is registered
 	if (!user->isRegistered())
@@ -373,7 +351,7 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
 	}
 
 	// parse channel names (comma separated)
-	std::string channelList = params[0];
+	std::string channelList = params.front();
 	// Remove leading ':' if present
 	if (!channelList.empty() && channelList[0] == ':')
 		channelList = channelList.substr(1);
@@ -382,7 +360,9 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
 	std::string keyList;
 	if (params.size() > 1)
 	{
-		keyList = params[1];
+		std::list<std::string>::const_iterator it = params.begin();
+		++it;
+		keyList = *it;
 		if (!keyList.empty() && keyList[0] == ':')
 			keyList = keyList.substr(1);
 	}
@@ -479,7 +459,7 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
 	}
 }
 
-void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params)
+void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 {
 	// Check if user is registered
 	if (!user->isRegistered())
@@ -499,16 +479,16 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params)
 		return;
 	}
 
-	std::string target = params[0];
-	std::string message = params[1];
+	std::list<std::string>::const_iterator it = params.begin();
+	std::string target = *it++;
+	std::string message = *it;
 
 	// Remove leading ':' from message if present
 	if (!message.empty() && message[0] == ':')
 		message = message.substr(1);
 
-	// Reconstruct full message if it was split across multiple params
-	for (size_t i = 2; i < params.size(); ++i)
-		message += " " + params[i];
+	for (; it != params.end(); ++it)
+		message += " " + *it;
 
 	// check if target is a channel (starts with # or &)
 	if (target[0] == '#' || target[0] == '&')

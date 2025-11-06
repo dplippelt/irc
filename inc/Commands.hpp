@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 09:47:28 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 14:17:49 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define COMMANDS_HPP
 
 #include <string>
-#include <vector>
+#include <list>
 #include <map>
 #include <sstream>
 #include <sys/socket.h>
@@ -50,20 +50,16 @@ class Commands
 				 const std::string& password);
 		~Commands();
 
-		// Main command dispatcher
-		void executeCommand(User* user, const std::string& command,
-						    const std::vector<std::string>& params);
-
 		// Authentication commands
-		void handlePASS(User* user, const std::vector<std::string>& params);
-		void handleNICK(User* user, const std::vector<std::string>& params);
-		void handleUSER(User* user, const std::vector<std::string>& params);
+		void handlePASS(User* user, const std::list<std::string>& params);
+		void handleNICK(User* user, const std::list<std::string>& params);
+		void handleUSER(User* user, const std::list<std::string>& params);
 
 		// Channel commands
-		void handleJOIN(User* user, const std::vector<std::string>& params);
+		void handleJOIN(User* user, const std::list<std::string>& params);
 
 		// Messaging commands
-		void handlePRIVMSG(User* user, const std::vector<std::string>& params);
+		void handlePRIVMSG(User* user, const std::list<std::string>& params);
 
 		// IRC Numeric Reply Codes
 		static const int RPL_WELCOME = 001;
