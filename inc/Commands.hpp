@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 13:48:57 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/06 09:47:28 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,9 @@
 class Commands
 {
 	private:
-		std::map<int, User*>& _users;                    // Reference to users map
-		std::map<std::string, Channel*>& _channels;      // Reference to channels map
-		std::string _serverPassword;                     // Server password for PASS command
+		std::map<int, User*>& _users;
+		std::map<std::string, Channel*>& _channels;
+		std::string _serverPassword;
 
 		void sendResponse(int fd, const std::string& message);
 		bool isValidNickname(const std::string& nick) const;
@@ -62,7 +62,10 @@ class Commands
 		// Channel commands
 		void handleJOIN(User* user, const std::vector<std::string>& params);
 
-		// IRC Numeric Reply Codes (commonly used ones)
+		// Messaging commands
+		void handlePRIVMSG(User* user, const std::vector<std::string>& params);
+
+		// IRC Numeric Reply Codes
 		static const int RPL_WELCOME = 001;
 		static const int RPL_YOURHOST = 002;
 		static const int RPL_CREATED = 003;
@@ -74,6 +77,9 @@ class Commands
 		static const int ERR_NOSUCHNICK = 401;
 		static const int ERR_NOSUCHCHANNEL = 403;
 		static const int ERR_TOOMANYCHANNELS = 405;
+		static const int ERR_NORECIPIENT = 411;
+		static const int ERR_NOTEXTTOSEND = 412;
+		static const int ERR_CANNOTSENDTOCHAN = 404;
 		static const int ERR_NONICKNAMEGIVEN = 431;
 		static const int ERR_ERRONEUSNICKNAME = 432;
 		static const int ERR_NICKNAMEINUSE = 433;
