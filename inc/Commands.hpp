@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 13:42:51 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 13:48:57 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Commands
 		void sendError(int fd, const std::string& command, const std::string& message);
 		void sendNumericReply(int fd, int code, const std::string& message);
 
-		bool isChannelNameValid(const std::string& channelName) const;
+		bool isValidChannelName(const std::string& channelName) const;
 		Channel* getOrCreateChannel(const std::string& channelName);
 		void sendJoinMessages(User* user, Channel* channel);
 

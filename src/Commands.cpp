@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/05 13:39:23 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/05 14:04:04 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,81 @@ bool Commands::isNicknameInUse(const std::string& nick) const
 	return false;
 }
 
+bool Commands::isValidChannelName(const std::string& channelName) const
+{
+	// IRC channel names must:
+	// - Start with # or &
+	// - Be between 2 and 50 characters
+	// - Not contain spaces, commas, or control characters
+
+	if (channelName.length() < 2 || channelName.length() > 50)
+		return false;
+	if (channelName[0] != '#' && channelName[0] != '&')
+		return false;
+
+	for (size_t i = 1; i < channelName.length(); ++i)
+	{
+		char c = channelName[i];
+		if (std::isspace(static_cast<unsigned char>(c)) || c == ',' || std::iscntrl(static_cast<unsigned char>(c)))
+			return false;
+	}
+	return true;
+}
+
+Channel* Commands::getOrCreateChannel(const std::string& channelName)
+{
+	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+	if (it != _channels.end())
+		return it->second;
+
+	// Create new channel
+	Channel* newChannel = new Channel(channelName);
+	_channels[channelName] = newChannel;
+
+	#ifdef DEBUG
+	std::cout << "Created new channel: " << channelName << std::endl;
+	#endif
+
+	return newChannel;
+}
+
+void Commands::sendJoinMessages(User* user, Channel* channel)
+{
+	std::string joinMsg = user->getPrefix() + " JOIN " + channel->getName();
+
+	// send JOIN msg to all members including the user
+	const std::map<int, User*>& members = channel->getMembers();
+	for (std::map<int, User*>::const_iterator it = members.begin();
+		 it != members.end(); ++it)
+	{
+		sendResponse(it->second->getFd(), joinMsg);
+	}
+
+	// send topic if exists
+	if (!channel->getTopic().empty())
+	{
+		std::ostringstream topicMsg;
+		topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
+				 << " " << user->getNickname() << " "
+				 << channel->getName() << " :" << channel->getTopic();
+		sendResponse(user->getFd(), topicMsg.str());
+	}
+
+	// send names list (RPL_NAMREPLY)
+	std::ostringstream namesMsg;
+	namesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_NAMREPLY
+			 << " " << user->getNickname() << " = " << channel->getName() << " :"
+			 << channel->getMemberList();
+	sendResponse(user->getFd(), namesMsg.str());
+
+	// send end of names list (RPL_ENDOFNAMES)
+	std::ostringstream endNamesMsg;
+	endNamesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES
+				<< " " << user->getNickname() << " "
+				<< channel->getName() << " :End of /NAMES list";
+	sendResponse(user->getFd(), endNamesMsg.str());
+}
+
 void Commands::checkRegistration(User* user)
 {
 	// User is registered when:
@@ -154,6 +229,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handleNICK(user, params);
 	else if (command == "USER")
 		handleUSER(user, params);
+	else if (command == "JOIN")
+		handleJOIN(user, params);
 	// Add more commands here as they are implemented
 	else
 	{
@@ -283,3 +360,58 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	checkRegistration(user);
 }
 
+void Commands::handleJOIN(User* user, const std::vector<std::string>& params)
+{
+	//check if user is registered
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED,
+						":You have not registered");
+		return;
+	}
+
+	// Check parameters
+	if (params.empty())
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS,
+						"JOIN :Not enough parameters");
+		return;
+	}
+
+	// parse channel names (comma separated)
+	std::string channelList = params[0];
+	// Remove leading ':' if present
+	if (!channelList.empty() && channelList[0] == ':')
+		channelList = channelList.substr(1);
+
+	// Parse keys if provided
+	std::string keyList;
+	if (params.size() > 1)
+	{
+		keyList = params[1];
+		if (!keyList.empty() && keyList[0] == ':')
+			keyList = keyList.substr(1);
+	}
+
+	// Split channels and keys by comma
+	std::vector<std::string> channels;
+	std::vector<std::string> keys;
+
+	std::istringstream channelStream(channelList);
+	std::string channe;
+	while (std::getline(channelStream, channe, ','))
+	{
+		if (!channe.empty())
+			channels.push_back(channe);
+	}
+
+	if (!keyList.empty())
+	{
+		std::istringstream keyStream(keyList);
+		std::string key;
+		while (std::getline(keyStream, key, ','))
+		{
+			keys.push_back(key);
+		}
+	}
+}
