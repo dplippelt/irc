@@ -6,11 +6,13 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 10:15:12 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/06 11:03:48 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/07 14:28:56 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Message.hpp"
+#include "Server.hpp"
+#include "ChopCommands.hpp"
 
 /* ==================== Constructors & Destructor ==================== */
 
@@ -46,6 +48,61 @@ Message::~Message()
 
 /* ==================== Public interfaces ==================== */
 
+void	Message::operateCommand(Server &server, User &user)
+{
+	switch (m_cmd_type)
+	{
+	// case e_pass:
+	// 	break;
+	// case e_nick:
+	// 	break;
+	// case e_user:
+	// 	break;
+	// case e_join:
+	// 	break;
+	// case e_msg:
+	// 	break;
+	// case e_kick:
+	// 	break;
+	// case e_invite:
+	// 	break;
+	// case e_topic:
+	// 	break;
+	case e_mode:
+		ChopCommands::mode(*this, server);
+		break;	
+	// case e_whois:
+	// 	break;
+	default:
+		break;
+	}
+}
+
+/* getters */
+const std::string	&Message::getCommandName() const
+{
+	return m_command;
+}
+
+const std::list<std::string>	&Message::getParams() const
+{
+	return m_params;
+}
+
+const int	&Message::getNumParams() const
+{
+	return m_nparams;
+}
+
+const int	&Message::getNeedNumParas() const
+{
+	return m_need_nparams;
+}
+
+const int	&Message::getCmdType() const
+{
+	return m_cmd_type;
+}
 
 /* Debug functions */
 void	Message::print() const

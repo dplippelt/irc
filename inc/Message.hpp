@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 09:29:24 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/06 11:04:05 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/07 14:23:14 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <sstream>
 # include <string>
 # include <vector>
+# include "ChopCommands.hpp"
 
 # define MINIMUM_PARAMS_PASS 1
 # define MINIMUM_PARAMS_NICK 0
@@ -29,6 +30,8 @@
 # define MINIMUM_PARAMS_TOPIC 1
 # define MINIMUM_PARAMS_MODE 1
 # define MINIMUM_PARAMS_WHOIS 0
+
+class Server;
 
 typedef enum e_commands
 {
@@ -74,6 +77,13 @@ public:
 	~Message();
 
 	void	print() const;
+	void	operateCommand(Server &server, User &uer);
+
+	const std::string				&getCommandName() const;
+	const std::list<std::string>	&getParams() const;
+	const int						&getNumParams() const;
+	const int						&getNeedNumParas() const;
+	const int						&getCmdType() const;
 
 };
 
