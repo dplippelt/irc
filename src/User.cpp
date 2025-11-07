@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   User.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 16:15:28 by spyun             #+#    #+#             */
-/*   Updated: 2025/10/30 15:01:01 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   User.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 16:15:28 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/07 09:46:27 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,10 @@
 User::User(int fd)
 	: _fd(fd)
 	, _authenticated(false)
-	, _registered(false) {}
+	, _registered(false)
+	, _passwordProvided(false)
+	, _hasNickname(false)
+	, _hasUsername(false) {}
 
 User::~User() {}
 
@@ -42,6 +45,21 @@ const std::string& User::getRealname() const
 const std::string& User::getHostname() const
 {
 	return _hostname;
+}
+
+bool User::hasProvidedPassword() const
+{
+	return _passwordProvided;
+}
+
+bool User::hasNickname() const
+{
+	return _hasNickname;
+}
+
+bool User::hasUsername() const
+{
+	return _hasUsername;
 }
 
 bool User::isAuthenticated() const
@@ -77,6 +95,21 @@ void User::setRealname(const std::string& realname)
 void User::setHostname(const std::string& hostname)
 {
 	_hostname = hostname;
+}
+
+void User::setPasswordProvided(bool provided)
+{
+	_passwordProvided = provided;
+}
+
+void User::setHasNickname(bool has)
+{
+	_hasNickname = has;
+}
+
+void User::setHasUsername(bool has)
+{
+	_hasUsername = has;
 }
 
 void User::setAuthenticated(bool auth)
