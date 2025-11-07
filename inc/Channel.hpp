@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:59 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 20:07:44 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/07 14:05:41 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,6 @@
 #include <vector>
 #include <ctime>
 #include "User.hpp"
-
-// class User;
 
 class Channel
 {
