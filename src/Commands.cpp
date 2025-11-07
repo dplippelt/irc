@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 14:31:35 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 14:42:46 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -279,13 +279,11 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
 		return;
 	}
-
 	if (user->hasProvidedPassword())
 	{
 		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already provided a password");
 		return;
 	}
-
 	if (params.empty())
 	{
 		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
@@ -296,7 +294,6 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 
 	if (!providedPassword.empty() && providedPassword[0] == ':')
 		providedPassword = providedPassword.substr(1);
-
 	if (providedPassword != _serverPassword)
 	{
 		sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,":Password incorrect");
@@ -324,13 +321,11 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params)
 	std::string newNick = params.front();
 	if (!newNick.empty() && newNick[0] == ':')
 		newNick = newNick.substr(1);
-
 	if (!isValidNickname(newNick))
 	{
 		sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
 		return;
 	}
-
 	if (isNicknameInUse(newNick))
 	{
 		sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
@@ -361,13 +356,11 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
 		return;
 	}
-
 	if (user->hasUsername())
 	{
 		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already set a username");
 		return;
 	}
-
 	if (params.size() < 4)
 	{
 		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
