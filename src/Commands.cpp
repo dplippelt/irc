@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 10:56:03 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 11:55:08 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,13 +277,13 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handleJOIN(user, paramList);
 	else if (command == "PRIVMSG")
 		handlePRIVMSG(user, paramList);
+	else if (command == "KICK")
+		handleKICK(user, paramList);
 	else
 	{
 		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 	}
 }
-
-// ==================== Authentication Commands ====================
 
 void Commands::handlePASS(User* user, const std::list<std::string>& params)
 {
@@ -648,5 +648,10 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 		#endif
 
 	}
+
+}
+
+void Commands::handleKICK(User* user, const std::list<std::string>& params)
+{
 
 }

@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 09:49:03 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 11:52:52 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,23 +56,22 @@ class Commands
 		void executeCommand(User* user, const std::string& command,
 							const std::vector<std::string>& params);
 
-		// Authentication commands
 		void handlePASS(User* user, const std::list<std::string>& params);
 		void handleNICK(User* user, const std::list<std::string>& params);
 		void handleUSER(User* user, const std::list<std::string>& params);
-
-		// Channel commands
 		void handleJOIN(User* user, const std::list<std::string>& params);
-
-		// Messaging commands
 		void handlePRIVMSG(User* user, const std::list<std::string>& params);
+		void handleKICK(User* user, const std::list<std::string>& params);
 
 		// IRC Numeric Reply Codes
 		static const int RPL_WELCOME = 001;
 		static const int RPL_YOURHOST = 002;
 		static const int RPL_CREATED = 003;
 		static const int RPL_MYINFO = 004;
+		static const int RPL_CHANNELMODEIS = 324;
+		static const int RPL_NOTOPIC = 331;
 		static const int RPL_TOPIC = 332;
+		static const int RPL_INVITING = 341;
 		static const int RPL_NAMREPLY = 353;
 		static const int RPL_ENDOFNAMES = 366;
 
@@ -85,14 +84,19 @@ class Commands
 		static const int ERR_NONICKNAMEGIVEN = 431;
 		static const int ERR_ERRONEUSNICKNAME = 432;
 		static const int ERR_NICKNAMEINUSE = 433;
+		static const int ERR_USERNOTINCHANNEL = 441;
 		static const int ERR_NOTONCHANNEL = 442;
+		static const int ERR_USERONCHANNEL = 443;
 		static const int ERR_NOTREGISTERED = 451;
 		static const int ERR_NEEDMOREPARAMS = 461;
 		static const int ERR_ALREADYREGISTRED = 462;
 		static const int ERR_PASSWDMISMATCH = 464;
+		static const int ERR_KEYSET = 467;
 		static const int ERR_CHANNELISFULL = 471;
+		static const int ERR_UNKNOWNMODE = 472;
 		static const int ERR_INVITEONLYCHAN = 473;
 		static const int ERR_BADCHANNELKEY = 475;
+		static const int ERROR_CHANOPRIVSNEEDED = 482;
 };
 
 #endif
