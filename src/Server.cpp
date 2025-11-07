@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/06 09:52:41 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/07 14:39:09 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,9 @@ void	Server::processClientAct( int client_fd )
 	}
 
 	buffer[bytes] = '\0';
-	processBuffer(buffer, bytes, client_fd);
+
+	m_massagesList.emplace(client_fd, Parser{}); // [Takato]: added
+	// processBuffer(buffer, bytes, client_fd);  // [Takato]: commented out
 }
 
 Server::Server( const Server& ) = default;
