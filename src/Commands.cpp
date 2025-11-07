@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 11:55:08 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 13:40:09 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -458,7 +458,6 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 			keyList = keyList.substr(1);
 	}
 
-	// Split channels and keys by comma
 	std::vector<std::string> channels;
 	std::vector<std::string> keys;
 
@@ -653,5 +652,97 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 
 void Commands::handleKICK(User* user, const std::list<std::string>& params)
 {
+	// check if user is registered
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		return;
+	}
 
+	// KICK requires at least 2 parameters: <channel> <user> [<comment>]
+	if (params.size() < 2)
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
+		return;
+	}
+
+	std::list<std::string>::const_iterator it = params.begin();
+	std::string channelName = *it++;
+	std::string targetNick = *it++;
+
+	std::string reason = "Kicked by operator";
+	if (it != params.end())
+	{
+		reason = *it;
+		if (!reason.empty() && reason[0] == ':')
+			reason = reason.substr(1);
+	}
+
+	// Find the channel
+	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
+	if (chanIt == _channels.end())
+	{
+		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return;
+	}
+
+	Channel* channel = chanIt->second;
+
+	// Check if user is a member of the channel
+	if (!channel->isMember(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		return;
+	}
+
+	// Check if user is an operator in the channel
+	if (!channel->isOperator(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		return;
+	}
+
+	// Find the target user
+	User* targetUser = nullptr;
+	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
+	{
+		if (it->second->getNickname() == targetNick)
+		{
+			targetUser = it->second;
+			break;
+		}
+	}
+
+	// Check if target user exists
+	if (!channel->isMember(targetUser->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
+		return;
+	}
+
+	// send KICK message to all channel members (including target)
+	std::string kickMsg = user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
+	const std::map<int, User*>& members = channel->getMembers();
+	for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
+		sendResponse(it->second->getFd(), kickMsg);
+
+	// remove target user from channel
+	channel->removeMember(targetUser->getFd());
+	targetUser->leaveChannel(channelName);
+
+	// If channel is empty, delete it
+	if (channel->isEmpty())
+	{
+		_channels.erase(channelName);
+		delete channel;
+
+		#ifdef DEBUG
+		std::cout << "Channel " << channelName << " deleted as it became empty." << std::endl;
+		#endif
+	}
+
+	#ifdef DEBUG
+	std::cout << "User " << targetNick << " was kicked from channel "
+			  << channelName << " by " << user->getNickname() << std::endl;
+	#endif
 }
