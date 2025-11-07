@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 20:07:53 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/07 09:46:10 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,9 @@ class User
 		// Authentication state
 		bool _authenticated;            // Authenticated via PASS command
 		bool _registered;               // Registration complete (NICK + USER)
+		bool _passwordProvided;         // PASS command received
+		bool _hasNickname;              // NICK command received
+		bool _hasUsername;              // USER command received
 
 		// Channel related
 		std::vector<std::string> _channels;  // List of joined channels
@@ -50,6 +53,9 @@ class User
 		const std::string& getUsername() const;
 		const std::string& getRealname() const;
 		const std::string& getHostname() const;
+		bool hasProvidedPassword() const;
+		bool hasNickname() const;
+		bool hasUsername() const;
 		bool isAuthenticated() const;
 		bool isRegistered() const;
 		const std::vector<std::string>& getChannels() const;
@@ -59,6 +65,9 @@ class User
 		void setUsername(const std::string& username);
 		void setRealname(const std::string& realname);
 		void setHostname(const std::string& hostname);
+		void setPasswordProvided(bool provided);
+		void setHasNickname(bool has);
+		void setHasUsername(bool has);
 		void setAuthenticated(bool auth);
 		void setRegistered(bool reg);
 
