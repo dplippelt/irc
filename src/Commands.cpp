@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 10:05:56 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 10:56:03 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,6 +322,8 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 	// Password correct
 	user->setPasswordProvided(true);
 	user->setAuthenticated(true);
+
+	checkRegistration(user);
 
 	#ifdef DEBUG
 	std::cout << "User fd " << user->getFd() << " provided correct password." << std::endl;
