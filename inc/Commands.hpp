@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 14:37:27 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 09:49:03 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,9 @@ class Commands
 		bool isValidChannelName(const std::string& channelName) const;
 		Channel* getOrCreateChannel(const std::string& channelName);
 		void sendJoinMessages(User* user, Channel* channel);
+
+		bool canExecuteCommand(User* user, const std::string& command) const;
+		void sendAuthenticationError(int fd, const std::string& command);
 
 	public:
 		Commands(std::map<int, User*>& users,
