@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/06 14:38:46 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/07 10:05:56 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,14 +181,21 @@ void Commands::checkRegistration(User* user)
 	// 1. Authenticated (PASS command)
 	// 2. Has nickname (NICK command)
 	// 3. Has username (USER command)
+	// 4. Not already registered
 
-	if (user->isAuthenticated()
-		&& !user->getNickname().empty()
-		&& !user->getUsername().empty()
+	if (user->hasProvidedPassword()
+		&& user->hasNickname()
+		&& user->hasUsername()
 		&& !user->isRegistered())
 	{
 		user->setRegistered(true);
 		sendWelcome(user);
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname()
+					<< " (fd " << user->getFd()
+					<< ") is now registered!" << std::endl;
+        #endif
 	}
 }
 
@@ -218,11 +225,46 @@ void Commands::sendWelcome(User* user)
 	sendResponse(user->getFd(), msg4.str());
 }
 
+bool Commands::canExecuteCommand(User* user, const std::string& command) const
+{
+	// PASS always allowed
+	if (command == "PASS")
+		return true;
+
+	// NICK and USER only after PASS
+	if (command == "NICK" || command == "USER")
+	{
+		if (!user->hasProvidedPassword())
+			return false;
+		return true;
+	}
+
+	// Other commands only after registration
+	if (!user->isRegistered())
+		return false;
+
+	return true;
+}
+
+void Commands::sendAuthenticationError(int fd, const std::string& command)
+{
+	if (command == "NICK" || command == "USER")
+		sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
+	else
+		sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
+}
+
 // ==================== Temporary Wrappers ====================
 
 void Commands::executeCommand(User* user, const std::string& command,
 								const std::vector<std::string>& params)
 {
+	if (!canExecuteCommand(user, command))
+	{
+		sendAuthenticationError(user->getFd(), command);
+		return;
+	}
+
 	std::list<std::string> paramList(params.begin(), params.end());
 
 	if (command == "PASS")
@@ -252,6 +294,12 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 		return;
 	}
 
+	if (user->hasProvidedPassword())
+	{
+		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already provided a password");
+		return;
+	}
+
 	// Check parameters
 	if (params.empty())
 	{
@@ -272,10 +320,12 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 	}
 
 	// Password correct
+	user->setPasswordProvided(true);
 	user->setAuthenticated(true);
 
-	// Check if registration is now complete
-	checkRegistration(user);
+	#ifdef DEBUG
+	std::cout << "User fd " << user->getFd() << " provided correct password." << std::endl;
+	#endif
 }
 
 void Commands::handleNICK(User* user, const std::list<std::string>& params)
@@ -309,6 +359,7 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params)
 	// Set the nickname
 	std::string oldNick = user->getNickname();
 	user->setNickname(newNick);
+	user->setHasNickname(true);
 
 	// If user is already registered, notify about nick change
 	if (user->isRegistered())
@@ -319,6 +370,10 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params)
 
 	// Check if registration is now complete
 	checkRegistration(user);
+
+	#ifdef DEBUG
+	std::cout << "User fd" << user->getFd() << " set nickname to " << newNick << std::endl;
+	#endif
 }
 
 void Commands::handleUSER(User* user, const std::list<std::string>& params)
@@ -327,6 +382,12 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 	if (user->isRegistered())
 	{
 		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
+		return;
+	}
+
+	if (user->hasUsername())
+	{
+		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already set a username");
 		return;
 	}
 
@@ -350,9 +411,14 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 	user->setUsername(username);
 	user->setRealname(realname);
 	user->setHostname("localhost"); // can get actual hostname if needed
+	user->setHasUsername(true);
 
 	// Check if registration is now complete
 	checkRegistration(user);
+
+	#ifdef DEBUG
+	std::cout << "User fd " << user->getFd() << " set username to " << username << std::endl;
+	#endif
 }
 
 void Commands::handleJOIN(User* user, const std::list<std::string>& params)
