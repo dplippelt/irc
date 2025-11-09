@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 09:29:24 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/07 14:23:14 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/07 19:36:50 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 # define MINIMUM_PARAMS_KICK 2
 # define MINIMUM_PARAMS_INVITE 2
 # define MINIMUM_PARAMS_TOPIC 1
-# define MINIMUM_PARAMS_MODE 1
+# define MINIMUM_PARAMS_MODE 2
 # define MINIMUM_PARAMS_WHOIS 0
 
 class Server;
@@ -77,10 +77,11 @@ public:
 	~Message();
 
 	void	print() const;
-	void	operateCommand(Server &server, User &uer);
+	void	operateCommand(Server &server, User *uer) const;
 
 	const std::string				&getCommandName() const;
-	const std::list<std::string>	&getParams() const;
+	const std::list<std::string>	&getParamsList() const;
+	const std::string				&getParam(int index) const;
 	const int						&getNumParams() const;
 	const int						&getNeedNumParas() const;
 	const int						&getCmdType() const;

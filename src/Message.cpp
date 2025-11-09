@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 10:15:12 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/07 14:28:56 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/07 19:39:37 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,9 @@ Message::~Message()
 
 /* ==================== Public interfaces ==================== */
 
-void	Message::operateCommand(Server &server, User &user)
+void	Message::operateCommand(Server &server, User *user) const
 {
+	print();
 	switch (m_cmd_type)
 	{
 	// case e_pass:
@@ -69,7 +70,7 @@ void	Message::operateCommand(Server &server, User &user)
 	// case e_topic:
 	// 	break;
 	case e_mode:
-		ChopCommands::mode(*this, server);
+		ChopCommands::mode(*this, server, user);
 		break;	
 	// case e_whois:
 	// 	break;
@@ -84,9 +85,17 @@ const std::string	&Message::getCommandName() const
 	return m_command;
 }
 
-const std::list<std::string>	&Message::getParams() const
+const std::list<std::string>	&Message::getParamsList() const
 {
 	return m_params;
+}
+
+const std::string	&Message::getParam(int index) const
+{
+	// TODO:
+	// if (index > m_params.size())
+	// 	throw Exception;
+	return *(std::next(m_params.begin(), index));
 }
 
 const int	&Message::getNumParams() const
