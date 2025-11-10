@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 11:52:52 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/10 10:41:25 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ class Commands
 		void handleJOIN(User* user, const std::list<std::string>& params);
 		void handlePRIVMSG(User* user, const std::list<std::string>& params);
 		void handleKICK(User* user, const std::list<std::string>& params);
+		void handlePART(User* user, const std::list<std::string>& params);
 
 		// IRC Numeric Reply Codes
 		static const int RPL_WELCOME = 001;

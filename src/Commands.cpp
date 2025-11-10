@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 14:42:46 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/10 11:00:17 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,6 +266,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handlePRIVMSG(user, paramList);
 	else if (command == "KICK")
 		handleKICK(user, paramList);
+	else if (command == "PART")
+		handlePART(user, paramList);
 	else
 	{
 		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
@@ -670,4 +672,97 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 	std::cout << "User " << targetNick << " was kicked from channel "
 			  << channelName << " by " << user->getNickname() << std::endl;
 	#endif
+}
+
+void Commands::handlePART(User* user, const std::list<std::string>& params)
+{
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		return;
+	}
+	if (params.empty())
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
+		return;
+	}
+
+	std::string channelList = params.front();
+	if (!channelList.empty() && channelList[0] == ':')
+		channelList = channelList.substr(1);
+
+	std::string reason;
+	if (params.size() > 1)
+	{
+		std::list<std::string>::const_iterator it = params.begin();
+		++it;
+		reason = *it;
+		if (!reason.empty() && reason[0] == ':')
+			reason = reason.substr(1);
+		for (++it; it != params.end(); ++it)
+			reason += " " + *it;
+	}
+
+	std::vector<std::string> channels;
+	std::istringstream channelStream(channelList);
+	std::string channelName;
+	while (std::getline(channelStream, channelName, ','))
+	{
+		if (!channelName.empty())
+			channels.push_back(channelName);
+	}
+
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		std::string currentChannel = channels[i];
+
+		std::map<std::string, Channel*>::iterator chanIt = _channels.find(currentChannel);
+		if (chanIt == _channels.end())
+		{
+			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL,
+							currentChannel + " :No such channel");
+			continue;
+		}
+
+		Channel* channel = chanIt->second;
+
+		if (!channel->isMember(user->getFd()))
+		{
+			sendNumericReply(user->getFd(), ERR_NOTONCHANNEL,
+							currentChannel + " :You're not on that channel");
+			continue;
+		}
+
+		std::string partMsg = user->getPrefix() + " PART " + currentChannel;
+		if (!reason.empty())
+			partMsg += " :" + reason;
+
+		const std::map<int, User*>& members = channel->getMembers();
+		for (std::map<int, User*>::const_iterator it = members.begin();
+			it != members.end(); ++it)
+		{
+			sendResponse(it->second->getFd(), partMsg);
+		}
+
+		channel->removeMember(user->getFd());
+		user->leaveChannel(currentChannel);
+
+		if (channel->isEmpty())
+		{
+			_channels.erase(currentChannel);
+			delete channel;
+
+			#ifdef DEBUG
+			std::cout << "Channel " << currentChannel << " deleted as it became empty." << std::endl;
+			#endif
+		}
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname() << " left channel " << currentChannel;
+		if (!reason.empty())
+			std::cout << " (reason: " << reason << ")";
+		std::cout << std::endl;
+		#endif
+	}
+
 }
