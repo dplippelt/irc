@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/07 20:14:28 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/10 15:24:05 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -589,8 +589,8 @@ void	Commands::mode(const Message &message, Server &server, User *user)
 	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
 	if (!message.getNumParams())
 	{
-		sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, " : <need to show current mode>");
-		return;
+		sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, " : <need to show current mode>"); // TODO:
+		return; // throwing and determining the actions on the server side would be better ??
 	}
 
 	if (message.getNumParams() < MINIMUM_PARAMS_MODE)
@@ -646,16 +646,13 @@ void	Commands::modesValidation(const std::string &modes)
 
 void	Commands::modeOperateToggle(char mode, char sign, const Message &message, Server &server)
 {
-	const std::string	&channel_name{ message.getParam(0) };
-	Channel				*channel{ server.getChannels().at(channel_name)};
-
 	switch (mode)
 	{
 	case 'i':
-		(sign == '+') ? channel->setInviteOnly(true) : channel->setInviteOnly(false);
+		modeOperateToggleInvite(sign, message, server);
 		break ;
 	case 't':
-		(sign == '+') ? channel->setTopicRestricted(true) : channel->setTopicRestricted(false);
+		modeOperateToggleTopic(sign, message, server);
 		break ;
 	default:
 		break ;
@@ -664,40 +661,74 @@ void	Commands::modeOperateToggle(char mode, char sign, const Message &message, S
 
 void	Commands::modeOperateParam(char mode, char sign, const Message &message, Server &server)
 {
-	const std::string	&channel_name{ message.getParam(0) };
-	Channel				*channel{ server.getChannels().at(channel_name) };
-
 	switch (mode)
 	{
 	case 'k':
-		if (sign == '+' && channel->hasKey())
-			throw ERR_KEYSET;
-		if (sign == '+')
-		{
-			channel->setKey(message.getParam(MINIMUM_PARAMS_MODE));
-			channel->setHasKey(true);
-		}
-		else
-			channel->setHasKey(false);
+		modeOperateParamKey(sign, message, server);
 		break ;
 	case 'o':
 		modeOperateParamPrivilege(sign, message, server);
 		break;
 	case 'l':
-		if (sign == '+')
-		{
-			try
-			{
-				channel->setUserLimit(std::stoi(message.getParam(MINIMUM_PARAMS_MODE)));
-			}
-			catch(const std::exception& e)
-			{
-				throw ERR_NEEDMOREPARAMS;
-			}
-			channel->setHasUserLimit(true);
-		}
-		else
-			channel->setHasUserLimit(false);
+		modeOperateParamLimit(sign, message, server);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateToggleInvite(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	Channel				*channel{ server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setInviteOnly(true);
+		break ;
+	case '-':
+		channel->setInviteOnly(false);
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateToggleTopic(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	Channel				*channel{ server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setTopicRestricted(true);
+		break;
+	case '-':
+		channel->setTopicRestricted(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateParamKey(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	Channel				*channel{ server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		if (channel->hasKey())
+			throw ERR_KEYSET;
+		channel->setKey(param);
+		channel->setHasKey(true);
+		break;
+	case '-':
+		channel->setHasKey(false);
 		break;
 	default:
 		break;
@@ -706,8 +737,8 @@ void	Commands::modeOperateParam(char mode, char sign, const Message &message, Se
 
 void	Commands::modeOperateParamPrivilege(char sign, const Message &message, Server &server)
 {
-	const	std::string	&channel_name{ message.getParam(0) };
-	const	std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
 	Channel				*channel{ server.getChannels().at(channel_name) };
 	User				*user{};
 	auto				itend{ server.getUsers().begin() };
@@ -726,12 +757,39 @@ void	Commands::modeOperateParamPrivilege(char sign, const Message &message, Serv
 	{
 	case '+':
 		channel->addOperator(user->getFd());
-		break;
+		break ;
 	case '-':
 		channel->removeOperator(user->getFd());
-		break;
+		break ;
 	default:
-		break;
+		break ;
+	}
+}
+
+void	Commands::modeOperateParamLimit(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	Channel				*channel{ server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		try
+		{
+			channel->setUserLimit(std::stoi(param));
+		}
+		catch(const std::exception& e)
+		{
+			throw ERR_NEEDMOREPARAMS;
+		}
+		channel->setHasUserLimit(true);
+		break ;
+	case '-':
+		channel->setHasUserLimit(false);
+		break ;
+	default:
+		break ;
 	}
 }
 

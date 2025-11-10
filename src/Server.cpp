@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/07 20:15:15 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/10 15:26:12 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,14 +216,14 @@ void	Server::processClientAct( int client_fd )
 	// [Takato]: added from here
 	m_massagesList.at(client_fd).load(buffer);
 	const std::list<Message>	&list{ m_massagesList.at(client_fd).getMessages() };
-	for (auto it{list.begin()}; it != list.end(); ++it)
+	for (auto it{ list.begin() }; it != list.end(); ++it)
 	{
 		// to be discussed, each command operation would throw an execption indicating error like ERR_NEEDMOREPARAMS
 		try
 		{
 			(*it).operateCommand(*this, m_users.at(client_fd));
 		}
-		catch(const std::exception& e) // to be functinal, after creating Exception class for error
+		catch(const std::exception& e) // to become functinal after creating Exception class for error
 		{
 			std::cerr << e.what() << '\n';
 		}

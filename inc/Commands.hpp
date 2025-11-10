@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/07 19:51:07 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/10 15:08:59 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,16 @@ class Commands
 		static inline const size_t		k_max_mode_num{ 3 }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_toggle{ "it" }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_param{ "kol" }; // [Takato]: added for mode operation
-		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server);
+		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateToggleInvite(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateToggleTopic(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParam(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParamPrivilege(char sign, const Message &message, Server &server);
-		static void	channelValidation(const Server &server, User *user, const std::string &channel);
-		static void	modesValidation(const std::string &modes);
+		static void	modeOperateParamPrivilege(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateParamKey(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateParamLimit(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
+		static void	channelValidation(const Server &server, User *user, const std::string &channel); // [Takato]: added for mode operation
+		static void	modesValidation(const std::string &modes); // [Takato]: added for mode operation
 
 	public:
 		Commands(std::map<int, User*>& users,
