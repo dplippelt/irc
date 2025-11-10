@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/10 11:00:17 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/10 15:19:38 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -393,14 +393,12 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 {
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED,
-						":You have not registered");
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS,
-						"JOIN :Not enough parameters");
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
 		return;
 	}
 
@@ -676,6 +674,10 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 
 void Commands::handlePART(User* user, const std::list<std::string>& params)
 {
+	// PART command removes the user from the given channel.
+	// On sending a successful PART command, the user will receive a PART message
+	// from the server for each channel they are removed from
+
 	if (!user->isRegistered())
 	{
 		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
@@ -728,8 +730,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params)
 
 		if (!channel->isMember(user->getFd()))
 		{
-			sendNumericReply(user->getFd(), ERR_NOTONCHANNEL,
-							currentChannel + " :You're not on that channel");
+			sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, currentChannel + " :You're not on that channel");
 			continue;
 		}
 
@@ -765,4 +766,97 @@ void Commands::handlePART(User* user, const std::list<std::string>& params)
 		#endif
 	}
 
+}
+
+void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
+{
+	// TOPIC command is used to change or view the topic of the given channel.
+	// If <topic> is not given, the current topic is returned (or no topic set message)
+	// If <topic> is given, the topic is changed (if user has permission)
+	// Channel mode +t restricts topic changes to channel operators only
+
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		return;
+	}
+	if (params.empty())
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
+		return;
+	}
+	std::string channelName = params.front();
+	if (!channelName.empty() && channelName[0] == ':')
+		channelName = channelName.substr(1);
+
+	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
+	if (chanIt == _channels.end())
+	{
+		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return;
+	}
+
+	Channel* channel = chanIt->second;
+
+	if (!channel->isMember(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		return;
+	}
+	if (params.size() == 1)
+	{
+		const std::string& currentTopic = channel->getTopic();
+
+		if (currentTopic.empty())
+		{
+			sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
+		}
+		else
+		{
+			std::ostringstream topicMsg;
+			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
+					 << " " << user->getNickname() << " "
+					 << channelName << " :" << currentTopic;
+			sendResponse(user->getFd(), topicMsg.str());
+		}
+
+		#ifdef DEBUG
+		std::cout << "User " << user->getNickname() << " viewed topic of " << channelName << std::endl;
+		#endif
+
+		return;
+	}
+	if (channel->isTopicRestricted() && !channel->isOperator(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		return;
+	}
+
+
+	std::list<std::string>::const_iterator it = params.begin();
+	++it;
+	std::string newTopic = *it;
+
+
+	if (!newTopic.empty() && newTopic[0] == ':')
+		newTopic = newTopic.substr(1);
+
+	for (++it; it != params.end(); ++it)
+		newTopic += " " + *it;
+
+	channel->setTopic(newTopic);
+	std::string topicChangeMsg = user->getPrefix() + " TOPIC " + channelName + " :" + newTopic;
+
+	const std::map<int, User*>& members = channel->getMembers();
+	for (std::map<int, User*>::const_iterator memIt = members.begin();
+		 memIt != members.end(); ++memIt)
+	{
+		sendResponse(memIt->second->getFd(), topicChangeMsg);
+	}
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname()
+			  << " changed topic of " << channelName
+			  << " to: " << newTopic << std::endl;
+	#endif
 }
