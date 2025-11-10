@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/10 15:19:38 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/10 15:26:55 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,6 +268,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handleKICK(user, paramList);
 	else if (command == "PART")
 		handlePART(user, paramList);
+	else if (command == "TOPIC")
+		handleTOPIC(user, paramList);
 	else
 	{
 		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
