@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/10 15:26:55 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/11 10:13:29 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,7 +373,7 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 
 	std::list<std::string>::const_iterator it = params.begin();
 	std::string username = *it++;
-	std::advance(it, 2); // Skip hostname and servername
+	std::advance(it, 2);
 	std::string realname = *it;
 
 	if (!realname.empty() && realname[0] == ':')
@@ -834,11 +834,9 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
 		return;
 	}
 
-
 	std::list<std::string>::const_iterator it = params.begin();
 	++it;
 	std::string newTopic = *it;
-
 
 	if (!newTopic.empty() && newTopic[0] == ':')
 		newTopic = newTopic.substr(1);
