@@ -6,13 +6,12 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 10:15:12 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/07 19:39:37 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/11 15:53:26 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Message.hpp"
 #include "Server.hpp"
-#include "ChopCommands.hpp"
 
 /* ==================== Constructors & Destructor ==================== */
 
@@ -70,7 +69,7 @@ void	Message::operateCommand(Server &server, User *user) const
 	// case e_topic:
 	// 	break;
 	case e_mode:
-		ChopCommands::mode(*this, server, user);
+		Commands::mode(*this, server, user);
 		break;	
 	// case e_whois:
 	// 	break;
