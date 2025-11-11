@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/11 10:13:29 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/11 12:10:41 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -270,6 +270,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handlePART(user, paramList);
 	else if (command == "TOPIC")
 		handleTOPIC(user, paramList);
+	else if (command == "INVITE")
+		handleINVITE(user, paramList);
 	else
 	{
 		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
@@ -447,8 +449,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 
 		if (!isValidChannelName(channelName))
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL,
-							channelName + " :No such channel");
+			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 			continue;
 		}
 
@@ -459,16 +460,14 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 
 		if (channel->isInviteOnly() && !channel->isInvited(user->getFd()))
 		{
-			sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN,
-							channelName + " :Cannot join channel (+i)");
+			sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN, channelName + " :Cannot join channel (+i)");
 			continue;
 		}
 		if (channel->hasKey())
 		{
 			if (channelKey.empty() || channelKey != channel->getKey())
 			{
-				sendNumericReply(user->getFd(), ERR_BADCHANNELKEY,
-								channelName + " :Cannot join channel (+k)");
+				sendNumericReply(user->getFd(), ERR_BADCHANNELKEY, channelName + " :Cannot join channel (+k)");
 				continue;
 			}
 		}
@@ -476,8 +475,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 		{
 			if (static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit())
 			{
-				sendNumericReply(user->getFd(), ERR_CHANNELISFULL,
-								channelName + " :Cannot join channel (+l)");
+				sendNumericReply(user->getFd(), ERR_CHANNELISFULL, channelName + " :Cannot join channel (+l)");
 				continue;
 			}
 		}
@@ -858,5 +856,86 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
 	std::cout << "User " << user->getNickname()
 			  << " changed topic of " << channelName
 			  << " to: " << newTopic << std::endl;
+	#endif
+}
+
+void Commands::handleINVITE(User* user, const std::list<std::string>& params)
+{
+	// INVITE command invites a user to a channel
+	// format: INVITE <nickname> <channel>
+	// only channel operators can invite users (when channel is +i)
+
+	if (!user->isRegistered())
+	{
+		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		return;
+	}
+	if (params.size() < 2)
+	{
+		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
+		return;
+	}
+
+	std::list<std::string>::const_iterator it = params.begin();
+	std::string targetNick = *it++;
+	std::string channelName = *it;
+
+	if (!channelName.empty() && channelName[0] == ':')
+		channelName = channelName.substr(1);
+	if (!targetNick.empty() && targetNick[0] == ':')
+		targetNick = targetNick.substr(1);
+
+	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
+	if (chanIt == _channels.end())
+	{
+		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return;
+	}
+
+	Channel* channel = chanIt->second;
+	if (!channel->isMember(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		return;
+	}
+	if (channel->isInviteOnly() && !channel->isOperator(user->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		return;
+	}
+
+	User* targetUser = nullptr;
+	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
+	{
+		if (it->second->getNickname() == targetNick)
+		{
+			targetUser = it->second;
+			break;
+		}
+	}
+	if (targetUser == nullptr)
+	{
+		sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		return;
+	}
+	if (channel->isMember(targetUser->getFd()))
+	{
+		sendNumericReply(user->getFd(), ERR_USERONCHANNEL, targetNick + " " + channelName + " :is already on channel");
+		return;
+	}
+
+	channel->addInvite(targetUser->getFd());
+	std::ostringstream invitingMsg;
+	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
+				<< " " << user->getNickname() << " "
+				<< targetNick << " " << channelName;
+	sendResponse(user->getFd(), invitingMsg.str());
+	std::string inviteMsg = user->getPrefix() + " INVITE " + targetNick + " :" + channelName;
+	sendResponse(targetUser->getFd(), inviteMsg);
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname()
+			  << " invited " << targetNick
+			  << " to channel " << channelName << std::endl;
 	#endif
 }
