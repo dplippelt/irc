@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/05 11:33:18 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/07 19:25:28 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
+#include "Parser.hpp" //[Takato]: added Parser class
 
 // #define DEBUG
 
@@ -45,6 +46,8 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
+		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
+		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
 
 	private:
 		static const int									s_listen_backlog { 50 };
@@ -61,6 +64,7 @@ class Server
 		std::map<std::string, Channel*>		m_channels {};
 		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
+		std::map<int, Parser>				m_massagesList{};   //[Takato]: added Parser class's map
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();

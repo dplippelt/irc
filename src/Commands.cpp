@@ -1,16 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 10:56:03 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/11 15:25:12 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
+#include "Server.hpp"
+#include "Message.hpp"
 
 Commands::Commands(std::map<int, User*>& users,
 				   std::map<std::string, Channel*>& channels,
@@ -650,3 +652,274 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 	}
 
 }
+
+
+// [Takato]: added from here
+void	Commands::mode(const Message &message, Server &server, User *user)
+{
+	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
+	if (!message.getNumParams())
+	{
+		sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, " : <need to show current mode>"); // TODO:
+		return; // throwing and determining the actions on the server side would be better ??
+	}
+
+	if (message.getNumParams() < MINIMUM_PARAMS_MODE)
+		throw ERR_NEEDMOREPARAMS; // better to create Exception class to indicate each error number ?
+
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&modes{ message.getParam(1) };
+	const char 			sign{ modes.front() };
+
+	channelValidation(server, user, channel_name);
+	modesValidation(modes);
+
+	for (int i{ 1 }; i < std::min(modes.size(), k_max_mode_num + 1); ++i)
+	{
+		if (k_mode_set_toggle.find(modes[i]) != k_mode_set_toggle.size())
+			modeOperateToggle(modes[i], sign, message, server);
+		else if (k_mode_set_param.find(modes[i]) != k_mode_set_param.size())
+		{
+			if (message.getNumParams() < MINIMUM_PARAMS_MODE + 1)
+				throw ERR_NEEDMOREPARAMS;
+			modeOperateParam(modes[i], sign, message, server);
+		}
+		else
+			throw ERR_UNKNOWNMODE;
+	}
+}
+
+void	Commands::channelValidation(const Server &server, User *user, const std::string &channel)
+{
+	// Channels with '+' as prefix do not support channel modes.
+	if (channel.front() == '+')
+		throw ERR_NOCHANMODES;
+	if (!user->isInChannel(channel))
+		throw ERR_NOTONCHANNEL;
+	try
+	{
+		if (!server.getChannels().at(channel)->isOperator(user->getFd())) // need to a function to check if a certain channel exists in the channel container or not in Sever class
+			throw ERR_CHANOPRIVSNEEDED;
+	}
+	catch(const std::exception& e)
+	{
+		throw ERR_NOSUCHCHANNEL;
+	}
+}
+
+void	Commands::modesValidation(const std::string &modes)
+{
+	if (modes.size() < 2)
+		throw ERR_UNKNOWNMODE;
+	if (!(modes.front() == '+' || modes.front() == '-'))
+		throw ERR_UNKNOWNMODE;	
+}
+
+void	Commands::modeOperateToggle(char mode, char sign, const Message &message, Server &server)
+{
+	switch (mode)
+	{
+	case 'i':
+		modeOperateToggleInvite(sign, message, server);
+		break ;
+	case 't':
+		modeOperateToggleTopic(sign, message, server);
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateParam(char mode, char sign, const Message &message, Server &server)
+{
+	switch (mode)
+	{
+	case 'k':
+		modeOperateParamKey(sign, message, server);
+		break ;
+	case 'o':
+		modeOperateParamPrivilege(sign, message, server);
+		break;
+	case 'l':
+		modeOperateParamLimit(sign, message, server);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateToggleInvite(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	Channel				*channel{ server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setInviteOnly(true);
+		break ;
+	case '-':
+		channel->setInviteOnly(false);
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateToggleTopic(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	Channel				*channel{ server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setTopicRestricted(true);
+		break;
+	case '-':
+		channel->setTopicRestricted(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateParamKey(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	Channel				*channel{ server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		if (channel->hasKey())
+			throw ERR_KEYSET;
+		channel->setKey(param);
+		channel->setHasKey(true);
+		break;
+	case '-':
+		channel->setHasKey(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateParamPrivilege(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	Channel				*channel{ server.getChannels().at(channel_name) };
+	User				*user{};
+	auto				itend{ server.getUsers().begin() };
+
+	for (auto it{ server.getUsers().begin() }; it != itend; ++it)
+	{
+		if (it->second->getNickname() == param)
+		{
+			user = it->second;
+			break ;
+		}
+	}
+	if (!user || !user->isInChannel(channel_name))
+		throw ERR_NOTONCHANNEL;
+	switch (sign)
+	{
+	case '+':
+		channel->addOperator(user->getFd());
+		break ;
+	case '-':
+		channel->removeOperator(user->getFd());
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateParamLimit(char sign, const Message &message, Server &server)
+{
+	const std::string	&channel_name{ message.getParam(0) };
+	const std::string	&param{ message.getParam(MINIMUM_PARAMS_MODE) };
+	Channel				*channel{ server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		try
+		{
+			channel->setUserLimit(std::stoi(param));
+		}
+		catch(const std::exception& e)
+		{
+			throw ERR_NEEDMOREPARAMS;
+		}
+		channel->setHasUserLimit(true);
+		break ;
+	case '-':
+		channel->setHasUserLimit(false);
+		break ;
+	default:
+		break ;
+	}
+}
+
+/* Channel Namespace
+Channels names are strings (beginning with a '&', '#', '+' or '!'
+   character) of length up to fifty (50) characters.  
+   Channel names are case insensitive.
+   Apart from the the requirement that the first character being either
+   '&', '#', '+' or '!' (hereafter called "channel prefix"). The only
+   restriction on a channel name is that it SHALL NOT contain any spaces
+   (' '), a control G (^G or ASCII 7), a comma (',' which is used as a
+   list item separator by the protocol).  Also, a colon (':') is used as
+   a delimiter for the channel mask.
+ */
+
+/* Channel Modes
+Mandatory implementation: i, t, k, o, l
+
+Note that there is a maximum limit of three (3) changes per command for modes that take a parameter.
+	The various modes available for channels are as follows:
+	O - give "channel creator" status;
+	o - give/take channel operator privilege;
+	v - give/take the voice privilege;	
+	a - toggle the anonymous channel flag;
+	i - toggle the invite-only channel flag;
+	m - toggle the moderated channel;
+	n - toggle the no messages to channel from clients on the
+	    outside;
+	q - toggle the quiet channel flag;
+	p - toggle the private channel flag;
+	s - toggle the secret channel flag;
+	r - toggle the server reop channel flag;
+	t - toggle the topic settable by channel operator only flag;	
+	k - set/remove the channel key (password);
+	l - set/remove the user limit to channel;	
+	b - set/remove ban mask to keep users out;
+	e - set/remove an exception mask to override a ban mask;
+	I - set/remove an invitation mask to automatically override
+	    the invite-only flag;
+	https://datatracker.ietf.org/doc/html/rfc2811
+
+	Channel modes can be manipulated by the channel members.  
+	The modes affect the way servers manage the channels.
+	Channels with '+' as prefix do not support channel modes.  
+	This means that all the modes are unset, with the exception of the 't' channel flag which is set.
+
+	In order for the channel members to keep some control over a channel,
+    and some kind of sanity, some channel members are privileged.  Only
+	these members are allowed to perform the following actions on the channel:
+        INVITE  - Invite a client to an invite-only channel (mode +i)
+        KICK    - Eject a client from the channel
+        MODE    - Change the channel's mode, as well as
+                  members' privileges
+        PRIVMSG - Sending messages to the channel (mode +n, +m, +v)
+        TOPIC   - Change the channel topic in a mode +t channel
+
+	Since channels starting with the character '+' as prefix do not
+    support channel modes, no member can therefore have the status of channel operator.
+
+ */
+
+// [Takato]: added to here
