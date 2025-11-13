@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/07 14:06:30 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/13 17:00:51 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,7 @@
 #include "Channel.hpp"
 #include "Commands.hpp"
 
-// #define DEBUG
-
 class Channel;
-class Commands;
 
 class Server
 {
@@ -59,7 +56,6 @@ class Server
 		struct addrinfo						*m_addr {};
 		std::map<int, User*>				m_users {};
 		std::map<std::string, Channel*>		m_channels {};
-		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
 
 		void		validatePort( const std::string& port );
@@ -71,7 +67,7 @@ class Server
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
 		bool		userIsAuthenticated( int client_fd );
 
-		void	pong( std::vector<std::string>& cmd_params, int client_fd );
+		void		pong( std::vector<std::string>& cmd_params, int client_fd );
 };
 
 enum Command

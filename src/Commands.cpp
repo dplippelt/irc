@@ -6,21 +6,11 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/13 09:59:49 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/13 16:59:01 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
-
-Commands::Commands(std::map<int, User*>& users,
-				   std::map<std::string, Channel*>& channels,
-				   const std::string& password)
-	: _users(users)
-	, _channels(channels)
-	, _serverPassword(password)
-{}
-
-Commands::~Commands() {}
 
 // ==================== Helper Functions ====================
 
@@ -37,8 +27,7 @@ void Commands::sendResponse(int fd, const std::string& message)
 	ssize_t sent = send(fd, fullMessage.c_str(), fullMessage.length(), 0);
 	if (sent == -1)
 	{
-		std::cerr << "Error: Failed to send message to fd " << fd << ": "
-				  << strerror(errno) << std::endl;
+		std::cerr << "Error: Failed to send message to fd " << fd << ": " << strerror(errno) << std::endl;
 	}
 }
 
@@ -59,7 +48,7 @@ void Commands::sendError(int fd, const std::string& command, const std::string& 
 	sendResponse(fd, errorMsg);
 }
 
-bool Commands::isValidNickname(const std::string& nick) const
+bool Commands::isValidNickname(const std::string& nick)
 {
 	// IRC nickname rules:
 	// - Must start with a letter
@@ -70,7 +59,6 @@ bool Commands::isValidNickname(const std::string& nick) const
 		return false;
 	if (!std::isalpha(static_cast<unsigned char>(nick[0])))
 		return false;
-
 	for (size_t i = 1; i < nick.length(); ++i)
 	{
 		char c = nick[i];
@@ -80,14 +68,13 @@ bool Commands::isValidNickname(const std::string& nick) const
 			&& c != '_')
 			return false;
 	}
-
 	return true;
 }
 
-bool Commands::isNicknameInUse(const std::string& nick) const
+bool Commands::isNicknameInUse(const std::string& nick, const std::map<int, User*>& users)
 {
-	for (std::map<int, User*>::const_iterator it = _users.begin();
-		 it != _users.end(); ++it)
+	for (std::map<int, User*>::const_iterator it = users.begin();
+		 it != users.end(); ++it)
 	{
 		if (it->second->getNickname() == nick)
 			return true;
@@ -95,7 +82,7 @@ bool Commands::isNicknameInUse(const std::string& nick) const
 	return false;
 }
 
-bool Commands::isValidChannelName(const std::string& channelName) const
+bool Commands::isValidChannelName(const std::string& channelName)
 {
 	// IRC channel names must:
 	// - Start with # or &
@@ -106,7 +93,6 @@ bool Commands::isValidChannelName(const std::string& channelName) const
 		return false;
 	if (channelName[0] != '#' && channelName[0] != '&')
 		return false;
-
 	for (size_t i = 1; i < channelName.length(); ++i)
 	{
 		char c = channelName[i];
@@ -116,14 +102,14 @@ bool Commands::isValidChannelName(const std::string& channelName) const
 	return true;
 }
 
-Channel* Commands::getOrCreateChannel(const std::string& channelName)
+Channel* Commands::getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels)
 {
-	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
-	if (it != _channels.end())
+	std::map<std::string, Channel*>::iterator it = channels.find(channelName);
+	if (it != channels.end())
 		return it->second;
 
 	Channel* newChannel = new Channel(channelName);
-	_channels[channelName] = newChannel;
+	channels[channelName] = newChannel;
 
 	#ifdef DEBUG
 	std::cout << "Created new channel: " << channelName << std::endl;
@@ -182,9 +168,7 @@ void Commands::checkRegistration(User* user)
 		sendWelcome(user);
 
 		#ifdef DEBUG
-		std::cout << "User " << user->getNickname()
-					<< " (fd " << user->getFd()
-					<< ") is now registered!" << std::endl;
+		std::cout << "User " << user->getNickname() << " (fd " << user->getFd() << ") is now registered!" << std::endl;
         #endif
 	}
 }
@@ -215,7 +199,7 @@ void Commands::sendWelcome(User* user)
 	sendResponse(user->getFd(), msg4.str());
 }
 
-bool Commands::canExecuteCommand(User* user, const std::string& command) const
+bool Commands::canExecuteCommand(User* user, const std::string& command)
 {
 	if (command == "PASS")
 		return true;
@@ -239,10 +223,13 @@ void Commands::sendAuthenticationError(int fd, const std::string& command)
 		sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
 }
 
-// ==================== Temporary Wrappers ====================
+// ==================== Main Execute Command ====================
 
 void Commands::executeCommand(User* user, const std::string& command,
-								const std::vector<std::string>& params)
+								const std::vector<std::string>& params,
+								std::map<int, User*>& users,
+								std::map<std::string, Channel*>& channels,
+								const std::string& serverPassword)
 {
 	if (!canExecuteCommand(user, command))
 	{
@@ -253,30 +240,32 @@ void Commands::executeCommand(User* user, const std::string& command,
 	std::list<std::string> paramList(params.begin(), params.end());
 
 	if (command == "PASS")
-		handlePASS(user, paramList);
+		handlePASS(user, paramList, serverPassword);
 	else if (command == "NICK")
-		handleNICK(user, paramList);
+		handleNICK(user, paramList, users);
 	else if (command == "USER")
 		handleUSER(user, paramList);
 	else if (command == "JOIN")
-		handleJOIN(user, paramList);
+		handleJOIN(user, paramList, channels);
 	else if (command == "PRIVMSG")
-		handlePRIVMSG(user, paramList);
+		handlePRIVMSG(user, paramList, users, channels);
 	else if (command == "KICK")
-		handleKICK(user, paramList);
+		handleKICK(user, paramList, users, channels);
 	else if (command == "PART")
-		handlePART(user, paramList);
+		handlePART(user, paramList, channels);
 	else if (command == "TOPIC")
-		handleTOPIC(user, paramList);
+		handleTOPIC(user, paramList, channels);
 	else if (command == "INVITE")
-		handleINVITE(user, paramList);
+		handleINVITE(user, paramList, users, channels);
 	else
 	{
 		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 	}
 }
 
-void Commands::handlePASS(User* user, const std::list<std::string>& params)
+// ==================== Command Handlers ====================
+
+void Commands::handlePASS(User* user, const std::list<std::string>& params, const std::string& serverPassword)
 {
 	if (user->isRegistered())
 	{
@@ -298,7 +287,7 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 
 	if (!providedPassword.empty() && providedPassword[0] == ':')
 		providedPassword = providedPassword.substr(1);
-	if (providedPassword != _serverPassword)
+	if (providedPassword != serverPassword)
 	{
 		sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,":Password incorrect");
 		return;
@@ -314,7 +303,7 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params)
 	#endif
 }
 
-void Commands::handleNICK(User* user, const std::list<std::string>& params)
+void Commands::handleNICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users)
 {
 	if (params.empty())
 	{
@@ -330,7 +319,7 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params)
 		sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
 		return;
 	}
-	if (isNicknameInUse(newNick))
+	if (isNicknameInUse(newNick, users))
 	{
 		sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
 		return;
@@ -391,7 +380,7 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 	#endif
 }
 
-void Commands::handleJOIN(User* user, const std::list<std::string>& params)
+void Commands::handleJOIN(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
@@ -418,7 +407,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 			keyList = keyList.substr(1);
 	}
 
-	std::vector<std::string> channels;
+	std::vector<std::string> channelVec;
 	std::vector<std::string> keys;
 
 	std::istringstream channelStream(channelList);
@@ -426,7 +415,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 	while (std::getline(channelStream, channe, ','))
 	{
 		if (!channe.empty())
-			channels.push_back(channe);
+			channelVec.push_back(channe);
 	}
 
 	if (!keyList.empty())
@@ -440,9 +429,9 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 	}
 
 
-	for (size_t i = 0; i < channels.size(); ++i)
+	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
-		std::string channelName = channels[i];
+		std::string channelName = channelVec[i];
 		std::string channelKey = (i < keys.size()) ? keys[i] : "";
 
 		if (!isValidChannelName(channelName))
@@ -451,7 +440,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 			continue;
 		}
 
-		Channel* channel = getOrCreateChannel(channelName);
+		Channel* channel = getOrCreateChannel(channelName, channels);
 
 		if (channel->isMember(user->getFd()))
 			continue;
@@ -493,7 +482,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params)
 	}
 }
 
-void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
+void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
@@ -523,8 +512,8 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 
 	if (target[0] == '#' || target[0] == '&')
 	{
-		std::map<std::string, Channel*>::iterator it = _channels.find(target);
-		if (it == _channels.end())
+		std::map<std::string, Channel*>::iterator it = channels.find(target);
+		if (it == channels.end())
 		{
 			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, target + " :No such channel");
 			return;
@@ -557,8 +546,8 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 	{
 		User* targetUser = nullptr;
 
-		for (std::map<int, User*>::iterator it = _users.begin();
-			 it != _users.end(); ++it)
+		for (std::map<int, User*>::const_iterator it = users.begin();
+			 it != users.end(); ++it)
 		{
 			if (it->second->getNickname() == target)
 			{
@@ -585,7 +574,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params)
 
 }
 
-void Commands::handleKICK(User* user, const std::list<std::string>& params)
+void Commands::handleKICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
@@ -610,8 +599,8 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 			reason = reason.substr(1);
 	}
 
-	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
-	if (chanIt == _channels.end())
+	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
+	if (chanIt == channels.end())
 	{
 		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 		return;
@@ -631,7 +620,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 	}
 
 	User* targetUser = nullptr;
-	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
+	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
 	{
 		if (it->second->getNickname() == targetNick)
 		{
@@ -656,7 +645,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 
 	if (channel->isEmpty())
 	{
-		_channels.erase(channelName);
+		channels.erase(channelName);
 		delete channel;
 
 		#ifdef DEBUG
@@ -670,7 +659,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params)
 	#endif
 }
 
-void Commands::handlePART(User* user, const std::list<std::string>& params)
+void Commands::handlePART(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
 	// PART command removes the user from the given channel.
 	// On sending a successful PART command, the user will receive a PART message
@@ -703,21 +692,21 @@ void Commands::handlePART(User* user, const std::list<std::string>& params)
 			reason += " " + *it;
 	}
 
-	std::vector<std::string> channels;
+	std::vector<std::string> channelVec;
 	std::istringstream channelStream(channelList);
 	std::string channelName;
 	while (std::getline(channelStream, channelName, ','))
 	{
 		if (!channelName.empty())
-			channels.push_back(channelName);
+			channelVec.push_back(channelName);
 	}
 
-	for (size_t i = 0; i < channels.size(); ++i)
+	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
-		std::string currentChannel = channels[i];
+		std::string currentChannel = channelVec[i];
 
-		std::map<std::string, Channel*>::iterator chanIt = _channels.find(currentChannel);
-		if (chanIt == _channels.end())
+		std::map<std::string, Channel*>::iterator chanIt = channels.find(currentChannel);
+		if (chanIt == channels.end())
 		{
 			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL,
 							currentChannel + " :No such channel");
@@ -748,7 +737,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params)
 
 		if (channel->isEmpty())
 		{
-			_channels.erase(currentChannel);
+			channels.erase(currentChannel);
 			delete channel;
 
 			#ifdef DEBUG
@@ -766,7 +755,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params)
 
 }
 
-void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
+void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
 	// TOPIC command is used to change or view the topic of the given channel.
 	// If <topic> is not given, the current topic is returned (or no topic set message)
@@ -787,8 +776,8 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
 	if (!channelName.empty() && channelName[0] == ':')
 		channelName = channelName.substr(1);
 
-	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
-	if (chanIt == _channels.end())
+	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
+	if (chanIt == channels.end())
 	{
 		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 		return;
@@ -857,7 +846,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params)
 	#endif
 }
 
-void Commands::handleINVITE(User* user, const std::list<std::string>& params)
+void Commands::handleINVITE(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
 	// INVITE command invites a user to a channel
 	// format: INVITE <nickname> <channel>
@@ -883,8 +872,8 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params)
 	if (!targetNick.empty() && targetNick[0] == ':')
 		targetNick = targetNick.substr(1);
 
-	std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
-	if (chanIt == _channels.end())
+	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
+	if (chanIt == channels.end())
 	{
 		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 		return;
@@ -903,7 +892,7 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params)
 	}
 
 	User* targetUser = nullptr;
-	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
+	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
 	{
 		if (it->second->getNickname() == targetNick)
 		{
