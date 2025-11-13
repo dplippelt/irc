@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 14:59:31 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/13 15:12:01 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,10 +331,42 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 
 bool	Server::userIsAuthenticated( int client_fd )
 {
-	std::map<int, User*>::iterator it = m_users.find(client_fd);
-	if (it != m_users.end())
-		return it->second->isAuthenticated();
-	return false;
+	return ( m_client_info.find(client_fd)->second.isAuthenticated() );
+}
+
+void	Server::userAuthentication( int client_fd )
+{
+	//check conditions for user to be authenticated, this is temporary placeholder check
+	if ( m_client_info.find(client_fd)->second.isAuthenticated() == false )
+	{
+		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
+		std::string	numericReply;
+		for ( int i {1}; i < 5; ++i )
+		{
+			numericReply = getNumericReply(i, "testNick", "testUser", "localhost");
+			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
+				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
+		}
+		m_client_info.find(client_fd)->second.setAuthenticated(true);
+	}
+	//else wait to receive more info
+}
+
+std::string	Server::getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host )
+{
+	switch (i)
+	{
+	case 1:
+		return (":" + s_server_name + " 001 " + nick + " :Welcome to our IRC Network " + nick + "!" + user + "@" + host + "\r\n");
+	case 2:
+		return (":" + s_server_name + " 002 " + nick + " :Your host is " + s_server_name + ", running version " + s_server_version + "\r\n");
+	case 3:
+		return (":" + s_server_name + " 003 " + nick + " :This server was created as part of the Codam project ft_irc." + "\r\n");
+	case 4:
+		return (":" + s_server_name + " 004 " + nick + " " + s_server_name + " " + s_server_version + " " + s_user_modes + " " + s_channel_modes + "\r\n");
+	default:
+		return ("");
+	}
 }
 
 /* ==================== Pong implementation so connection doesn't time out ==================== */
