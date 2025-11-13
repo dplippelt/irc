@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 15:12:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/13 15:23:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,6 +234,11 @@ void	Server::processClientAct( int client_fd )
 	}
 	// processBuffer(buffer, bytes, client_fd);  // [Takato]: commented out
 	// [Takato]: to here
+
+	//start Mock Authentication
+	if ( !userIsAuthenticated(client_fd) )
+		userAuthentication(client_fd);
+	//end Mock Authentication
 }
 
 Server::Server( const Server& ) = default;
@@ -331,13 +336,13 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 
 bool	Server::userIsAuthenticated( int client_fd )
 {
-	return ( m_client_info.find(client_fd)->second.isAuthenticated() );
+	return ( m_users.find(client_fd)->second->isAuthenticated() );
 }
 
 void	Server::userAuthentication( int client_fd )
 {
 	//check conditions for user to be authenticated, this is temporary placeholder check
-	if ( m_client_info.find(client_fd)->second.isAuthenticated() == false )
+	if ( m_users.find(client_fd)->second->isAuthenticated() == false )
 	{
 		//if check passes send numeric replies to client to confirm connection and auth status to ok/true
 		std::string	numericReply;
@@ -347,7 +352,7 @@ void	Server::userAuthentication( int client_fd )
 			if ( send(client_fd, numericReply.data(), numericReply.length(), 0) == -1 )
 				std::cerr << "Warning: failed to send numeric reply to client" << std::endl;
 		}
-		m_client_info.find(client_fd)->second.setAuthenticated(true);
+		m_users.find(client_fd)->second->setAuthenticated(true);
 	}
 	//else wait to receive more info
 }
@@ -407,7 +412,7 @@ void	Server::printModeStates() const
 {
 	for (auto it { m_channels.begin() }; it != m_channels.end(); ++it )
 	{
-		std::cout << "Channel name: " << it->first << std::endl;
+		std::cout << "\nChannel name: " << it->first << std::endl;
 		std::cout << "- Invite Only? " << (it->second->isInviteOnly() ? 1 : 0) << std::endl;
 		std::cout << "- Topic Restriction Set? " << (it->second->isTopicRestricted() ? 1 : 0) << std::endl;
 		std::cout << "- Key Set? " << (it->second->hasKey() ? 1 : 0) << std::endl;
