@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/07 14:06:30 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/13 17:26:32 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,9 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
+
+		const std::map<int, User*>&				getUsers() const;
+		const std::map<std::string, Channel*>&	getChannels() const;
 
 	private:
 		static const int									s_listen_backlog { 50 };
