@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/11 15:25:12 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 15:02:15 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -674,7 +674,7 @@ void	Commands::mode(const Message &message, Server &server, User *user)
 	channelValidation(server, user, channel_name);
 	modesValidation(modes);
 
-	for (int i{ 1 }; i < std::min(modes.size(), k_max_mode_num + 1); ++i)
+	for (int i{ 1 }; i < static_cast<int>(std::min(modes.size(), k_max_mode_num + 1)); ++i)
 	{
 		if (k_mode_set_toggle.find(modes[i]) != k_mode_set_toggle.size())
 			modeOperateToggle(modes[i], sign, message, server);
@@ -687,6 +687,10 @@ void	Commands::mode(const Message &message, Server &server, User *user)
 		else
 			throw ERR_UNKNOWNMODE;
 	}
+
+	#ifdef DEBUG
+	server.printModeStates();
+	#endif
 }
 
 void	Commands::channelValidation(const Server &server, User *user, const std::string &channel)
@@ -712,7 +716,7 @@ void	Commands::modesValidation(const std::string &modes)
 	if (modes.size() < 2)
 		throw ERR_UNKNOWNMODE;
 	if (!(modes.front() == '+' || modes.front() == '-'))
-		throw ERR_UNKNOWNMODE;	
+		throw ERR_UNKNOWNMODE;
 }
 
 void	Commands::modeOperateToggle(char mode, char sign, const Message &message, Server &server)
@@ -866,7 +870,7 @@ void	Commands::modeOperateParamLimit(char sign, const Message &message, Server &
 
 /* Channel Namespace
 Channels names are strings (beginning with a '&', '#', '+' or '!'
-   character) of length up to fifty (50) characters.  
+   character) of length up to fifty (50) characters.
    Channel names are case insensitive.
    Apart from the the requirement that the first character being either
    '&', '#', '+' or '!' (hereafter called "channel prefix"). The only
@@ -883,7 +887,7 @@ Note that there is a maximum limit of three (3) changes per command for modes th
 	The various modes available for channels are as follows:
 	O - give "channel creator" status;
 	o - give/take channel operator privilege;
-	v - give/take the voice privilege;	
+	v - give/take the voice privilege;
 	a - toggle the anonymous channel flag;
 	i - toggle the invite-only channel flag;
 	m - toggle the moderated channel;
@@ -893,18 +897,18 @@ Note that there is a maximum limit of three (3) changes per command for modes th
 	p - toggle the private channel flag;
 	s - toggle the secret channel flag;
 	r - toggle the server reop channel flag;
-	t - toggle the topic settable by channel operator only flag;	
+	t - toggle the topic settable by channel operator only flag;
 	k - set/remove the channel key (password);
-	l - set/remove the user limit to channel;	
+	l - set/remove the user limit to channel;
 	b - set/remove ban mask to keep users out;
 	e - set/remove an exception mask to override a ban mask;
 	I - set/remove an invitation mask to automatically override
 	    the invite-only flag;
 	https://datatracker.ietf.org/doc/html/rfc2811
 
-	Channel modes can be manipulated by the channel members.  
+	Channel modes can be manipulated by the channel members.
 	The modes affect the way servers manage the channels.
-	Channels with '+' as prefix do not support channel modes.  
+	Channels with '+' as prefix do not support channel modes.
 	This means that all the modes are unset, with the exception of the 't' channel flag which is set.
 
 	In order for the channel members to keep some control over a channel,

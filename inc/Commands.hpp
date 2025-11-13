@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/11 15:24:48 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 15:01:06 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ class Commands
 		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateToggleInvite(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateToggleTopic(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParam(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParamPrivilege(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParamKey(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
@@ -118,7 +117,7 @@ class Commands
 		static const int ERR_CHANOPRIVSNEEDED = 482; // [Takato]: added for mode operation
 
 		static void	mode(const Message &message, Server &server, User *user); // [Takato]: added for mode operation
-		
+
 };
 
 #endif

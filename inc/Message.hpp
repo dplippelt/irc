@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 09:29:24 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/11 15:28:34 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 15:03:33 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 # define MINIMUM_PARAMS_WHOIS 0
 
 class Server;
+class User;
 
 typedef enum e_commands
 {
@@ -59,7 +60,7 @@ private:
 	int						m_cmd_type{};
 
 	static inline const std::vector<std::string>	k_commands ={
-		"PASS", "NICK", "USER", "JOIN", "PRIVMSG", "KICK", "INVITE", 
+		"PASS", "NICK", "USER", "JOIN", "PRIVMSG", "KICK", "INVITE",
 		"TOPIC", "MODE", "WHOIS",
 	};
 
@@ -76,7 +77,7 @@ public:
 	~Message();
 
 	void	print() const;
-	void	operateCommand(Server &server, User *uer) const;
+	void	operateCommand(Server &server, User *user) const;
 
 	const std::string				&getCommandName() const;
 	const std::list<std::string>	&getParamsList() const;

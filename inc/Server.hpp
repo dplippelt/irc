@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/07 19:25:28 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 14:59:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,11 @@ class Server
 		void	doPoll();
 		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
 		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
+
+		#ifdef DEBUG
+		void	printModeStates() const;
+		#endif
+
 
 	private:
 		static const int									s_listen_backlog { 50 };

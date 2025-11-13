@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/11 15:25:24 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 14:59:31 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -355,7 +355,7 @@ void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
 	#endif
 }
 
-// [Takato]: added from here 
+// [Takato]: added from here
 const	std::map<std::string, Channel *>	&Server::getChannels() const
 {
 	return m_channels;
@@ -366,4 +366,32 @@ const	std::map<int, User *>	&Server::getUsers() const
 	return m_users;
 }
 
-// [Takato]: added to here 
+// [Takato]: added to here
+
+#ifdef DEBUG
+/* ==================== DEBUG Function ==================== */
+
+void	Server::printModeStates() const
+{
+	for (auto it { m_channels.begin() }; it != m_channels.end(); ++it )
+	{
+		std::cout << "Channel name: " << it->first << std::endl;
+		std::cout << "- Invite Only? " << (it->second->isInviteOnly() ? 1 : 0) << std::endl;
+		std::cout << "- Topic Restriction Set? " << (it->second->isTopicRestricted() ? 1 : 0) << std::endl;
+		std::cout << "- Key Set? " << (it->second->hasKey() ? 1 : 0) << std::endl;
+		std::cout << "- User Limit Set? " << (it->second->hasUserLimit() ? 1 : 0) << std::endl;
+
+		if (it->second->hasKey() || it->second->hasUserLimit())
+		{
+			std::cout << "Setting details:" << std::endl;
+			if (it->second->hasKey())
+				std::cout << "Channel key is '" << it->second->getKey() << "'" << std::endl;
+			if (it->second->hasUserLimit())
+				std::cout << "User limit is '" << it->second->getUserLimit() << "'" << std::endl;
+		}
+
+		std::cout << std::endl;
+
+	}
+}
+#endif
