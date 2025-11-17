@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/13 17:44:25 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 13:24:45 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,9 @@ class Commands
 		void handleJOIN(User* user, const std::list<std::string>& params);
 		void handlePRIVMSG(User* user, const std::list<std::string>& params, const Server& server);
 		void handleKICK(User* user, const std::list<std::string>& params, const Server& server);
-		void handlePART(User* user, const std::list<std::string>& params);
-		void handleTOPIC(User* user, const std::list<std::string>& params);
-		void handleINVITE(User* user, const std::list<std::string>& params);
+		void handlePART(User* user, const std::list<std::string>& params, const Server& server);
+		void handleTOPIC(User* user, const std::list<std::string>& params, const Server& server);
+		void handleINVITE(User* user, const std::list<std::string>& params, const Server& server);
 
 		// Dominique: codes have been moved to an enum inside enums.hpp (is included by Commands.hpp now)
 		// // IRC Numeric Reply Codes

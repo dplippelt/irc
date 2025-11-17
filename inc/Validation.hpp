@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 17:48:35 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 13:31:52 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,19 @@ class Validation
 		static void			validateJOIN(User* user, const std::list<std::string>& params);
 		static void			validatePRIVMSG(User* user, const std::list<std::string>& params);
 		static void			validateKICK(User* user, const std::list<std::string>& params);
+		static void			validatePART(User* user, const std::list<std::string>& params);
+		static std::string	validateTOPIC(User* user, const std::list<std::string>& params);
+		static void			validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, const Server& server);
 
 
 		static void			validateCanJoin(User* user, Channel* channel, std::string& channelKey);
 		static Channel*		validateCanSendMsg(User* user, const std::string& target, const Server& server);
 		static Channel*		validateCanKick(User* user, const std::string& channelName, const Server& server);
 		static User*		validateCanKickTarget(User* user, Channel* channel, const std::string& targetNick, const Server& server);
+		static Channel*		validateCanPart(User* user, const std::string& currentChannel, const Server& server);
+		static Channel*		validateCanChangeTopic(User* user, const std::string& channelName, const Server& server);
+		static Channel*		validateCanInvite(User* user, const std::string& channelName, const Server& server);
+		static User*		validateCanInviteTarget(User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server);
 
 	private:
 		static bool isValidNickname(const std::string& nick);
