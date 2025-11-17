@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/17 15:21:41 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 15:30:58 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 /* ==================== Class Behavior ==================== */
 
-void Validation::validatePASS(User* user, const std::list<std::string>& params)
+void Validation::validatePASS( User* user, const std::list<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
@@ -33,7 +33,7 @@ void Validation::validatePASS(User* user, const std::list<std::string>& params)
 	}
 }
 
-std::string	Validation::validateNICK(User* user, const std::list<std::string>& params, const Server& server)
+std::string	Validation::validateNICK( User* user, const std::list<std::string>& params, const Server& server )
 {
 	if ( params.empty() )
 	{
@@ -42,7 +42,7 @@ std::string	Validation::validateNICK(User* user, const std::list<std::string>& p
 	}
 
 	std::string newNick { params.front() };
-	
+
 	if ( !newNick.empty() && newNick[0] == ':' )
 		newNick = newNick.substr(1);
 
@@ -60,7 +60,7 @@ std::string	Validation::validateNICK(User* user, const std::list<std::string>& p
 	return newNick;
 }
 
-void	Validation::validateUSER(User* user, const std::list<std::string>& params)
+void	Validation::validateUSER( User* user, const std::list<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
@@ -79,7 +79,7 @@ void	Validation::validateUSER(User* user, const std::list<std::string>& params)
 	}
 }
 
-void	Validation::validateJOIN(User* user, const std::list<std::string>& params)
+void	Validation::validateJOIN( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -93,7 +93,7 @@ void	Validation::validateJOIN(User* user, const std::list<std::string>& params)
 	}
 }
 
-void	Validation::validatePRIVMSG(User* user, const std::list<std::string>& params)
+void	Validation::validatePRIVMSG( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -112,7 +112,7 @@ void	Validation::validatePRIVMSG(User* user, const std::list<std::string>& param
 	}
 }
 
-void	Validation::validateKICK(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason)
+void	Validation::validateKICK( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason )
 {
 	if ( !user->isRegistered() )
 	{
@@ -139,7 +139,7 @@ void	Validation::validateKICK(User* user, const std::list<std::string>& params, 
 	}
 }
 
-void	Validation::validatePART(User* user, const std::list<std::string>& params)
+void	Validation::validatePART( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -153,7 +153,7 @@ void	Validation::validatePART(User* user, const std::list<std::string>& params)
 	}
 }
 
-std::string	Validation::validateTOPIC(User* user, const std::list<std::string>& params)
+std::string	Validation::validateTOPIC( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -174,7 +174,7 @@ std::string	Validation::validateTOPIC(User* user, const std::list<std::string>& 
 	return channelName;
 }
 
-void	Validation::validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName)
+void	Validation::validateINVITE( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName )
 {
 	if ( !user->isRegistered() )
 	{
@@ -198,7 +198,7 @@ void	Validation::validateINVITE(User* user, const std::list<std::string>& params
 		targetNick = targetNick.substr(1);
 }
 
-void	Validation::validateCanJoin(User* user, Channel* channel, std::string& channelKey)
+void	Validation::validateCanJoin( User* user, Channel* channel, std::string& channelKey )
 {
 
 	if ( channel->isMember(user->getFd()) )
@@ -227,7 +227,7 @@ void	Validation::validateCanJoin(User* user, Channel* channel, std::string& chan
 	}
 }
 
-Channel*	Validation::validateCanSendMsg(User* user, const std::string& target, const Server& server)
+Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, const Server& server )
 {
 	auto it { server.getChannels().find(target) };
 
@@ -248,7 +248,7 @@ Channel*	Validation::validateCanSendMsg(User* user, const std::string& target, c
 	return channel;
 }
 
-Channel*	Validation::validateCanKick(User* user, const std::string& channelName, const Server& server)
+Channel*	Validation::validateCanKick( User* user, const std::string& channelName, const Server& server )
 {
 	auto chanIt { server.getChannels().find(channelName) };
 
@@ -274,7 +274,7 @@ Channel*	Validation::validateCanKick(User* user, const std::string& channelName,
 	return channel;
 }
 
-User*	Validation::validateCanKickTarget(User* user, Channel* channel, const std::string& targetNick, const Server& server)
+User*	Validation::validateCanKickTarget( User* user, Channel* channel, const std::string& targetNick, const Server& server )
 {
 	User* targetUser {};
 
@@ -302,7 +302,7 @@ User*	Validation::validateCanKickTarget(User* user, Channel* channel, const std:
 	return targetUser;
 }
 
-Channel*	Validation::validateCanPart(User* user, const std::string& currentChannel, const Server& server)
+Channel*	Validation::validateCanPart( User* user, const std::string& currentChannel, const Server& server )
 {
 	auto chanIt { server.getChannels().find(currentChannel) };
 
@@ -323,7 +323,7 @@ Channel*	Validation::validateCanPart(User* user, const std::string& currentChann
 	return channel;
 }
 
-Channel*	Validation::validateCanChangeTopic(User* user, const std::string& channelName, const Server& server)
+Channel*	Validation::validateCanChangeTopic( User* user, const std::string& channelName, const Server& server )
 {
 	auto chanIt { server.getChannels().find(channelName) };
 
@@ -344,7 +344,7 @@ Channel*	Validation::validateCanChangeTopic(User* user, const std::string& chann
 	return channel;
 }
 
-Channel*	Validation::validateCanInvite(User* user, const std::string& channelName, const Server& server)
+Channel*	Validation::validateCanInvite( User* user, const std::string& channelName, const Server& server )
 {
 	auto chanIt { server.getChannels().find(channelName) };
 
@@ -370,7 +370,7 @@ Channel*	Validation::validateCanInvite(User* user, const std::string& channelNam
 	return channel;
 }
 
-User*	Validation::validateCanInviteTarget(User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server)
+User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server )
 {
 	User* targetUser {};
 
@@ -400,7 +400,7 @@ User*	Validation::validateCanInviteTarget(User* user, Channel* channel, const st
 
 /* ==================== Helpers ==================== */
 
-bool Validation::isValidNickname(const std::string& nick)
+bool Validation::isValidNickname( const std::string& nick )
 {
 	// IRC nickname rules:
 	// - Must start with a letter
@@ -426,7 +426,7 @@ bool Validation::isValidNickname(const std::string& nick)
 	return true;
 }
 
-bool Validation::isNicknameInUse(const std::string& nick, const Server& server)
+bool Validation::isNicknameInUse( const std::string& nick, const Server& server )
 {
 	for ( auto it = server.getUsers().begin(); it != server.getUsers().end(); ++it )
 	{
