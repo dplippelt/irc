@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/17 13:32:44 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 14:57:54 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void	Validation::validatePRIVMSG(User* user, const std::list<std::string>& param
 	}
 }
 
-void	Validation::validateKICK(User* user, const std::list<std::string>& params)
+void	Validation::validateKICK(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason)
 {
 	if (!user->isRegistered())
 	{
@@ -122,6 +122,19 @@ void	Validation::validateKICK(User* user, const std::list<std::string>& params)
 	{
 		Commands::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
 		throw std::exception {};
+	}
+
+	auto		it { params.begin() };
+
+	channelName = *it++;
+	targetNick = *it++;
+	reason = "Kicked by operator";
+
+	if (it != params.end())
+	{
+		reason = *it;
+		if (!reason.empty() && reason[0] == ':')
+			reason = reason.substr(1);
 	}
 }
 
@@ -160,7 +173,7 @@ std::string	Validation::validateTOPIC(User* user, const std::list<std::string>& 
 	return channelName;
 }
 
-void	Validation::validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, const Server& server)
+void	Validation::validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName)
 {
 	if (!user->isRegistered())
 	{
@@ -255,6 +268,8 @@ Channel*	Validation::validateCanKick(User* user, const std::string& channelName,
 		Commands::sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		throw std::exception {};
 	}
+
+	return channel;
 }
 
 User*	Validation::validateCanKickTarget(User* user, Channel* channel, const std::string& targetNick, const Server& server)
@@ -263,6 +278,7 @@ User*	Validation::validateCanKickTarget(User* user, Channel* channel, const std:
 
 	for (auto it = server.getUsers().begin(); it != server.getUsers().end(); ++it)
 	{
+		std::cout << "Comparing to user: " << it->second->getNickname() << std::endl;
 		if (it->second->getNickname() == targetNick)
 		{
 			targetUser = it->second;
@@ -270,11 +286,19 @@ User*	Validation::validateCanKickTarget(User* user, Channel* channel, const std:
 		}
 	}
 
+	if (!targetUser)
+	{
+		Commands::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick");
+		throw std::exception {};
+	}
+
 	if (!channel->isMember(targetUser->getFd()))
 	{
 		Commands::sendNumericReply(user->getFd(), ERR_USERNOTINCHANNEL, targetNick + " " + channel->getName() + " :They aren't on that channel");
 		throw std::exception {};
 	}
+
+	return targetUser;
 }
 
 Channel*	Validation::validateCanPart(User* user, const std::string& currentChannel, const Server& server)
@@ -359,7 +383,7 @@ User*	Validation::validateCanInviteTarget(User* user, Channel* channel, const st
 	}
 	if (targetUser == nullptr)
 	{
-		Commands::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		Commands::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick");
 		throw std::exception {};
 	}
 	if (channel->isMember(targetUser->getFd()))

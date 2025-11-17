@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/17 13:34:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 15:04:00 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -650,7 +650,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 
 		if (targetUser == nullptr)
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
+			sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick");
 			return;
 		}
 
@@ -679,28 +679,17 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	// 	return;
 	// }
 
-	// Dominique: start new validation
-	try
-	{
-		Validation::validateKICK(user, params);
-	}
-	catch(const std::exception& e)
-	{
-		return;
-	}
-	// Dominique: end new validation
+	// std::list<std::string>::const_iterator it = params.begin();
+	// std::string channelName = *it++;
+	// std::string targetNick = *it++;
 
-	std::list<std::string>::const_iterator it = params.begin();
-	std::string channelName = *it++;
-	std::string targetNick = *it++;
-
-	std::string reason = "Kicked by operator";
-	if (it != params.end())
-	{
-		reason = *it;
-		if (!reason.empty() && reason[0] == ':')
-			reason = reason.substr(1);
-	}
+	// std::string reason = "Kicked by operator";
+	// if (it != params.end())
+	// {
+	// 	reason = *it;
+	// 	if (!reason.empty() && reason[0] == ':')
+	// 		reason = reason.substr(1);
+	// }
 
 	// std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
 	// if (chanIt == _channels.end())
@@ -738,12 +727,16 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	// 	return;
 	// }
 
-	// Dominique: start new 'validation'
+	// Dominique: start new validation
+	std::string	targetNick {};
+	std::string	channelName {};
+	std::string	reason {};
 	Channel*	channel {};
 	User*		targetUser {};
 
 	try
 	{
+		Validation::validateKICK(user, params, targetNick, channelName, reason);
 		channel = Validation::validateCanKick(user, channelName, server);
 		targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server);
 	}
@@ -751,7 +744,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	{
 		return;
 	}
-	// Dominique: start new 'validation'
+	// Dominique: end new validation
 
 	std::string kickMsg = user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 	const std::map<int, User*>& members = channel->getMembers();
@@ -1077,7 +1070,7 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params, co
 
 	try
 	{
-		Validation::validateINVITE(user, params, targetNick, channelName, server);
+		Validation::validateINVITE(user, params, targetNick, channelName);
 		channel = Validation::validateCanInvite(user, channelName, server);
 		targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server);
 	}

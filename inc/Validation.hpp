@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/17 13:31:52 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 13:52:07 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,10 @@ class Validation
 		static void			validateUSER(User* user, const std::list<std::string>& params);
 		static void			validateJOIN(User* user, const std::list<std::string>& params);
 		static void			validatePRIVMSG(User* user, const std::list<std::string>& params);
-		static void			validateKICK(User* user, const std::list<std::string>& params);
+		static void			validateKICK(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason);
 		static void			validatePART(User* user, const std::list<std::string>& params);
 		static std::string	validateTOPIC(User* user, const std::list<std::string>& params);
-		static void			validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, const Server& server);
+		static void			validateINVITE(User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName);
 
 
 		static void			validateCanJoin(User* user, Channel* channel, std::string& channelKey);

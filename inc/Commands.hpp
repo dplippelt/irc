@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/17 13:24:45 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/17 13:43:15 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,10 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Validation.hpp"
+#include "Server.hpp"
 #include "enums.hpp"
 
+class Server;
 class Validation;
 
 class Commands
