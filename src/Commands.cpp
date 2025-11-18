@@ -6,47 +6,13 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/13 16:59:01 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/18 09:50:16 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
 
 // ==================== Helper Functions ====================
-
-void Commands::sendResponse(int fd, const std::string& message)
-{
-	std::string fullMessage = message;
-	if (fullMessage.empty() || fullMessage.back() != '\n')
-		fullMessage += "\r\n";
-
-	#ifdef DEBUG
-	std::cout << "Sent to fd " << fd << ": " << fullMessage;
-	#endif
-
-	ssize_t sent = send(fd, fullMessage.c_str(), fullMessage.length(), 0);
-	if (sent == -1)
-	{
-		std::cerr << "Error: Failed to send message to fd " << fd << ": " << strerror(errno) << std::endl;
-	}
-}
-
-void Commands::sendNumericReply(int fd, int code, const std::string& message)
-{
-	std::ostringstream oss;
-	oss << ":ft_irc " << std::setw(3) << std::setfill('0') << code << " * " << message;
-	sendResponse(fd, oss.str());
-
-	#ifdef DEBUG
-	std::cout << "Numeric reply " << code << " sent to fd " << fd << std::endl;
-	#endif
-}
-
-void Commands::sendError(int fd, const std::string& command, const std::string& message)
-{
-	std::string errorMsg = "ERROR :" + command + " " + message;
-	sendResponse(fd, errorMsg);
-}
 
 bool Commands::isValidNickname(const std::string& nick)
 {
@@ -118,39 +84,6 @@ Channel* Commands::getOrCreateChannel(const std::string& channelName, std::map<s
 	return newChannel;
 }
 
-void Commands::sendJoinMessages(User* user, Channel* channel)
-{
-	std::string joinMsg = user->getPrefix() + " JOIN " + channel->getName();
-
-	const std::map<int, User*>& members = channel->getMembers();
-	for (std::map<int, User*>::const_iterator it = members.begin();
-		 it != members.end(); ++it)
-	{
-		sendResponse(it->second->getFd(), joinMsg);
-	}
-
-	if (!channel->getTopic().empty())
-	{
-		std::ostringstream topicMsg;
-		topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
-				 << " " << user->getNickname() << " "
-				 << channel->getName() << " :" << channel->getTopic();
-		sendResponse(user->getFd(), topicMsg.str());
-	}
-
-	std::ostringstream namesMsg;
-	namesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_NAMREPLY
-			 << " " << user->getNickname() << " = " << channel->getName() << " :"
-			 << channel->getMemberList();
-	sendResponse(user->getFd(), namesMsg.str());
-
-	std::ostringstream endNamesMsg;
-	endNamesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES
-				<< " " << user->getNickname() << " "
-				<< channel->getName() << " :End of /NAMES list";
-	sendResponse(user->getFd(), endNamesMsg.str());
-}
-
 void Commands::checkRegistration(User* user)
 {
 	// User is registered when:
@@ -165,38 +98,12 @@ void Commands::checkRegistration(User* user)
 		&& !user->isRegistered())
 	{
 		user->setRegistered(true);
-		sendWelcome(user);
+		ResponseHandler::sendWelcome(user);
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname() << " (fd " << user->getFd() << ") is now registered!" << std::endl;
         #endif
 	}
-}
-
-void Commands::sendWelcome(User* user)
-{
-	std::string nick = user->getNickname();
-	std::string prefix = user->getPrefix();
-
-	// RPL_WELCOME (001)
-	std::ostringstream msg1;
-	msg1 << ":ft_irc 001 " << nick << " :Welcome to the Internet Relay Network " << prefix;
-	sendResponse(user->getFd(), msg1.str());
-
-	// RPL_YOURHOST (002)
-	std::ostringstream msg2;
-	msg2 << ":ft_irc 002 " << nick << " :Your host is ft_irc, running version 1.0";
-	sendResponse(user->getFd(), msg2.str());
-
-	// RPL_CREATED (003)
-	std::ostringstream msg3;
-	msg3 << ":ft_irc 003 " << nick << " :This server was created sometime";
-	sendResponse(user->getFd(), msg3.str());
-
-	// RPL_MYINFO (004)
-	std::ostringstream msg4;
-	msg4 << ":ft_irc 004 " << nick << " ft_irc 1.0 o itkol";
-	sendResponse(user->getFd(), msg4.str());
 }
 
 bool Commands::canExecuteCommand(User* user, const std::string& command)
@@ -215,14 +122,6 @@ bool Commands::canExecuteCommand(User* user, const std::string& command)
 	return true;
 }
 
-void Commands::sendAuthenticationError(int fd, const std::string& command)
-{
-	if (command == "NICK" || command == "USER")
-		sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
-	else
-		sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
-}
-
 // ==================== Main Execute Command ====================
 
 void Commands::executeCommand(User* user, const std::string& command,
@@ -233,7 +132,7 @@ void Commands::executeCommand(User* user, const std::string& command,
 {
 	if (!canExecuteCommand(user, command))
 	{
-		sendAuthenticationError(user->getFd(), command);
+		ResponseHandler::sendAuthenticationError(user->getFd(), command);
 		return;
 	}
 
@@ -259,7 +158,7 @@ void Commands::executeCommand(User* user, const std::string& command,
 		handleINVITE(user, paramList, users, channels);
 	else
 	{
-		sendNumericReply(user->getFd(), 421, command + " :Unknown command");
+		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 	}
 }
 
@@ -269,17 +168,20 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params, cons
 {
 	if (user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,
+										  ":You may not reregister");
 		return;
 	}
 	if (user->hasProvidedPassword())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already provided a password");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,
+										  ":You have already provided a password");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "PASS :Not enough parameters");
 		return;
 	}
 
@@ -289,7 +191,8 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params, cons
 		providedPassword = providedPassword.substr(1);
 	if (providedPassword != serverPassword)
 	{
-		sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,":Password incorrect");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_PASSWDMISMATCH,
+										  ":Password incorrect");
 		return;
 	}
 
@@ -307,7 +210,8 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params, cons
 {
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, ":No nickname given");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NONICKNAMEGIVEN,
+										  ":No nickname given");
 		return;
 	}
 
@@ -316,12 +220,14 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params, cons
 		newNick = newNick.substr(1);
 	if (!isValidNickname(newNick))
 	{
-		sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ERRONEUSNICKNAME,
+										  newNick + " :Erroneous nickname");
 		return;
 	}
 	if (isNicknameInUse(newNick, users))
 	{
-		sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NICKNAMEINUSE,
+										  newNick + " :Nickname is already in use");
 		return;
 	}
 
@@ -332,7 +238,7 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params, cons
 	if (user->isRegistered())
 	{
 		std::string nickChangeMsg = user->getPrefix() + " NICK :" + newNick;
-		sendResponse(user->getFd(), nickChangeMsg);
+		ResponseHandler::sendResponse(user->getFd(), nickChangeMsg);
 	}
 
 	checkRegistration(user);
@@ -346,17 +252,20 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 {
 	if (user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,
+										  ":You may not reregister");
 		return;
 	}
 	if (user->hasUsername())
 	{
-		sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already set a username");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,
+										  ":You have already set a username");
 		return;
 	}
 	if (params.size() < 4)
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "USER :Not enough parameters");
 		return;
 	}
 
@@ -379,17 +288,20 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 	std::cout << "User fd " << user->getFd() << " set username to " << username << std::endl;
 	#endif
 }
+// ==================== JOIN Handler ====================
 
 void Commands::handleJOIN(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "JOIN :Not enough parameters");
 		return;
 	}
 
@@ -428,7 +340,6 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 		}
 	}
 
-
 	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
 		std::string channelName = channelVec[i];
@@ -436,7 +347,8 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 		if (!isValidChannelName(channelName))
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
+											  channelName + " :No such channel");
 			continue;
 		}
 
@@ -447,14 +359,16 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 		if (channel->isInviteOnly() && !channel->isInvited(user->getFd()))
 		{
-			sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN, channelName + " :Cannot join channel (+i)");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_INVITEONLYCHAN,
+											  channelName + " :Cannot join channel (+i)");
 			continue;
 		}
 		if (channel->hasKey())
 		{
 			if (channelKey.empty() || channelKey != channel->getKey())
 			{
-				sendNumericReply(user->getFd(), ERR_BADCHANNELKEY, channelName + " :Cannot join channel (+k)");
+				ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_BADCHANNELKEY,
+												  channelName + " :Cannot join channel (+k)");
 				continue;
 			}
 		}
@@ -462,7 +376,8 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 		{
 			if (static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit())
 			{
-				sendNumericReply(user->getFd(), ERR_CHANNELISFULL, channelName + " :Cannot join channel (+l)");
+				ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANNELISFULL,
+												  channelName + " :Cannot join channel (+l)");
 				continue;
 			}
 		}
@@ -473,7 +388,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 		if (channel->isInvited(user->getFd()))
 			channel->removeInvite(user->getFd());
 
-		sendJoinMessages(user, channel);
+		ResponseHandler::sendJoinMessages(user, channel);
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname()
@@ -482,21 +397,26 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 	}
 }
 
+// ==================== PRIVMSG Handler ====================
+
 void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NORECIPIENT, "PRIVMSG :No recipient given");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NORECIPIENT,
+										  "PRIVMSG :No recipient given");
 		return;
 	}
 	if (params.size() < 2)
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "PRIVMSG :Not enough parameters");
 		return;
 	}
 
@@ -515,7 +435,8 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 		std::map<std::string, Channel*>::iterator it = channels.find(target);
 		if (it == channels.end())
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, target + " :No such channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
+											  target + " :No such channel");
 			return;
 		}
 
@@ -523,7 +444,8 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 
 		if (!channel->isMember(user->getFd()))
 		{
-			sendNumericReply(user->getFd(), ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CANNOTSENDTOCHAN,
+											  target + " :Cannot send to channel");
 			return;
 		}
 
@@ -534,7 +456,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 			 it != members.end(); ++it)
 		{
 			if (it->first != user->getFd())
-				sendResponse(it->second->getFd(), privmsgToChannel);
+				ResponseHandler::sendResponse(it->second->getFd(), privmsgToChannel);
 		}
 
 		#ifdef DEBUG
@@ -558,32 +480,34 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 
 		if (targetUser == nullptr)
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK,
+											  target + " :No such nick/channel");
 			return;
 		}
 
 		std::string privmsgToUser = user->getPrefix() + " PRIVMSG " + target + " :" + message;
-		sendResponse(targetUser->getFd(), privmsgToUser);
+		ResponseHandler::sendResponse(targetUser->getFd(), privmsgToUser);
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname()
 				  << " sent DM to " << target << ": " << message << std::endl;
 		#endif
-
 	}
-
 }
+// ==================== KICK Handler ====================
 
 void Commands::handleKICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.size() < 2)
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "KICK :Not enough parameters");
 		return;
 	}
 
@@ -602,7 +526,8 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
 	if (chanIt == channels.end())
 	{
-		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
+										  channelName + " :No such channel");
 		return;
 	}
 
@@ -610,12 +535,14 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 
 	if (!channel->isMember(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL,
+										  channelName + " :You're not on that channel");
 		return;
 	}
 	if (!channel->isOperator(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED,
+										  channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -631,14 +558,15 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 
 	if (!channel->isMember(targetUser->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERNOTINCHANNEL,
+										  targetNick + " " + channelName + " :They aren't on that channel");
 		return;
 	}
 
 	std::string kickMsg = user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 	const std::map<int, User*>& members = channel->getMembers();
 	for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
-		sendResponse(it->second->getFd(), kickMsg);
+		ResponseHandler::sendResponse(it->second->getFd(), kickMsg);
 
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
@@ -659,20 +587,20 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	#endif
 }
 
+// ==================== PART Handler ====================
+
 void Commands::handlePART(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
-	// PART command removes the user from the given channel.
-	// On sending a successful PART command, the user will receive a PART message
-	// from the server for each channel they are removed from
-
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "PART :Not enough parameters");
 		return;
 	}
 
@@ -708,7 +636,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 		std::map<std::string, Channel*>::iterator chanIt = channels.find(currentChannel);
 		if (chanIt == channels.end())
 		{
-			sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL,
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
 							currentChannel + " :No such channel");
 			continue;
 		}
@@ -717,7 +645,8 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 
 		if (!channel->isMember(user->getFd()))
 		{
-			sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, currentChannel + " :You're not on that channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL,
+											  currentChannel + " :You're not on that channel");
 			continue;
 		}
 
@@ -729,7 +658,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 		for (std::map<int, User*>::const_iterator it = members.begin();
 			it != members.end(); ++it)
 		{
-			sendResponse(it->second->getFd(), partMsg);
+			ResponseHandler::sendResponse(it->second->getFd(), partMsg);
 		}
 
 		channel->removeMember(user->getFd());
@@ -752,24 +681,22 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 		std::cout << std::endl;
 		#endif
 	}
-
 }
+
+// ==================== TOPIC Handler ====================
 
 void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
-	// TOPIC command is used to change or view the topic of the given channel.
-	// If <topic> is not given, the current topic is returned (or no topic set message)
-	// If <topic> is given, the topic is changed (if user has permission)
-	// Channel mode +t restricts topic changes to channel operators only
-
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.empty())
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "TOPIC :Not enough parameters");
 		return;
 	}
 	std::string channelName = params.front();
@@ -779,7 +706,8 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
 	if (chanIt == channels.end())
 	{
-		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
+										  channelName + " :No such channel");
 		return;
 	}
 
@@ -787,24 +715,27 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 
 	if (!channel->isMember(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL,
+										  channelName + " :You're not on that channel");
 		return;
 	}
+
 	if (params.size() == 1)
 	{
 		const std::string& currentTopic = channel->getTopic();
 
 		if (currentTopic.empty())
 		{
-			sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::RPL_NOTOPIC,
+											  channelName + " :No topic is set");
 		}
 		else
 		{
 			std::ostringstream topicMsg;
-			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
+			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << ResponseHandler::RPL_TOPIC
 					 << " " << user->getNickname() << " "
 					 << channelName << " :" << currentTopic;
-			sendResponse(user->getFd(), topicMsg.str());
+			ResponseHandler::sendResponse(user->getFd(), topicMsg.str());
 		}
 
 		#ifdef DEBUG
@@ -813,9 +744,11 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 
 		return;
 	}
+
 	if (channel->isTopicRestricted() && !channel->isOperator(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED,
+										  channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -836,7 +769,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 	for (std::map<int, User*>::const_iterator memIt = members.begin();
 		 memIt != members.end(); ++memIt)
 	{
-		sendResponse(memIt->second->getFd(), topicChangeMsg);
+		ResponseHandler::sendResponse(memIt->second->getFd(), topicChangeMsg);
 	}
 
 	#ifdef DEBUG
@@ -846,20 +779,20 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 	#endif
 }
 
+// ==================== INVITE Handler ====================
+
 void Commands::handleINVITE(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
-	// INVITE command invites a user to a channel
-	// format: INVITE <nickname> <channel>
-	// only channel operators can invite users (when channel is +i)
-
 	if (!user->isRegistered())
 	{
-		sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED,
+										  ":You have not registered");
 		return;
 	}
 	if (params.size() < 2)
 	{
-		sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
+										  "INVITE :Not enough parameters");
 		return;
 	}
 
@@ -875,19 +808,22 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params, co
 	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
 	if (chanIt == channels.end())
 	{
-		sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
+										  channelName + " :No such channel");
 		return;
 	}
 
 	Channel* channel = chanIt->second;
 	if (!channel->isMember(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL,
+										  channelName + " :You're not on that channel");
 		return;
 	}
 	if (channel->isInviteOnly() && !channel->isOperator(user->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED,
+										  channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -902,23 +838,26 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params, co
 	}
 	if (targetUser == nullptr)
 	{
-		sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK,
+										  targetNick + " :No such nick/channel");
 		return;
 	}
 	if (channel->isMember(targetUser->getFd()))
 	{
-		sendNumericReply(user->getFd(), ERR_USERONCHANNEL, targetNick + " " + channelName + " :is already on channel");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERONCHANNEL,
+										  targetNick + " " + channelName + " :is already on channel");
 		return;
 	}
 
 	channel->addInvite(targetUser->getFd());
 	std::ostringstream invitingMsg;
-	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
+	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << ResponseHandler::RPL_INVITING
 				<< " " << user->getNickname() << " "
 				<< targetNick << " " << channelName;
-	sendResponse(user->getFd(), invitingMsg.str());
+	ResponseHandler::sendResponse(user->getFd(), invitingMsg.str());
+
 	std::string inviteMsg = user->getPrefix() + " INVITE " + targetNick + " :" + channelName;
-	sendResponse(targetUser->getFd(), inviteMsg);
+	ResponseHandler::sendResponse(targetUser->getFd(), inviteMsg);
 
 	#ifdef DEBUG
 	std::cout << "User " << user->getNickname()

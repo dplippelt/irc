@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/14 19:52:54 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/18 09:44:31 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,6 @@ class ResponseHandler
 		static const int ERR_INVITEONLYCHAN = 473;
 		static const int ERR_BADCHANNELKEY = 475;
 		static const int ERR_CHANOPRIVSNEEDED = 482;
-};
 };
 
 #endif

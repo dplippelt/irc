@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/14 19:53:39 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/18 09:46:22 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <iomanip>
 #include "User.hpp"
 #include "Channel.hpp"
+#include "ResponseHandler.hpp"
 
 class Commands
 {
@@ -32,21 +33,14 @@ class Commands
 		Commands& operator=(const Commands&) = delete;
 		~Commands() = delete;
 
-		static void sendResponse(int fd, const std::string& message);
 		static bool isValidNickname(const std::string& nick);
 		static bool isNicknameInUse(const std::string& nick, const std::map<int, User*>& users);
-		static void checkRegistration(User* user);
-
-		static void sendWelcome(User* user);
-		static void sendError(int fd, const std::string& command, const std::string& message);
-		static void sendNumericReply(int fd, int code, const std::string& message);
-
 		static bool isValidChannelName(const std::string& channelName);
-		static Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
-		static void sendJoinMessages(User* user, Channel* channel);
 
+		static void checkRegistration(User* user);
 		static bool canExecuteCommand(User* user, const std::string& command);
-		static void sendAuthenticationError(int fd, const std::string& command);
+
+		static Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 
 	public:
 		static void executeCommand(User* user, const std::string& command,
