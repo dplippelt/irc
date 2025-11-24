@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:57:19 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 13:07:37 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,6 +228,7 @@ void	Server::processClientAct( int client_fd )
 			std::cerr << err << '\n';
 		}
 	}
+	m_massagesList.at(client_fd).clearMessages();
 	// processBuffer(buffer, bytes, client_fd);  // [Takato]: commented out
 	// [Takato]: to here
 }
