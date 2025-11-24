@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 11:43:37 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:11:34 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,7 @@ Channel* Commands::getOrCreateChannel(const std::string& channelName, std::map<s
 
 void Commands::executeCommand(User* user, const std::string& command,
 								const std::vector<std::string>& params,
-								std::map<int, User*>& users,
-								std::map<std::string, Channel*>& channels,
+								Server& server,
 								const std::string& serverPassword)
 {
 	if (!Authentication::canExecuteCommand(user, command))
@@ -50,21 +49,21 @@ void Commands::executeCommand(User* user, const std::string& command,
 	if (command == "PASS")
 		handlePASS(user, paramList, serverPassword);
 	else if (command == "NICK")
-		handleNICK(user, paramList, users);
+		handleNICK(user, paramList, server);
 	else if (command == "USER")
 		handleUSER(user, paramList);
 	else if (command == "JOIN")
-		handleJOIN(user, paramList, channels);
+		handleJOIN(user, paramList, server);
 	else if (command == "PRIVMSG")
-		handlePRIVMSG(user, paramList, users, channels);
+		handlePRIVMSG(user, paramList, server);
 	else if (command == "KICK")
-		handleKICK(user, paramList, users, channels);
+		handleKICK(user, paramList, server);
 	else if (command == "PART")
-		handlePART(user, paramList, channels);
+		handlePART(user, paramList, server);
 	else if (command == "TOPIC")
-		handleTOPIC(user, paramList, channels);
+		handleTOPIC(user, paramList, server);
 	else if (command == "INVITE")
-		handleINVITE(user, paramList, users, channels);
+		handleINVITE(user, paramList, server);
 	else
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 }
@@ -107,7 +106,7 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params,
 
 // ==================== NICK Command ====================
 
-void Commands::handleNICK(User* user, const std::list<std::string>& params,  const std::map<int, User*>& users)
+void Commands::handleNICK(User* user, const std::list<std::string>& params,  Server& server)
 {
 	std::string newNick {};
 
@@ -172,7 +171,7 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 
 // ==================== JOIN Command ====================
 
-void Commands::handleJOIN(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
+void Commands::handleJOIN(User* user, const std::list<std::string>& params, Server& server)
 {
 	try
 	{
@@ -211,6 +210,8 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 			keys.push_back(key);
 		}
 	}
+
+	std::map<std::string, Channel*>& channels = server.getChannels();
 
 	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
@@ -251,32 +252,14 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 // ==================== PRIVMSG Handler ====================
 
-void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
+void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server)
 {
-	// if (!user->isRegistered())
-	// {
-	// 	sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
-	// 	return;
-	// }
-	// if (params.empty())
-	// {
-	// 	sendNumericReply(user->getFd(), ERR_NORECIPIENT, "PRIVMSG :No recipient given");
-	// 	return;
-	// }
-	// if (params.size() < 2)
-	// {
-	// 	sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
-	// 	return;
-	// }
-
-	// Dominique: start new validation
 	try
 	{
 		Validation::validatePRIVMSG(user, params);
 	}
 	catch(const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
 		return;
 	}
 
@@ -322,6 +305,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 	{
 		User* targetUser = nullptr;
 
+		const std::map<int, User*>& users = server.getUsers();
 		for (std::map<int, User*>::const_iterator it = users.begin();
 			 it != users.end(); ++it)
 		{
@@ -347,9 +331,10 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 		#endif
 	}
 }
+
 // ==================== KICK Handler ====================
 
-void Commands::handleKICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
+void Commands::handleKICK(User* user, const std::list<std::string>& params, Server& server)
 {
 	std::string	targetNick {};
 	std::string	channelName {};
@@ -376,6 +361,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
 
+	std::map<std::string, Channel*>& channels = server.getChannels();
 	if (channel->isEmpty())
 	{
 		channels.erase(channelName);
@@ -393,7 +379,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 
 // ==================== PART Handler ====================
 
-void Commands::handlePART(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
+void Commands::handlePART(User* user, const std::list<std::string>& params, Server& server)
 {
 	try
 	{
@@ -428,6 +414,8 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 		if (!channelName.empty())
 			channelVec.push_back(channelName);
 	}
+
+	std::map<std::string, Channel*>& channels = server.getChannels();
 
 	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
@@ -479,7 +467,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 
 // ==================== TOPIC Handler ====================
 
-void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
+void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Server& server)
 {
 	std::string	channelName {};
 	Channel*	channel {};
@@ -493,7 +481,6 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 	{
 		return;
 	}
-	// Dominique: start end validation
 
 	if (params.size() == 1)
 	{
@@ -555,7 +542,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 
 // ==================== INVITE Handler ====================
 
-void Commands::handleINVITE(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
+void Commands::handleINVITE(User* user, const std::list<std::string>& params, Server& server)
 {
 	std::string	targetNick {};
 	std::string	channelName {};

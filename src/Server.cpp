@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 11:43:57 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:18:42 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -318,7 +318,7 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		return;
 	}
 
-	Commands::executeCommand(user, command, cmd_params, m_users, m_channels, m_pw);
+	Commands::executeCommand(user, command, cmd_params, *this, m_pw);
 
 	std::cout << msg;
 }
@@ -361,4 +361,14 @@ const std::map<int, User*>&	Server::getUsers() const
 const std::map<std::string, Channel*>&	Server::getChannels() const
 {
 	return (m_channels);
+}
+
+std::map<int, User*>& Server::getUsers()
+{
+	return m_users;
+}
+
+std::map<std::string, Channel*>& Server::getChannels()
+{
+	return m_channels;
 }

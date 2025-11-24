@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 11:51:29 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:11:59 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,9 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
-		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
-		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
+		
+		std::map<int, User*>&					getUsers();
+		std::map<std::string, Channel*>&		getChannels();
 
 		const std::map<int, User*>&				getUsers() const;
 		const std::map<std::string, Channel*>&	getChannels() const;

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 11:50:36 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:00:31 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ std::string	Validation::validateNICK( User* user, const std::list<std::string>& 
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
 		throw std::exception {};
 	}
-	if ( ValidationHelper::isNicknameInUse(newNick, server) )
+	if ( ValidationHelper::isNicknameInUse(newNick, server.getUsers()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
 		throw std::exception {};
@@ -267,7 +267,7 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 	}
 	if ( !channel->isOperator(user->getFd()) )
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		throw std::exception {};
 	}
 
@@ -363,7 +363,7 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 	}
 	if ( channel->isInviteOnly() && !channel->isOperator(user->getFd()) )
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERROR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		throw std::exception {};
 	}
 

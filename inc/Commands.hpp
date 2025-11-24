@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 11:45:08 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:14:06 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ class Commands
 		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateToggleInvite(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateToggleTopic(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParam(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParamPrivilege(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
 		static void	modeOperateParamKey(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
@@ -63,19 +62,18 @@ class Commands
 	public:
 		static void executeCommand(User* user, const std::string& command,
 							const std::vector<std::string>& params,
-							std::map<int, User*>& users,
-							std::map<std::string, Channel*>& channels,
+							Server& server,
 							const std::string& serverPassword);
 
 		static void handlePASS(User* user, const std::list<std::string>& params, const std::string& serverPassword);
-		static void handleNICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users);
+		static void handleNICK(User* user, const std::list<std::string>& params, Server& server);
 		static void handleUSER(User* user, const std::list<std::string>& params);
-		static void handleJOIN(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels);
-		static void handlePRIVMSG(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels);
-		static void handleKICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels);
-		static void handlePART(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels);
-		static void handleTOPIC(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels);
-		static void handleINVITE(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels);
+		static void handleJOIN(User* user, const std::list<std::string>& params, Server& server);
+		static void handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server);
+		static void handleKICK(User* user, const std::list<std::string>& params, Server& server);
+		static void handlePART(User* user, const std::list<std::string>& params, Server& server);
+		static void handleTOPIC(User* user, const std::list<std::string>& params, Server& server);
+		static void handleINVITE(User* user, const std::list<std::string>& params, Server& server);
 };
 
 #endif

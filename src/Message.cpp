@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Message.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/06 10:15:12 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/11 15:53:26 by tmitsuya         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Message.cpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/11/06 10:15:12 by tmitsuya      #+#    #+#                 */
+/*   Updated: 2025/11/24 12:17:55 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ Message::~Message()
 
 void	Message::operateCommand(Server &server, User *user) const
 {
+	(void)server;
+	(void)user;
 	print();
 	switch (m_cmd_type)
 	{
@@ -69,8 +71,8 @@ void	Message::operateCommand(Server &server, User *user) const
 	// case e_topic:
 	// 	break;
 	case e_mode:
-		Commands::mode(*this, server, user);
-		break;	
+		// Commands::mode(*this, server, user);
+		break;
 	// case e_whois:
 	// 	break;
 	default:
