@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:17:25 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:32:35 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:09:52 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <string>
 #include "User.hpp"
 #include "ResponseHandler.hpp"
+#include "IrcNumericCodes.hpp"
 
 class Authentication
 {

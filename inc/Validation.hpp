@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:29 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:49:21 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:17:39 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "User.hpp"
 #include "Commands.hpp"
 #include "Server.hpp"
+#include "IrcNumericCodes.hpp"
 
 class User;
 class Commands;

@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 12:48:52 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:11:42 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,12 +79,12 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params,
 	std::string providedPassword = ValidationHelper::removeLeadingColon(params.front());
 	if (!ValidationHelper::isValidPassword(providedPassword))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_PASSWDMISMATCH, ":Password contains invalid characters");
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH, ":Password contains invalid characters");
 		return;
 	}
 	if (!Authentication::validatePassword(providedPassword, serverPassword))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_PASSWDMISMATCH,  ":Password incorrect");
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,  ":Password incorrect");
 		return;
 	}
 
@@ -196,7 +196,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, Serv
 
 		if (!ValidationHelper::isValidChannelName(currentChannel))
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
 			continue;
 		}
 
@@ -276,7 +276,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, S
 
 		if (targetUser == nullptr)
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK, target + " :No such nick/channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
 			return;
 		}
 
@@ -424,13 +424,13 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Ser
 
 		if (currentTopic.empty())
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::RPL_NOTOPIC,
+			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC,
 											  channelName + " :No topic is set");
 		}
 		else
 		{
 			std::ostringstream topicMsg;
-			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << ResponseHandler::RPL_TOPIC
+			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
 					 << " " << user->getNickname() << " "
 					 << channelName << " :" << currentTopic;
 			ResponseHandler::sendResponse(user->getFd(), topicMsg.str());
@@ -445,7 +445,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Ser
 
 	if (channel->isTopicRestricted() && !channel->isOperator(user->getFd()))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -494,7 +494,7 @@ void Commands::handleINVITE(User* user, const std::list<std::string>& params, Se
 
 	channel->addInvite(targetUser->getFd());
 	std::ostringstream invitingMsg;
-	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << ResponseHandler::RPL_INVITING
+	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
 				<< " " << user->getNickname() << " "
 				<< targetNick << " " << channelName;
 	ResponseHandler::sendResponse(user->getFd(), invitingMsg.str());

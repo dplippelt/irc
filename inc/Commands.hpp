@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 12:14:06 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:10:33 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 #include "ValidationHelper.hpp"
 #include "Validation.hpp"
 #include "Server.hpp"
+#include "IrcNumericCodes.hpp"
 
 class Server;
 class Validation;

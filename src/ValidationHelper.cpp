@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:47:35 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 09:50:36 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:20:53 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,18 +42,6 @@ bool ValidationHelper::isNicknameInUse(const std::string& nick, const std::map<i
 			return true;
 	}
 	return false;
-}
-
-bool ValidationHelper::isNicknameAvailable(const std::string& nick, int currentUserFd, const std::map<int, User*>& users)
-{
-	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
-	{
-		if (it->first == currentUserFd)
-			continue;
-		if (it->second->getNickname() == nick)
-			return false;
-	}
-	return true;
 }
 
 bool ValidationHelper::isValidChannelName(const std::string& channelName)
