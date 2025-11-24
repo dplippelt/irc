@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/10/30 11:17:37 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:56:42 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,9 +119,7 @@ void Channel::addMember(User* user)
 	{
 		_members[user->getFd()] = user;
 		if (_members.size() == 1)
-		{
 			_operators.insert(user->getFd());
-		}
 	}
 }
 

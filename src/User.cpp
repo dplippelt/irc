@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:15:28 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 09:46:27 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:57:31 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,13 +154,8 @@ std::string User::getPrefix() const
 {
 	std::string prefix = ":" + _nickname;
 	if(!_nickname.empty())
-	{
-		// prefix += "!" + _username;
 		prefix += "!~" + _username;
-	};
 	if (!_hostname.empty())
-	{
 		prefix += "@" + _hostname;
-	};
 	return prefix;
 }
