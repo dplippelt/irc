@@ -29,6 +29,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
+#include "Parser.hpp" //[Takato]: added Parser class
 
 // #define DEBUG
 
@@ -45,6 +46,8 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
+		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
+		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
 
 		const std::map<int, User*>&				getUsers() const;
 		const std::map<std::string, Channel*>&	getChannels() const;
@@ -64,6 +67,7 @@ class Server
 		std::map<std::string, Channel*>		m_channels {};
 		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
+		std::map<int, Parser>				m_massagesList{};   //[Takato]: added Parser class's map
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();

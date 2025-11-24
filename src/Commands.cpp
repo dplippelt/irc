@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "Commands.hpp"
+#include "Server.hpp"
+#include "Message.hpp"
 
 Commands::Commands(std::map<int, User*>& users,
 				   std::map<std::string, Channel*>& channels,
