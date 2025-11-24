@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:09:24 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:25:09 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <cerrno>
 #include "User.hpp"
 #include "Channel.hpp"
+#include "IrcNumericCodes.hpp"
 
 class ResponseHandler
 {

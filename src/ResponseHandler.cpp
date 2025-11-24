@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:47:35 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:47:45 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:25:29 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,22 +82,18 @@ void ResponseHandler::sendWelcome(User* user)
 	std::string nick = user->getNickname();
 	std::string prefix = user->getPrefix();
 
-	// RPL_WELCOME (001)
 	std::ostringstream msg1;
 	msg1 << ":ft_irc 001 " << nick << " :Welcome to the Internet Relay Network " << prefix;
 	sendResponse(user->getFd(), msg1.str());
 
-	// RPL_YOURHOST (002)
 	std::ostringstream msg2;
 	msg2 << ":ft_irc 002 " << nick << " :Your host is ft_irc, running version 1.0";
 	sendResponse(user->getFd(), msg2.str());
 
-	// RPL_CREATED (003)
 	std::ostringstream msg3;
 	msg3 << ":ft_irc 003 " << nick << " :This server was created sometime";
 	sendResponse(user->getFd(), msg3.str());
 
-	// RPL_MYINFO (004)
 	std::ostringstream msg4;
 	msg4 << ":ft_irc 004 " << nick << " ft_irc 1.0 o itkol";
 	sendResponse(user->getFd(), msg4.str());
@@ -144,14 +140,12 @@ void ResponseHandler::sendTopicMessage(User* user, Channel* channel)
 
 void ResponseHandler::sendNameMessage(User* user, Channel* channel)
 {
-	// RPL_NAMREPLY (353)
 	std::ostringstream namesMsg;
 	namesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_NAMREPLY
 			 << " " << user->getNickname() << " = " << channel->getName() << " :"
 			 << channel->getMemberList();
 	sendResponse(user->getFd(), namesMsg.str());
 
-	// RPL_ENDOFNAMES (366)
 	std::ostringstream endNamesMsg;
 	endNamesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES
 				<< " " << user->getNickname() << " "
