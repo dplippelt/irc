@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:49:59 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 13:43:20 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,7 +244,7 @@ Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, 
 	if ( it == server.getChannels().end() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, target + " :No such channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	Channel* channel { it->second };
@@ -252,7 +252,7 @@ Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, 
 	if ( !channel->isMember(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return channel;
@@ -265,7 +265,7 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 	if ( chanIt == server.getChannels().end() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	Channel* channel { chanIt->second };
@@ -273,12 +273,12 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 	if ( !channel->isMember(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		throw std::exception {};
+		return nullptr;
 	}
 	if ( !channel->isOperator(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return channel;
@@ -286,7 +286,7 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 
 User*	Validation::validateCanKickTarget( User* user, Channel* channel, const std::string& targetNick, const Server& server )
 {
-	User* targetUser {};
+	User* targetUser { nullptr };
 
 	for ( auto it = server.getUsers().begin(); it != server.getUsers().end(); ++it )
 	{
@@ -300,13 +300,13 @@ User*	Validation::validateCanKickTarget( User* user, Channel* channel, const std
 	if ( !targetUser )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK, targetNick + " :No such nick");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	if ( !channel->isMember(targetUser->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERNOTINCHANNEL, targetNick + " " + channel->getName() + " :They aren't on that channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return targetUser;
@@ -319,7 +319,7 @@ Channel*	Validation::validateCanPart( User* user, const std::string& currentChan
 	if ( chanIt == server.getChannels().end() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	Channel* channel { chanIt->second };
@@ -327,7 +327,7 @@ Channel*	Validation::validateCanPart( User* user, const std::string& currentChan
 	if ( !channel->isMember(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, currentChannel + " :You're not on that channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return channel;
@@ -340,7 +340,7 @@ Channel*	Validation::validateCanChangeTopic( User* user, const std::string& chan
 	if ( chanIt == server.getChannels().end() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	Channel* channel { chanIt->second };
@@ -348,7 +348,7 @@ Channel*	Validation::validateCanChangeTopic( User* user, const std::string& chan
 	if ( !channel->isMember(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return channel;
@@ -361,7 +361,7 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 	if ( chanIt == server.getChannels().end() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	Channel* channel { chanIt->second };
@@ -369,12 +369,12 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 	if ( !channel->isMember(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		throw std::exception {};
+		return nullptr;
 	}
 	if ( channel->isInviteOnly() && !channel->isOperator(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return channel;
@@ -382,7 +382,7 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 
 User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server )
 {
-	User* targetUser {};
+	User* targetUser { nullptr };
 
 	for ( auto it = server.getUsers().begin(); it != server.getUsers().end(); ++it )
 	{
@@ -396,12 +396,12 @@ User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const s
 	if ( !targetUser )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK, targetNick + " :No such nick");
-		throw std::exception {};
+		return nullptr;
 	}
 	if ( channel->isMember(targetUser->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERONCHANNEL, targetNick + " " + channelName + " :is already on channel");
-		throw std::exception {};
+		return nullptr;
 	}
 
 	return targetUser;
