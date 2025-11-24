@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:47:02 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:51:23 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,16 +160,12 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 {
 	if (Authentication::isRegistered(user))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(),
-										  ResponseHandler::ERR_ALREADYREGISTRED,
-										  ":You may not reregister");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,":You may not reregister");
 		return;
 	}
 	if (user->hasUsername())
 	{
-		ResponseHandler::sendNumericReply(user->getFd(),
-										  ResponseHandler::ERR_ALREADYREGISTRED,
-										  ":You have already set a username");
+		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You have already set a username");
 		return;
 	}
 	if (params.size() < 4)
@@ -243,9 +239,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 		if (!ValidationHelper::isValidChannelName(currentChannel))
 		{
-			ResponseHandler::sendNumericReply(user->getFd(),
-											  ResponseHandler::ERR_NOSUCHCHANNEL,
-											  currentChannel + " :No such channel");
+			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
 			continue;
 		}
 
