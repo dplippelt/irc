@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/07 19:25:28 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 17:26:32 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,9 @@ class Server
 		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
 		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
 
+		const std::map<int, User*>&				getUsers() const;
+		const std::map<std::string, Channel*>&	getChannels() const;
+
 	private:
 		static const int									s_listen_backlog { 50 };
 		static inline const std::string						s_server_name { "ft_irc" };
@@ -73,9 +76,7 @@ class Server
 		void		processBuffer( const std::string& buffer, ssize_t bytes, int client_fd );
 		bool		foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx );
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
-		// std::string	getNumericReply( int i, const std::string& nick, const std::string& user, const std::string& host );
 		bool		userIsAuthenticated( int client_fd );
-		// void		userAuthentication( int client_fd );
 
 		void	pong( std::vector<std::string>& cmd_params, int client_fd );
 };

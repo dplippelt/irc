@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/11 15:25:24 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/13 17:27:16 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,7 +322,7 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		return;
 	}
 
-	m_commands->executeCommand(user, command, cmd_params);
+	m_commands->executeCommand(user, command, cmd_params, *this);
 
 	std::cout << msg;
 }
@@ -355,15 +355,14 @@ void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
 	#endif
 }
 
-// [Takato]: added from here 
-const	std::map<std::string, Channel *>	&Server::getChannels() const
+/* ==================== Getters ==================== */
+
+const std::map<int, User*>&	Server::getUsers() const
 {
-	return m_channels;
+	return (m_users);
 }
 
-const	std::map<int, User *>	&Server::getUsers() const
+const std::map<std::string, Channel*>&	Server::getChannels() const
 {
-	return m_users;
+	return (m_channels);
 }
-
-// [Takato]: added to here 
