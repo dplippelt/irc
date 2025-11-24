@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:00:31 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:49:59 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,31 +14,32 @@
 
 /* ==================== Class Behavior ==================== */
 
-void Validation::validatePASS( User* user, const std::list<std::string>& params )
+bool Validation::validatePASS( User* user, const std::list<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You may not reregister");
-		throw std::exception {};
+		return false;
 	}
 	if ( user->hasProvidedPassword() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You have already provided a password");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
+	return true;
 }
 
-std::string	Validation::validateNICK( User* user, const std::list<std::string>& params, const Server& server )
+bool	Validation::validateNICK( User* user, const std::list<std::string>& params, const Server& server, std::string& outNick )
 {
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NONICKNAMEGIVEN, ":No nickname given");
-		throw std::exception {};
+		return false;
 	}
 
 	std::string newNick { params.front() };
@@ -49,80 +50,84 @@ std::string	Validation::validateNICK( User* user, const std::list<std::string>& 
 	if ( !ValidationHelper::isValidNickname(newNick) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
-		throw std::exception {};
+		return false;
 	}
 	if ( ValidationHelper::isNicknameInUse(newNick, server.getUsers()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
-		throw std::exception {};
+		return false;
 	}
 
-	return newNick;
+	outNick = newNick;
+	return true;
 }
 
-void	Validation::validateUSER( User* user, const std::list<std::string>& params )
+bool	Validation::validateUSER( User* user, const std::list<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You may not reregister");
-		throw std::exception {};
+		return false;
 	}
 	if ( user->hasUsername() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You have already set a username");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.size() < 4 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
+	return true;
 }
 
-void	Validation::validateJOIN( User* user, const std::list<std::string>& params )
+bool	Validation::validateJOIN( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
+	return true;
 }
 
-void	Validation::validatePRIVMSG( User* user, const std::list<std::string>& params )
+bool	Validation::validatePRIVMSG( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NORECIPIENT, "PRIVMSG :No recipient given");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.size() < 2 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
+	return true;
 }
 
-void	Validation::validateKICK( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason )
+bool	Validation::validateKICK( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.size() < 2 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
 
 	auto it { params.begin() };
@@ -137,33 +142,35 @@ void	Validation::validateKICK( User* user, const std::list<std::string>& params,
 		if ( !reason.empty() && reason[0] == ':' )
 			reason = reason.substr(1);
 	}
+	return true;
 }
 
-void	Validation::validatePART( User* user, const std::list<std::string>& params )
+bool	Validation::validatePART( User* user, const std::list<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
+	return true;
 }
 
-std::string	Validation::validateTOPIC( User* user, const std::list<std::string>& params )
+bool	Validation::validateTOPIC( User* user, const std::list<std::string>& params, std::string& outChannelName )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.empty() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
-		throw std::exception {};
+		return false;
 	}
 
 	std::string	channelName { params.front() };
@@ -171,20 +178,21 @@ std::string	Validation::validateTOPIC( User* user, const std::list<std::string>&
 	if ( !channelName.empty() && channelName[0] == ':' )
 		channelName = channelName.substr(1);
 
-	return channelName;
+	outChannelName = channelName;
+	return true;
 }
 
-void	Validation::validateINVITE( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName )
+bool	Validation::validateINVITE( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName )
 {
 	if ( !user->isRegistered() )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		throw std::exception {};
+		return false;
 	}
 	if ( params.size() < 2 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
-		throw std::exception {};
+
 	}
 
 	auto it { params.begin() };
@@ -196,25 +204,26 @@ void	Validation::validateINVITE( User* user, const std::list<std::string>& param
 		channelName = channelName.substr(1);
 	if ( !targetNick.empty() && targetNick[0] == ':' )
 		targetNick = targetNick.substr(1);
+	return true;
 }
 
-void	Validation::validateCanJoin( User* user, Channel* channel, std::string& channelKey )
+bool	Validation::validateCanJoin( User* user, Channel* channel, std::string& channelKey )
 {
 
 	if ( channel->isMember(user->getFd()) )
-		throw std::exception {};
+		return false;
 
 	if ( channel->isInviteOnly() && !channel->isInvited(user->getFd()) )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_INVITEONLYCHAN, channel->getName() + " :Cannot join channel (+i)");
-		throw std::exception {};
+		return false;
 	}
 	if ( channel->hasKey() )
 	{
 		if ( channelKey.empty() || channelKey != channel->getKey() )
 		{
 			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_BADCHANNELKEY, channel->getName() + " :Cannot join channel (+k)");
-			throw std::exception {};
+			return false;
 		}
 	}
 	if ( channel->hasUserLimit() )
@@ -222,9 +231,10 @@ void	Validation::validateCanJoin( User* user, Channel* channel, std::string& cha
 		if ( static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit() )
 		{
 			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANNELISFULL, channel->getName() + " :Cannot join channel (+l)");
-			throw std::exception {};
+			return false;
 		}
 	}
+	return true;
 }
 
 Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, const Server& server )

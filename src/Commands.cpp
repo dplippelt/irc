@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 12:11:34 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:48:52 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,14 +73,8 @@ void Commands::executeCommand(User* user, const std::string& command,
 void Commands::handlePASS(User* user, const std::list<std::string>& params,
 						  const std::string& serverPassword)
 {
-	try
-	{
-		Validation::validatePASS(user, params);
-	}
-	catch ( const std::exception& e )
-	{
+	if (!Validation::validatePASS(user, params))
 		return;
-	}
 
 	std::string providedPassword = ValidationHelper::removeLeadingColon(params.front());
 	if (!ValidationHelper::isValidPassword(providedPassword))
@@ -110,14 +104,8 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params,  Ser
 {
 	std::string newNick {};
 
-	try
-	{
-		newNick = Validation::validateNICK(user, params, server);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validateNICK(user, params, server, newNick))
 		return;
-	}
 
 	std::string oldNick = user->getNickname();
 	user->setNickname(newNick);
@@ -141,14 +129,8 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params,  Ser
 
 void Commands::handleUSER(User* user, const std::list<std::string>& params)
 {
-	try
-	{
-		Validation::validateUSER(user, params);
-	}
-	catch (const std::exception& e)
-	{
+	if (!Validation::validateUSER(user, params))
 		return;
-	}
 
 	std::list<std::string>::const_iterator it = params.begin();
 	std::string username = *it++;
@@ -173,14 +155,8 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 
 void Commands::handleJOIN(User* user, const std::list<std::string>& params, Server& server)
 {
-	try
-	{
-		Validation::validateJOIN(user, params);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validateJOIN(user, params))
 		return;
-	}
 
 	std::string channelList = ValidationHelper::removeLeadingColon(params.front());
 	std::string keyList;
@@ -226,14 +202,8 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, Serv
 
 		Channel* channel = getOrCreateChannel(currentChannel, channels);
 
-		try
-		{
-			Validation::validateCanJoin(user, channel, channelKey);
-		}
-		catch(const std::exception& e)
-		{
+		if (!Validation::validateCanJoin(user, channel, channelKey))
 			continue;
-		}
 
 		channel->addMember(user);
 		user->joinChannel(currentChannel);
@@ -254,14 +224,8 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, Serv
 
 void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server)
 {
-	try
-	{
-		Validation::validatePRIVMSG(user, params);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validatePRIVMSG(user, params))
 		return;
-	}
 
 	std::list<std::string>::const_iterator it = params.begin();
 	std::string target = *it++;
@@ -275,16 +239,10 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, S
 
 	if (target[0] == '#' || target[0] == '&')
 	{
-		Channel* channel {};
+		Channel* channel = Validation::validateCanSendMsg(user, target, server);
 
-		try
-		{
-			channel = Validation::validateCanSendMsg(user, target, server);
-		}
-		catch(const std::exception& e)
-		{
+		if (!channel)
 			return;
-		}
 
 		std::string privmsgToChannel = user->getPrefix() + " PRIVMSG " + target + " :" + message;
 
@@ -339,19 +297,17 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, Serv
 	std::string	targetNick {};
 	std::string	channelName {};
 	std::string	reason {};
-	Channel*	channel {};
-	User*		targetUser {};
 
-	try
-	{
-		Validation::validateKICK(user, params, targetNick, channelName, reason);
-		channel = Validation::validateCanKick(user, channelName, server);
-		targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validateKICK(user, params, targetNick, channelName, reason))
 		return;
-	}
+
+	Channel* channel = Validation::validateCanKick(user, channelName, server);
+	if(!channel)
+		return;
+
+	User* targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server);
+	if(!targetUser)
+		return;
 
 	std::string kickMsg = user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 	const std::map<int, User*>& members = channel->getMembers();
@@ -361,10 +317,9 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, Serv
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
 
-	std::map<std::string, Channel*>& channels = server.getChannels();
 	if (channel->isEmpty())
 	{
-		channels.erase(channelName);
+		server.getChannels().erase(channelName);
 		delete channel;
 
 		#ifdef DEBUG
@@ -381,14 +336,8 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, Serv
 
 void Commands::handlePART(User* user, const std::list<std::string>& params, Server& server)
 {
-	try
-	{
-		Validation::validatePART(user, params);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validatePART(user, params))
 		return;
-	}
 
 	std::string channelList = params.front();
 	if (!channelList.empty() && channelList[0] == ':')
@@ -415,22 +364,13 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, Serv
 			channelVec.push_back(channelName);
 	}
 
-	std::map<std::string, Channel*>& channels = server.getChannels();
-
 	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
 		std::string currentChannel = channelVec[i];
 
-		Channel* channel {};
-
-		try
-		{
-			channel = Validation::validateCanPart(user, currentChannel, server);
-		}
-		catch(const std::exception& e)
-		{
+		Channel* channel = Validation::validateCanPart(user, currentChannel, server);
+		if (!channel)
 			continue;
-		}
 
 		std::string partMsg = user->getPrefix() + " PART " + currentChannel;
 		if (!reason.empty())
@@ -448,7 +388,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, Serv
 
 		if (channel->isEmpty())
 		{
-			channels.erase(currentChannel);
+			server.getChannels().erase(currentChannel);
 			delete channel;
 
 			#ifdef DEBUG
@@ -469,18 +409,14 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, Serv
 
 void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Server& server)
 {
-	std::string	channelName {};
-	Channel*	channel {};
+	std::string	channelName;
 
-	try
-	{
-		channelName = Validation::validateTOPIC(user, params);
-		channel = Validation::validateCanChangeTopic(user, channelName, server);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validateTOPIC(user, params, channelName))
 		return;
-	}
+
+	Channel* channel = Validation::validateCanChangeTopic(user, channelName, server);
+	if(!channel)
+		return;
 
 	if (params.size() == 1)
 	{
@@ -544,21 +480,17 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Ser
 
 void Commands::handleINVITE(User* user, const std::list<std::string>& params, Server& server)
 {
-	std::string	targetNick {};
-	std::string	channelName {};
-	Channel*	channel {};
-	User*		targetUser {};
+	std::string	targetNick;
+	std::string	channelName;
 
-	try
-	{
-		Validation::validateINVITE(user, params, targetNick, channelName);
-		channel = Validation::validateCanInvite(user, channelName, server);
-		targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server);
-	}
-	catch(const std::exception& e)
-	{
+	if (!Validation::validateINVITE(user, params, targetNick, channelName))
 		return;
-	}
+	Channel* channel = Validation::validateCanInvite(user, channelName, server);
+	if(!channel)
+		return;
+	User* targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server);
+	if(!targetUser)
+		return;
 
 	channel->addInvite(targetUser->getFd());
 	std::ostringstream invitingMsg;
