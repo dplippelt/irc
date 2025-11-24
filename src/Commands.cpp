@@ -6,11 +6,13 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:51:23 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 11:43:37 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
+#include "Server.hpp"
+#include "Message.hpp"
 
 // ==================== Channel Helper ====================
 
@@ -72,20 +74,12 @@ void Commands::executeCommand(User* user, const std::string& command,
 void Commands::handlePASS(User* user, const std::list<std::string>& params,
 						  const std::string& serverPassword)
 {
-	if (Authentication::isRegistered(user))
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You may not reregister");
-		return;
+		Validation::validatePASS(user, params);
 	}
-	if (user->hasProvidedPassword())
+	catch ( const std::exception& e )
 	{
-		ResponseHandler::sendNumericReply(user->getFd(),  ResponseHandler::ERR_ALREADYREGISTRED, ":You have already provided a password");
-		return;
-	}
-	if (params.empty())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS,
-										  "PASS :Not enough parameters");
 		return;
 	}
 
@@ -115,24 +109,14 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params,
 
 void Commands::handleNICK(User* user, const std::list<std::string>& params,  const std::map<int, User*>& users)
 {
-	if (params.empty())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NONICKNAMEGIVEN, ":No nickname given");
-		return;
-	}
+	std::string newNick {};
 
-	std::string newNick = ValidationHelper::removeLeadingColon(params.front());
-
-	if (!ValidationHelper::isValidNickname(newNick))
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(),
-										  ResponseHandler::ERR_ERRONEUSNICKNAME,
-										  newNick + " :Erroneous nickname");
-		return;
+		newNick = Validation::validateNICK(user, params, server);
 	}
-	if (!ValidationHelper::isNicknameAvailable(newNick, user->getFd(), users))
+	catch(const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
 		return;
 	}
 
@@ -158,19 +142,12 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params,  con
 
 void Commands::handleUSER(User* user, const std::list<std::string>& params)
 {
-	if (Authentication::isRegistered(user))
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED,":You may not reregister");
-		return;
+		Validation::validateUSER(user, params);
 	}
-	if (user->hasUsername())
+	catch (const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_ALREADYREGISTRED, ":You have already set a username");
-		return;
-	}
-	if (params.size() < 4)
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
 		return;
 	}
 
@@ -197,9 +174,12 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 
 void Commands::handleJOIN(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
-	if (params.empty())
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
+		Validation::validateJOIN(user, params);
+	}
+	catch(const std::exception& e)
+	{
 		return;
 	}
 
@@ -245,29 +225,13 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 		Channel* channel = getOrCreateChannel(currentChannel, channels);
 
-		if (channel->isMember(user->getFd()))
-			continue;
-
-		if (channel->isInviteOnly() && !channel->isInvited(user->getFd()))
+		try
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_INVITEONLYCHAN, currentChannel + " :Cannot join channel (+i)");
-			continue;
+			Validation::validateCanJoin(user, channel, channelKey);
 		}
-		if (channel->hasKey())
+		catch(const std::exception& e)
 		{
-			if (channelKey.empty() || channelKey != channel->getKey())
-			{
-				ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_BADCHANNELKEY, currentChannel + " :Cannot join channel (+k)");
-				continue;
-			}
-		}
-		if (channel->hasUserLimit())
-		{
-			if (static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit())
-			{
-				ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANNELISFULL, currentChannel + " :Cannot join channel (+l)");
-				continue;
-			}
+			continue;
 		}
 
 		channel->addMember(user);
@@ -289,19 +253,30 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, std:
 
 void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
-	if (!user->isRegistered())
+	// if (!user->isRegistered())
+	// {
+	// 	sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+	// 	return;
+	// }
+	// if (params.empty())
+	// {
+	// 	sendNumericReply(user->getFd(), ERR_NORECIPIENT, "PRIVMSG :No recipient given");
+	// 	return;
+	// }
+	// if (params.size() < 2)
+	// {
+	// 	sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
+	// 	return;
+	// }
+
+	// Dominique: start new validation
+	try
+	{
+		Validation::validatePRIVMSG(user, params);
+	}
+	catch(const std::exception& e)
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		return;
-	}
-	if (params.empty())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NORECIPIENT, "PRIVMSG :No recipient given");
-		return;
-	}
-	if (params.size() < 2)
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
 		return;
 	}
 
@@ -317,19 +292,14 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 
 	if (target[0] == '#' || target[0] == '&')
 	{
-		std::map<std::string, Channel*>::iterator it = channels.find(target);
-		if (it == channels.end())
+		Channel* channel {};
+
+		try
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL,
-											  target + " :No such channel");
-			return;
+			channel = Validation::validateCanSendMsg(user, target, server);
 		}
-
-		Channel* channel = it->second;
-
-		if (!channel->isMember(user->getFd()))
+		catch(const std::exception& e)
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
 			return;
 		}
 
@@ -381,62 +351,20 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, c
 
 void Commands::handleKICK(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
-	if (!user->isRegistered())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		return;
-	}
-	if (params.size() < 2)
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
-		return;
-	}
+	std::string	targetNick {};
+	std::string	channelName {};
+	std::string	reason {};
+	Channel*	channel {};
+	User*		targetUser {};
 
-	std::list<std::string>::const_iterator it = params.begin();
-	std::string channelName = *it++;
-	std::string targetNick = *it++;
-
-	std::string reason = "Kicked by operator";
-	if (it != params.end())
+	try
 	{
-		reason = *it;
-		if (!reason.empty() && reason[0] == ':')
-			reason = reason.substr(1);
+		Validation::validateKICK(user, params, targetNick, channelName, reason);
+		channel = Validation::validateCanKick(user, channelName, server);
+		targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server);
 	}
-
-	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
-	if (chanIt == channels.end())
+	catch(const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
-		return;
-	}
-
-	Channel* channel = chanIt->second;
-
-	if (!channel->isMember(user->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		return;
-	}
-	if (!channel->isOperator(user->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
-		return;
-	}
-
-	User* targetUser = nullptr;
-	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
-	{
-		if (it->second->getNickname() == targetNick)
-		{
-			targetUser = it->second;
-			break;
-		}
-	}
-
-	if (!channel->isMember(targetUser->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
 		return;
 	}
 
@@ -467,14 +395,12 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, cons
 
 void Commands::handlePART(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
-	if (!user->isRegistered())
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		return;
+		Validation::validatePART(user, params);
 	}
-	if (params.empty())
+	catch(const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
 		return;
 	}
 
@@ -507,18 +433,14 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 	{
 		std::string currentChannel = channelVec[i];
 
-		std::map<std::string, Channel*>::iterator chanIt = channels.find(currentChannel);
-		if (chanIt == channels.end())
+		Channel* channel {};
+
+		try
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
-			continue;
+			channel = Validation::validateCanPart(user, currentChannel, server);
 		}
-
-		Channel* channel = chanIt->second;
-
-		if (!channel->isMember(user->getFd()))
+		catch(const std::exception& e)
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, currentChannel + " :You're not on that channel");
 			continue;
 		}
 
@@ -559,34 +481,19 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, std:
 
 void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std::map<std::string, Channel*>& channels)
 {
-	if (!user->isRegistered())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		return;
-	}
-	if (params.empty())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
-		return;
-	}
-	std::string channelName = params.front();
-	if (!channelName.empty() && channelName[0] == ':')
-		channelName = channelName.substr(1);
+	std::string	channelName {};
+	Channel*	channel {};
 
-	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
-	if (chanIt == channels.end())
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		channelName = Validation::validateTOPIC(user, params);
+		channel = Validation::validateCanChangeTopic(user, channelName, server);
+	}
+	catch(const std::exception& e)
+	{
 		return;
 	}
-
-	Channel* channel = chanIt->second;
-
-	if (!channel->isMember(user->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		return;
-	}
+	// Dominique: start end validation
 
 	if (params.size() == 1)
 	{
@@ -650,62 +557,19 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, std
 
 void Commands::handleINVITE(User* user, const std::list<std::string>& params, const std::map<int, User*>& users, std::map<std::string, Channel*>& channels)
 {
-	if (!user->isRegistered())
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
-		return;
-	}
-	if (params.size() < 2)
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
-		return;
-	}
+	std::string	targetNick {};
+	std::string	channelName {};
+	Channel*	channel {};
+	User*		targetUser {};
 
-	std::list<std::string>::const_iterator it = params.begin();
-	std::string targetNick = *it++;
-	std::string channelName = *it;
-
-	if (!channelName.empty() && channelName[0] == ':')
-		channelName = channelName.substr(1);
-	if (!targetNick.empty() && targetNick[0] == ':')
-		targetNick = targetNick.substr(1);
-
-	std::map<std::string, Channel*>::iterator chanIt = channels.find(channelName);
-	if (chanIt == channels.end())
+	try
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
-		return;
+		Validation::validateINVITE(user, params, targetNick, channelName);
+		channel = Validation::validateCanInvite(user, channelName, server);
+		targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server);
 	}
-
-	Channel* channel = chanIt->second;
-	if (!channel->isMember(user->getFd()))
+	catch(const std::exception& e)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
-		return;
-	}
-	if (channel->isInviteOnly() && !channel->isOperator(user->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
-		return;
-	}
-
-	User* targetUser = nullptr;
-	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
-	{
-		if (it->second->getNickname() == targetNick)
-		{
-			targetUser = it->second;
-			break;
-		}
-	}
-	if (targetUser == nullptr)
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
-		return;
-	}
-	if (channel->isMember(targetUser->getFd()))
-	{
-		ResponseHandler::sendNumericReply(user->getFd(), ResponseHandler::ERR_USERONCHANNEL,  targetNick + " " + channelName + " :is already on channel");
 		return;
 	}
 

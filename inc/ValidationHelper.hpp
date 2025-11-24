@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 09:52:32 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 11:45:26 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <map>
 #include <cctype>
 #include "User.hpp"
-
 
 class ValidationHelper
 {

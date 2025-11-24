@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/13 17:06:13 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 11:43:57 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void	Server::acceptConn()
 	User* newUser = new User(client_fd);
 	m_users.insert( { client_fd, newUser } );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
+	m_massagesList.emplace(client_fd, Parser{}); // [Takato]: added
 
 	#ifdef DEBUG
 	std::cout << "Accepted client connection (client fd: " << client_fd << ")" << std::endl;
@@ -207,7 +208,28 @@ void	Server::processClientAct( int client_fd )
 	}
 
 	buffer[bytes] = '\0';
-	processBuffer(buffer, bytes, client_fd);
+
+	// [Takato]: added from here
+	m_massagesList.at(client_fd).load(buffer);
+	const std::list<Message>	&list{ m_massagesList.at(client_fd).getMessages() };
+	for (auto it{ list.begin() }; it != list.end(); ++it)
+	{
+		// to be discussed, each command operation would throw an execption indicating error like ERR_NEEDMOREPARAMS
+		try
+		{
+			(*it).operateCommand(*this, m_users.at(client_fd));
+		}
+		catch(const std::exception& e) // to become functinal after creating Exception class for error
+		{
+			std::cerr << e.what() << '\n';
+		}
+		catch(const int err) // just for the test purpose
+		{
+			std::cerr << err << '\n';
+		}
+	}
+	// processBuffer(buffer, bytes, client_fd);  // [Takato]: commented out
+	// [Takato]: to here
 }
 
 Server::Server( const Server& ) = default;
@@ -327,4 +349,16 @@ void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
 	#ifdef DEBUG
 	std::cout << "Sent PONG response to client fd " << client_fd << std::endl;
 	#endif
+}
+
+/* ==================== Getters ==================== */
+
+const std::map<int, User*>&	Server::getUsers() const
+{
+	return (m_users);
+}
+
+const std::map<std::string, Channel*>&	Server::getChannels() const
+{
+	return (m_channels);
 }

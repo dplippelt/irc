@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/13 17:00:51 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 11:51:29 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
+#include "Parser.hpp" //[Takato]: added Parser class
 
 class Channel;
 
@@ -42,6 +43,11 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
+		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
+		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
+
+		const std::map<int, User*>&				getUsers() const;
+		const std::map<std::string, Channel*>&	getChannels() const;
 
 	private:
 		static const int									s_listen_backlog { 50 };
@@ -57,6 +63,7 @@ class Server
 		std::map<int, User*>				m_users {};
 		std::map<std::string, Channel*>		m_channels {};
 		std::vector<struct pollfd>			m_pollfds {};
+		std::map<int, Parser>				m_massagesList{};   //[Takato]: added Parser class's map
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
