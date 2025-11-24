@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:47:35 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/18 09:47:47 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:47:45 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ void ResponseHandler::sendJoinMessages(User* user, Channel* channel)
 	}
 
 	sendTopicMessage(user, channel);
-	sendNamesMessage(user, channel);
+	sendNameMessage(user, channel);
 
 	#ifdef DEBUG
 	std::cout << "JOIN messages sent to " << user->getNickname()
@@ -142,7 +142,7 @@ void ResponseHandler::sendTopicMessage(User* user, Channel* channel)
 	}
 }
 
-void ResponseHandler::sendNamesMessage(User* user, Channel* channel)
+void ResponseHandler::sendNameMessage(User* user, Channel* channel)
 {
 	// RPL_NAMREPLY (353)
 	std::ostringstream namesMsg;

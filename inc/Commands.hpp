@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/18 09:46:22 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:34:21 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "ResponseHandler.hpp"
+#include "Authentication.hpp"
+#include "ValidationHelper.hpp"
 
 class Commands
 {
@@ -32,13 +34,6 @@ class Commands
 		Commands(const Commands&) = delete;
 		Commands& operator=(const Commands&) = delete;
 		~Commands() = delete;
-
-		static bool isValidNickname(const std::string& nick);
-		static bool isNicknameInUse(const std::string& nick, const std::map<int, User*>& users);
-		static bool isValidChannelName(const std::string& channelName);
-
-		static void checkRegistration(User* user);
-		static bool canExecuteCommand(User* user, const std::string& command);
 
 		static Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 
