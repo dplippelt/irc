@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Parser.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/29 13:41:54 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/06 14:39:48 by tmitsuya         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Parser.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/29 13:41:54 by tmitsuya      #+#    #+#                 */
+/*   Updated: 2025/11/24 13:06:12 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ public:
 	Parser				&load(const std::string &input);
 	std::list<Message>	&getMessages();
 	void				print() const;
+	void 				clearMessages() { m_messages.clear(); }
 };
 
 #endif
