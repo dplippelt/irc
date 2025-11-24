@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/06 10:15:12 by tmitsuya      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:17:55 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:55:08 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ Message::~Message()
 
 void	Message::operateCommand(Server &server, User *user) const
 {
-	(void)server;
-	(void)user;
+	std::vector<std::string> params(m_params.begin(), m_params.end());
+	Commands::executeCommand(user, m_command, params, server, server.getPassword());
 	print();
 	switch (m_cmd_type)
 	{

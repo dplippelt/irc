@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:18:42 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 12:57:19 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,3 +372,4 @@ std::map<std::string, Channel*>& Server::getChannels()
 {
 	return m_channels;
 }
+
