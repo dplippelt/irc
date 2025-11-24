@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 14:26:14 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:55:58 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,34 +20,27 @@
 class User
 {
 	private:
-		// Network related
-		int _fd;                        // Client socket file descriptor
+		int _fd;
 
-		// User identification
-		std::string _nickname;          // IRC nickname
-		std::string _username;          // Username
-		std::string _realname;          // Real name
-		std::string _hostname;          // Hostname
+		std::string _nickname;
+		std::string _username;
+		std::string _realname;
+		std::string _hostname;
 
-		// Authentication state
-		bool _authenticated;            // Authenticated via PASS command
-		bool _registered;               // Registration complete (NICK + USER)
-		bool _passwordProvided;         // PASS command received
-		bool _hasNickname;              // NICK command received
-		bool _hasUsername;              // USER command received
+		bool _authenticated;
+		bool _registered;
+		bool _passwordProvided;
+		bool _hasNickname;
+		bool _hasUsername;
 
-		// Channel related
-		std::vector<std::string> _channels;  // List of joined channels
+		std::vector<std::string> _channels;
 
-		// Buffer
-		std::string _recvBuffer;        // Receive buffer
+		std::string _recvBuffer;
 
 	public:
-		// Constructor & Destructor
 		User(int fd);
 		~User();
 
-		// Getter methods
 		int getFd() const;
 		const std::string& getNickname() const;
 		const std::string& getUsername() const;
@@ -60,7 +53,6 @@ class User
 		bool isRegistered() const;
 		const std::vector<std::string>& getChannels() const;
 
-		// Setter methods
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& username);
 		void setRealname(const std::string& realname);
@@ -71,17 +63,14 @@ class User
 		void setAuthenticated(bool auth);
 		void setRegistered(bool reg);
 
-		// Channel related methods
 		void joinChannel(const std::string& channelName);
 		void leaveChannel(const std::string& channelName);
 		bool isInChannel(const std::string& channelName) const;
 
-		// Buffer related
 		std::string& getRecvBuffer();
 		void clearRecvBuffer();
 
-		// Utility
-		std::string getPrefix() const;  // Format: :nick!user@host
+		std::string getPrefix() const;
 };
 
 #endif

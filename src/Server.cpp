@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 17:27:16 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/24 12:57:19 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 
 Server::~Server()
 {
-	delete m_commands;
-
 	for ( std::map<int, User*>::iterator it = m_users.begin(); it != m_users.end(); ++it )
 		delete it->second;
 	for ( std::map<std::string, Channel*>::iterator it = m_channels.begin(); it != m_channels.end(); ++it )
@@ -60,8 +58,6 @@ Server::Server( const std::string& port, std::string_view pw )
 
 	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
-
-	m_commands = new Commands(m_users, m_channels, m_pw);
 }
 
 /* ==================== Initial Server Setup ==================== */
@@ -322,7 +318,7 @@ void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::si
 		return;
 	}
 
-	m_commands->executeCommand(user, command, cmd_params, *this);
+	Commands::executeCommand(user, command, cmd_params, *this, m_pw);
 
 	std::cout << msg;
 }
@@ -366,3 +362,14 @@ const std::map<std::string, Channel*>&	Server::getChannels() const
 {
 	return (m_channels);
 }
+
+std::map<int, User*>& Server::getUsers()
+{
+	return m_users;
+}
+
+std::map<std::string, Channel*>& Server::getChannels()
+{
+	return m_channels;
+}
+

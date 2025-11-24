@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 17:26:32 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/24 12:55:25 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,7 @@
 #include "Commands.hpp"
 #include "Parser.hpp" //[Takato]: added Parser class
 
-// #define DEBUG
-
 class Channel;
-class Commands;
 
 class Server
 {
@@ -46,11 +43,14 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
-		const	std::map<std::string, Channel *>	&getChannels() const; // [Takato]:added
-		const	std::map<int, User *>				&getUsers() const; // [Takato]:added
+
+		std::map<int, User*>&					getUsers();
+		std::map<std::string, Channel*>&		getChannels();
 
 		const std::map<int, User*>&				getUsers() const;
 		const std::map<std::string, Channel*>&	getChannels() const;
+
+		const std::string& getPassword() const { return m_pw; }
 
 	private:
 		static const int									s_listen_backlog { 50 };
@@ -65,7 +65,6 @@ class Server
 		struct addrinfo						*m_addr {};
 		std::map<int, User*>				m_users {};
 		std::map<std::string, Channel*>		m_channels {};
-		Commands*							m_commands {};
 		std::vector<struct pollfd>			m_pollfds {};
 		std::map<int, Parser>				m_massagesList{};   //[Takato]: added Parser class's map
 
@@ -78,7 +77,7 @@ class Server
 		void		processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd );
 		bool		userIsAuthenticated( int client_fd );
 
-		void	pong( std::vector<std::string>& cmd_params, int client_fd );
+		void		pong( std::vector<std::string>& cmd_params, int client_fd );
 };
 
 enum Command

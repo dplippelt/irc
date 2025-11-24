@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 10:31:59 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/07 14:05:41 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 10:55:43 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,31 +23,26 @@
 class Channel
 {
 	private:
-		std::string _name;                      // Channel name (starts with #)
-		std::string _topic;                     // Channel topic
-		std::string _key;                       // Channel password (mode +k)
+		std::string _name;
+		std::string _topic;
+		std::string _key;
 
-		// Members management
-		std::map<int, User*> _members;          // fd -> User pointer
-		std::set<int> _operators;               // fd of operators
-		std::set<int> _inviteList;              // fd of invited users (mode +i)
+		std::map<int, User*> _members;
+		std::set<int> _operators;
+		std::set<int> _inviteList;
 
-		// Channel modes
-		bool _inviteOnly;                       // +i: Invite-only channel
-		bool _topicRestricted;                  // +t: Only operators can change topic
-		bool _hasKey;                           // +k: Channel has password
-		bool _hasUserLimit;                     // +l: Channel has user limit
-		int _userLimit;                         // Maximum number of users
+		bool _inviteOnly;
+		bool _topicRestricted;
+		bool _hasKey;
+		bool _hasUserLimit;
+		int _userLimit;
 
-		// Creation timestamp
 		time_t _creationTime;
 
 	public:
-		// Constructor & Destructor
 		Channel(const std::string& name);
 		~Channel();
 
-		// Getter methods
 		const std::string& getName() const;
 		const std::string& getTopic() const;
 		const std::string& getKey() const;
@@ -59,7 +54,6 @@ class Channel
 		bool hasKey() const;
 		bool hasUserLimit() const;
 
-		// Setter methods
 		void setTopic(const std::string& topic);
 		void setKey(const std::string& key);
 		void setUserLimit(int limit);
@@ -68,27 +62,23 @@ class Channel
 		void setHasKey(bool value);
 		void setHasUserLimit(bool value);
 
-		// Member management
 		void addMember(User* user);
 		void removeMember(int fd);
 		bool isMember(int fd) const;
 		User* getMember(int fd) const;
 		const std::map<int, User*>& getMembers() const;
 
-		// Operator management
 		void addOperator(int fd);
 		void removeOperator(int fd);
 		bool isOperator(int fd) const;
 		const std::set<int>& getOperators() const;
 
-		// Invite management (for +i mode)
 		void addInvite(int fd);
 		void removeInvite(int fd);
 		bool isInvited(int fd) const;
 
-		// Utility methods
 		void broadcast(const std::string& message, int excludeFd = -1);
-		std::string getMemberList() const;      // Get list of nicknames
+		std::string getMemberList() const;
 		bool isEmpty() const;
 };
 
