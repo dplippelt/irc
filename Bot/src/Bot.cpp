@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 13:34:33 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 13:50:02 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,8 +251,6 @@ void	Bot::startGame( const std::string& username, const std::string& channel )
 	catch ( const std::exception& e )
 	{
 		sendResponse(username, channel, e.what());
-		// response = m_prefix + e.what() + "\r\n";
-		// send(m_bot_socket_fd, response.data(), response.length(), 0);
 		return;
 	}
 
@@ -261,11 +259,7 @@ void	Bot::startGame( const std::string& username, const std::string& channel )
 	std::string			line {};
 
 	while ( std::getline(iss, line) )
-	{
 		sendResponse(username, channel, line);
-		// response = m_prefix + line + "\r\n";
-		// send(m_bot_socket_fd, response.data(), response.length(), 0);
-	}
 }
 
 
