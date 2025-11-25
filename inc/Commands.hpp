@@ -15,7 +15,7 @@
 
 #include <algorithm>
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
 #include <sstream>
 #include <sys/socket.h>
@@ -100,15 +100,15 @@ class Commands
 							Server& server,
 							const std::string& serverPassword);
 
-		static void handlePASS(User* user, const std::list<std::string>& params, const std::string& serverPassword);
-		static void handleNICK(User* user, const std::list<std::string>& params, Server& server);
-		static void handleUSER(User* user, const std::list<std::string>& params);
-		static void handleJOIN(User* user, const std::list<std::string>& params, Server& server);
-		static void handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server);
-		static void handleKICK(User* user, const std::list<std::string>& params, Server& server);
-		static void handlePART(User* user, const std::list<std::string>& params, Server& server);
-		static void handleTOPIC(User* user, const std::list<std::string>& params, Server& server);
-		static void handleINVITE(User* user, const std::list<std::string>& params, Server& server);
+		static void handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword);
+		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleUSER(User* user, const std::vector<std::string>& params);
+		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server);
+		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server);
+		static void handlePART(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
 };
 
 #endif

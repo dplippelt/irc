@@ -14,7 +14,7 @@
 
 /* ==================== Class Behavior ==================== */
 
-bool Validation::validatePASS( User* user, const std::list<std::string>& params )
+bool Validation::validatePASS( User* user, const std::vector<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
@@ -34,7 +34,7 @@ bool Validation::validatePASS( User* user, const std::list<std::string>& params 
 	return true;
 }
 
-bool	Validation::validateNICK( User* user, const std::list<std::string>& params, const Server& server, std::string& outNick )
+bool	Validation::validateNICK( User* user, const std::vector<std::string>& params, const Server& server, std::string& outNick )
 {
 	if ( params.empty() )
 	{
@@ -62,7 +62,7 @@ bool	Validation::validateNICK( User* user, const std::list<std::string>& params,
 	return true;
 }
 
-bool	Validation::validateUSER( User* user, const std::list<std::string>& params )
+bool	Validation::validateUSER( User* user, const std::vector<std::string>& params )
 {
 	if ( user->isRegistered() )
 	{
@@ -82,7 +82,7 @@ bool	Validation::validateUSER( User* user, const std::list<std::string>& params 
 	return true;
 }
 
-bool	Validation::validateJOIN( User* user, const std::list<std::string>& params )
+bool	Validation::validateJOIN( User* user, const std::vector<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -97,7 +97,7 @@ bool	Validation::validateJOIN( User* user, const std::list<std::string>& params 
 	return true;
 }
 
-bool	Validation::validatePRIVMSG( User* user, const std::list<std::string>& params )
+bool	Validation::validatePRIVMSG( User* user, const std::vector<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -117,7 +117,7 @@ bool	Validation::validatePRIVMSG( User* user, const std::list<std::string>& para
 	return true;
 }
 
-bool	Validation::validateKICK( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason )
+bool	Validation::validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason )
 {
 	if ( !user->isRegistered() )
 	{
@@ -145,7 +145,7 @@ bool	Validation::validateKICK( User* user, const std::list<std::string>& params,
 	return true;
 }
 
-bool	Validation::validatePART( User* user, const std::list<std::string>& params )
+bool	Validation::validatePART( User* user, const std::vector<std::string>& params )
 {
 	if ( !user->isRegistered() )
 	{
@@ -160,7 +160,7 @@ bool	Validation::validatePART( User* user, const std::list<std::string>& params 
 	return true;
 }
 
-bool	Validation::validateTOPIC( User* user, const std::list<std::string>& params, std::string& outChannelName )
+bool	Validation::validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName )
 {
 	if ( !user->isRegistered() )
 	{
@@ -182,7 +182,7 @@ bool	Validation::validateTOPIC( User* user, const std::list<std::string>& params
 	return true;
 }
 
-bool	Validation::validateINVITE( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName )
+bool	Validation::validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName )
 {
 	if ( !user->isRegistered() )
 	{

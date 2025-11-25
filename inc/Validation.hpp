@@ -13,7 +13,7 @@
 #pragma once
 
 #include <exception>
-#include <list>
+#include <vector>
 #include <string>
 #include "User.hpp"
 #include "Commands.hpp"
@@ -27,15 +27,15 @@ class Server;
 class Validation
 {
 	public:
-		static bool			validatePASS( User* user, const std::list<std::string>& params );
-		static bool			validateNICK( User* user, const std::list<std::string>& params, const Server& server, std::string& outNick );
-		static bool			validateUSER( User* user, const std::list<std::string>& params );
-		static bool			validateJOIN( User* user, const std::list<std::string>& params );
-		static bool			validatePRIVMSG( User* user, const std::list<std::string>& params );
-		static bool			validateKICK( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason );
-		static bool			validatePART( User* user, const std::list<std::string>& params );
-		static bool			validateTOPIC( User* user, const std::list<std::string>& params, std::string& outChannelName );
-		static bool			validateINVITE( User* user, const std::list<std::string>& params, std::string& targetNick, std::string& channelName );
+		static bool			validatePASS( User* user, const std::vector<std::string>& params );
+		static bool			validateNICK( User* user, const std::vector<std::string>& params, const Server& server, std::string& outNick );
+		static bool			validateUSER( User* user, const std::vector<std::string>& params );
+		static bool			validateJOIN( User* user, const std::vector<std::string>& params );
+		static bool			validatePRIVMSG( User* user, const std::vector<std::string>& params );
+		static bool			validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason );
+		static bool			validatePART( User* user, const std::vector<std::string>& params );
+		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName );
+		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName );
 
 		static bool			validateCanJoin( User* user, Channel* channel, std::string& channelKey );
 		static Channel*		validateCanSendMsg( User* user, const std::string& target, const Server& server );

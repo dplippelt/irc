@@ -45,32 +45,31 @@ void Commands::executeCommand(User* user, const std::string& command,
 		return;
 	}
 
-	std::list<std::string> paramList(params.begin(), params.end());
 	if (command == "PASS")
-		handlePASS(user, paramList, serverPassword);
+		handlePASS(user, params, serverPassword);
 	else if (command == "NICK")
-		handleNICK(user, paramList, server);
+		handleNICK(user, params, server);
 	else if (command == "USER")
-		handleUSER(user, paramList);
+		handleUSER(user, params);
 	else if (command == "JOIN")
-		handleJOIN(user, paramList, server);
+		handleJOIN(user, params, server);
 	else if (command == "PRIVMSG")
-		handlePRIVMSG(user, paramList, server);
+		handlePRIVMSG(user, params, server);
 	else if (command == "KICK")
-		handleKICK(user, paramList, server);
+		handleKICK(user, params, server);
 	else if (command == "PART")
-		handlePART(user, paramList, server);
+		handlePART(user, params, server);
 	else if (command == "TOPIC")
-		handleTOPIC(user, paramList, server);
+		handleTOPIC(user, params, server);
 	else if (command == "INVITE")
-		handleINVITE(user, paramList, server);
+		handleINVITE(user, params, server);
 	else
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 }
 
 // ==================== PASS Command ====================
 
-void Commands::handlePASS(User* user, const std::list<std::string>& params,
+void Commands::handlePASS(User* user, const std::vector<std::string>& params,
 						  const std::string& serverPassword)
 {
 	if (!Validation::validatePASS(user, params))
@@ -100,7 +99,7 @@ void Commands::handlePASS(User* user, const std::list<std::string>& params,
 
 // ==================== NICK Command ====================
 
-void Commands::handleNICK(User* user, const std::list<std::string>& params,  Server& server)
+void Commands::handleNICK(User* user, const std::vector<std::string>& params,  Server& server)
 {
 	std::string newNick {};
 
@@ -127,12 +126,12 @@ void Commands::handleNICK(User* user, const std::list<std::string>& params,  Ser
 
 // ==================== USER Command ====================
 
-void Commands::handleUSER(User* user, const std::list<std::string>& params)
+void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 {
 	if (!Validation::validateUSER(user, params))
 		return;
 
-	std::list<std::string>::const_iterator it = params.begin();
+	std::vector<std::string>::const_iterator it = params.begin();
 	std::string username = *it++;
 	std::advance(it, 2);
 	std::string realname = ValidationHelper::removeLeadingColon(*it);
@@ -153,7 +152,7 @@ void Commands::handleUSER(User* user, const std::list<std::string>& params)
 
 // ==================== JOIN Command ====================
 
-void Commands::handleJOIN(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Server& server)
 {
 	if (!Validation::validateJOIN(user, params))
 		return;
@@ -162,7 +161,7 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, Serv
 	std::string keyList;
 	if (params.size() > 1)
 	{
-		std::list<std::string>::const_iterator it = params.begin();
+		std::vector<std::string>::const_iterator it = params.begin();
 		++it;
 		keyList = ValidationHelper::removeLeadingColon(*it);
 	}
@@ -222,12 +221,12 @@ void Commands::handleJOIN(User* user, const std::list<std::string>& params, Serv
 
 // ==================== PRIVMSG Handler ====================
 
-void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server)
 {
 	if (!Validation::validatePRIVMSG(user, params))
 		return;
 
-	std::list<std::string>::const_iterator it = params.begin();
+	std::vector<std::string>::const_iterator it = params.begin();
 	std::string target = *it++;
 	std::string message = *it;
 
@@ -292,7 +291,7 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, S
 
 // ==================== KICK Handler ====================
 
-void Commands::handleKICK(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handleKICK(User* user, const std::vector<std::string>& params, Server& server)
 {
 	std::string	targetNick {};
 	std::string	channelName {};
@@ -334,7 +333,7 @@ void Commands::handleKICK(User* user, const std::list<std::string>& params, Serv
 
 // ==================== PART Handler ====================
 
-void Commands::handlePART(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handlePART(User* user, const std::vector<std::string>& params, Server& server)
 {
 	if (!Validation::validatePART(user, params))
 		return;
@@ -346,7 +345,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, Serv
 	std::string reason;
 	if (params.size() > 1)
 	{
-		std::list<std::string>::const_iterator it = params.begin();
+		std::vector<std::string>::const_iterator it = params.begin();
 		++it;
 		reason = *it;
 		if (!reason.empty() && reason[0] == ':')
@@ -407,7 +406,7 @@ void Commands::handlePART(User* user, const std::list<std::string>& params, Serv
 
 // ==================== TOPIC Handler ====================
 
-void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, Server& server)
 {
 	std::string	channelName;
 
@@ -449,7 +448,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Ser
 		return;
 	}
 
-	std::list<std::string>::const_iterator it = params.begin();
+	std::vector<std::string>::const_iterator it = params.begin();
 	++it;
 	std::string newTopic = *it;
 
@@ -478,7 +477,7 @@ void Commands::handleTOPIC(User* user, const std::list<std::string>& params, Ser
 
 // ==================== INVITE Handler ====================
 
-void Commands::handleINVITE(User* user, const std::list<std::string>& params, Server& server)
+void Commands::handleINVITE(User* user, const std::vector<std::string>& params, Server& server)
 {
 	std::string	targetNick;
 	std::string	channelName;
