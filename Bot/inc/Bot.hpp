@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 17:49:33 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:59:36 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,36 +43,7 @@ class Bot
 		void								removeGame( std::string username );
 		void								addGame( std::string username, Game* game );
 
-
 	private:
-		// enum CommandLengths
-		// {
-		// 	e_start = 6,
-		// 	e_fire = 8,
-		// 	e_solution = 9,
-		// 	e_board = 6,
-		// 	e_newgame = 8
-		// };
-
-		// enum CommandType
-		// {
-		// 	CMD_START,
-		// 	CMD_FIRE,
-		// 	CMD_SOLUTION,
-		// 	CMD_BOARD,
-		// 	CMD_NEWGAME,
-		// 	CMD_UNKNOWN
-		// };
-
-		// static inline const std::map<std::string, CommandType> k_commands
-		// {
-		// 	{"!start", CMD_START},
-		// 	{"!fire", CMD_FIRE},
-		// 	{"!solution", CMD_SOLUTION},
-		// 	{"!board", CMD_BOARD},
-		// 	{"!newgame", CMD_NEWGAME}
-		// };
-
 		std::string			m_pw {};
 		struct addrinfo*	m_server_addr {};
 		int					m_bot_socket_fd {};
@@ -87,20 +58,9 @@ class Bot
 		void	receiveMessage();
 		void	processBuffer( const std::string& buffer );
 
-		// void	startGame( const std::string& username, const std::string& channel );
-		// void	fireShot( const std::string& username, const std::string& channel,const std::string& target );
-		// void	showSolution( const std::string& username, const std::string& channel ) const;
-		// void	showBoard( const std::string& username, const std::string& channel ) const;
-		// void	newGame( const std::string& username, const std::string& channel );
-
-		// void	sendGrid( const std::string& username, const std::string& channel, const std::string& header, const Grid& grid ) const;
-		// void	sendResponse( const std::string& username, const std::string& channel, const std::string& msg ) const;
-
 		std::string	getUserName( const std::string& buffer ) const;
 		std::string getMessage( const std::string& buffer ) const;
 		std::string getChannelName( const std::string& buffer ) const;
-		// CommandType getCmdType( const std::string& command ) const;
 
 		std::string&	rtrim( std::string& s ) const;
-		// std::string		capitalize( const std::string& target ) const;
 };
