@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 13:50:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 15:59:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,13 +210,13 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::cout << "Sender: " << username << std::endl;
 	std::cout << "Channel: " << channel << std::endl;
 	std::cout << "Message: " << message << std::endl;
-	std::cout << "Message length: " << rtrim(message).length() << std::endl;
+	std::cout << "Message length: " << message.length() << std::endl;
 	#endif
 
-	if (rtrim(message).length() == e_start && message.substr(0, e_start) == "!start")
+	if ( message.substr(0, e_start) == "!start" && message.length() == e_start )
 		startGame(username, channel);
-	// if (message.substr(0, e) == "!fire")
-	// 	fireShot(username)
+	else if ( message.substr(0, e_fire - 3) == "!fire" && message.length() == e_fire )
+		fireShot(username, channel, message.substr(message.find_last_of(" ") + 1));
 }
 
 
@@ -228,13 +228,7 @@ void	Bot::processBuffer( const std::string& buffer )
 
 void	Bot::startGame( const std::string& username, const std::string& channel )
 {
-	std::string response {};
-	Game*		game;
-
-	if (channel.length())
-		m_prefix = "PRIVMSG " +  channel + " :";
-	else
-		m_prefix = "PRIVMSG " +  username + " :";
+	Game*	game;
 
 	try
 	{
@@ -254,20 +248,81 @@ void	Bot::startGame( const std::string& username, const std::string& channel )
 		return;
 	}
 
-	std::string 		gridMsg { game->getGridObject().getGridMsg() };
-	std::istringstream	iss { gridMsg };
-	std::string			line {};
+	#ifdef DEBUG
+	sendGrid(username, channel, "CHEAT GRID for " + username + "'s game", game->getGridObject());
+	#endif
 
-	while ( std::getline(iss, line) )
-		sendResponse(username, channel, line);
+	sendGrid(username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
 }
+
+void	Bot::fireShot( const std::string& username, const std::string& channel, const std::string& target )
+{
+	auto it = m_games.find(username);
+	if (it == m_games.end())
+	{
+		sendResponse(username, channel, "You need to start a game before you can fire a shot. You can start a new game by typing '!start'");
+		return;
+	}
+
+	Game* game { it->second };
+
+	if (!game->validInput(target))
+	{
+		sendResponse(username, channel, target + " is not a valid target!");
+		return;
+	}
+
+	ShotResult sr { game->processShot(target) };
+
+	sendGrid(username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
+
+	switch (sr)
+	{
+	case ShotResult::MISS:
+		sendFeedback(username, channel, "Your shot at " + capitalize(target) + " missed!");
+		break;
+	case ShotResult::HIT:
+		sendFeedback(username, channel, "You hit an enemy ship at " + capitalize(target) + "!");
+		break;
+	case ShotResult::SUNK:
+		sendFeedback(username, channel, "You sunk an enemy ship! Congrats, keep going!");
+		break;
+	case ShotResult::WON:
+		sendFeedback(username, channel, "Well done, you sunk all of the enemy's ships!");
+		m_games.erase(username);
+		sendFeedback(username, channel, "To play again just type !start in the Battleships channel or as a private message to BattleShipsBot.");
+		break;
+	default:
+		break;
+	}
+}
+
 
 
 
 
 /* ===================== Bot Response ===================== */
 
-void	Bot::sendResponse( const std::string& username, const std::string& channel, const std::string& msg )
+void	Bot::sendGrid( const std::string& username, const std::string& channel, const std::string& header, const Grid& grid ) const
+{
+	std::string 		gridMsg { grid.getGridMsg() };
+	std::istringstream	iss { gridMsg };
+	std::string			line {};
+
+	sendResponse(username, channel, "");
+	sendResponse(username, channel, header);
+	sendResponse(username, channel, "");
+	while ( std::getline(iss, line) )
+		sendResponse(username, channel, line);
+}
+
+void	Bot::sendFeedback( const std::string& username, const std::string& channel, const std::string& msg ) const
+{
+	sendResponse(username, channel, "");
+	sendResponse(username, channel, msg);
+}
+
+void	Bot::sendResponse( const std::string& username, const std::string& channel, const std::string& msg ) const
 {
 	std::string	prefix {};
 	std::string	response {};
@@ -295,7 +350,9 @@ std::string	Bot::getUserName( const std::string& buffer ) const
 
 std::string Bot::getMessage( const std::string& buffer ) const
 {
-	return ( buffer.substr(buffer.find(" :", 2) + 2) );
+	std::string message { buffer.substr(buffer.find(" :", 2) + 2) };
+
+	return ( rtrim(message) );
 }
 
 std::string Bot::getChannelName( const std::string& buffer ) const
@@ -309,6 +366,13 @@ std::string Bot::getChannelName( const std::string& buffer ) const
 	end_idx = buffer.substr(start_idx).find_first_of(" ");
 
 	return ( buffer.substr(start_idx, start_idx + end_idx - start_idx + 1) );
+}
+
+Bot::CommandType Bot::getCmdType( const std::string& command ) const
+{
+	auto it { k_commands.find(command) };
+
+	return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
 }
 
 
@@ -326,5 +390,15 @@ std::string&	Bot::rtrim( std::string& s ) const
 	else
 		s.clear();
 
-	return(s);
+	return s;
+}
+
+std::string	Bot::capitalize( const std::string& target ) const
+{
+	std::string capTarget {};
+
+	capTarget = target;
+	capTarget[0] = std::toupper(capTarget[0]);
+
+	return capTarget;
 }

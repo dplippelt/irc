@@ -19,19 +19,28 @@
 #include "Battleship.hpp"
 #include "enums.hpp"
 
+enum ShotResult
+{
+	MISS,
+	HIT,
+	SUNK,
+	WON
+};
+
 class Game
 {
 	public:
 		~Game();
 		Game();
-		Game( int nShips );
 		Game( const Game& ) = delete;
 		Game& operator=( const Game& ) = delete;
 
 		void startGame();
 
-		const Grid& getGridObject() const;
-		const Grid& getPlayerGridObject() const;
+		const Grid&	getGridObject() const;
+		const Grid&	getPlayerGridObject() const;
+		bool	validInput(const std::string& input) const;
+		ShotResult	processShot(const std::string& input);
 
 	private:
 		typedef struct s_ship
@@ -59,7 +68,5 @@ class Game
 		std::vector<Battleship> 	m_game_ships {};
 
 		void	populateGrid();
-		bool	validInput(const std::string& input) const;
-		void	processShot(const std::string& input);
 		void	enemySunk(std::vector<Battleship>::iterator it);
 };

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 15:17:52 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 15:25:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,11 +122,7 @@ void	Grid::addShip( Battleship& ship )
 		int	dir { dir_dist(gen) };
 
 		if (!validShipPlacement(startX, startY, ship.m_size, k_dirVec[dir]))
-		{
-			if (attempt == 99)
-				throw std::runtime_error("Could not place ship of size " + std::to_string(ship.m_size) + " after 100 attempts");
 			continue;
-		}
 
 		placeShip(ship, startX, startY, k_dirVec[dir]);
 		return;
