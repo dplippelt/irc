@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 13:07:37 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/25 12:23:11 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,29 +208,7 @@ void	Server::processClientAct( int client_fd )
 	}
 
 	buffer[bytes] = '\0';
-
-	// [Takato]: added from here
-	m_massagesList.at(client_fd).load(buffer);
-	const std::list<Message>	&list{ m_massagesList.at(client_fd).getMessages() };
-	for (auto it{ list.begin() }; it != list.end(); ++it)
-	{
-		// to be discussed, each command operation would throw an execption indicating error like ERR_NEEDMOREPARAMS
-		try
-		{
-			(*it).operateCommand(*this, m_users.at(client_fd));
-		}
-		catch(const std::exception& e) // to become functinal after creating Exception class for error
-		{
-			std::cerr << e.what() << '\n';
-		}
-		catch(const int err) // just for the test purpose
-		{
-			std::cerr << err << '\n';
-		}
-	}
-	m_massagesList.at(client_fd).clearMessages();
-	// processBuffer(buffer, bytes, client_fd);  // [Takato]: commented out
-	// [Takato]: to here
+	processBuffer(buffer, client_fd);
 }
 
 Server::Server( const Server& ) = default;
@@ -239,100 +217,91 @@ Server& Server::operator=( const Server& ) = default;
 
 /* ==================== Message Processing ==================== */
 
-void	Server::processBuffer( const std::string& buffer, ssize_t bytes, int client_fd )
+void	Server::processBuffer( const std::string& buffer, int client_fd )
 {
-	static std::map<int, std::string>	remainders {};
-	std::string&						remainder { remainders[client_fd] };
-	std::size_t							eom_idx {};
-	std::size_t							start_idx {};
-	std::size_t							start_idx_prev {};
+	m_massagesList[client_fd].parse(buffer);
 
-	while ( eom_idx != std::string::npos )
-	{
-		start_idx_prev = start_idx;
-		if ( !foundEndOfMessage(buffer, &start_idx, &eom_idx) )
-			break;
+	std::list<Message> &messages { m_massagesList[client_fd].getMessages() };
 
-		processMsg(remainder + buffer, start_idx_prev, start_idx + remainder.length(), client_fd);
-		remainder.clear();
-	}
-	if ( start_idx != static_cast<std::size_t>(bytes) )
-		remainder += buffer.substr(start_idx);
+	for ( auto& msg : messages )
+		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this, m_pw);
+
+	messages.clear();
 }
 
-bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx )
-{
-	*eom_idx = buffer.find("\r\n", *start_idx);
+// bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx )
+// {
+// 	*eom_idx = buffer.find("\r\n", *start_idx);
 
-	if ( *eom_idx != std::string::npos )
-	{
-		*start_idx = *eom_idx + 2;
-		return (true);
-	}
-	return (false);
-}
+// 	if ( *eom_idx != std::string::npos )
+// 	{
+// 		*start_idx = *eom_idx + 2;
+// 		return (true);
+// 	}
+// 	return (false);
+// }
 
-void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd )
-{
-	std::string					msg { buffer.substr(start_idx, end_idx - start_idx) };
-	std::string					el {};
-	std::istringstream			iss { msg };
-	std::vector<std::string>	cmd_params {};
-	std::string					command {};
-	bool						first_param { true };
+// void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd )
+// {
+// 	std::string					msg { buffer.substr(start_idx, end_idx - start_idx) };
+// 	std::string					el {};
+// 	std::istringstream			iss { msg };
+// 	std::vector<std::string>	cmd_params {};
+// 	std::string					command {};
+// 	bool						first_param { true };
 
-	#ifdef DEBUG
-	std::cout << "Processing message: " << msg << std::endl;
-	#endif
+// 	#ifdef DEBUG
+// 	std::cout << "Processing message: " << msg << std::endl;
+// 	#endif
 
-	std::map<int, User*>::iterator userIt = m_users.find(client_fd);
-	if (userIt == m_users.end())
-	{
-		std::cerr << "Error: User not found for fd " << client_fd << std::endl;
-		return;
-	}
-	User* user = userIt->second;
+// 	std::map<int, User*>::iterator userIt = m_users.find(client_fd);
+// 	if (userIt == m_users.end())
+// 	{
+// 		std::cerr << "Error: User not found for fd " << client_fd << std::endl;
+// 		return;
+// 	}
+// 	User* user = userIt->second;
 
-	while ( iss >> el )
-	{
-		if ( first_param )
-		{
-			command = el;
-			first_param = false;
-			continue;
-		}
+// 	while ( iss >> el )
+// 	{
+// 		if ( first_param )
+// 		{
+// 			command = el;
+// 			first_param = false;
+// 			continue;
+// 		}
 
-		if ( el[0] == ':' )
-		{
-			std::string rest;
-			std::getline(iss, rest);
-			el += rest;
-			cmd_params.push_back(el);
-			break;
-		}
-		cmd_params.push_back(el);
-	}
+// 		if ( el[0] == ':' )
+// 		{
+// 			std::string rest;
+// 			std::getline(iss, rest);
+// 			el += rest;
+// 			cmd_params.push_back(el);
+// 			break;
+// 		}
+// 		cmd_params.push_back(el);
+// 	}
 
-	if (command == "PING")
-	{
-		pong(cmd_params, client_fd);
-		return;
-	}
+// 	if (command == "PING")
+// 	{
+// 		pong(cmd_params, client_fd);
+// 		return;
+// 	}
 
-	Commands::executeCommand(user, command, cmd_params, *this, m_pw);
+// 	Commands::executeCommand(user, command, cmd_params, *this, m_pw);
 
-	std::cout << msg;
-}
+// 	std::cout << msg;
+// }
 
 /* ==================== (Mock) Authentication ==================== */
 
-bool	Server::userIsAuthenticated( int client_fd )
-{
-	std::map<int, User*>::iterator it = m_users.find(client_fd);
-	if (it != m_users.end())
-		return it->second->isAuthenticated();
-	return false;
-}
+// bool	Server::userIsAuthenticated( int client_fd )
+// {
+// 	std::map<int, User*>::iterator it = m_users.find(client_fd);
+// 	if (it != m_users.end())
+// 		return it->second->isAuthenticated();
+// 	return false;
+// }
 
 /* ==================== Pong implementation so connection doesn't time out ==================== */
 

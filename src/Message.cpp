@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Message.cpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/06 10:15:12 by tmitsuya      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:55:08 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Message.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/06 10:15:12 by tmitsuya          #+#    #+#             */
+/*   Updated: 2025/11/25 12:16:03 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,38 +47,38 @@ Message::~Message()
 
 /* ==================== Public interfaces ==================== */
 
-void	Message::operateCommand(Server &server, User *user) const
-{
-	std::vector<std::string> params(m_params.begin(), m_params.end());
-	Commands::executeCommand(user, m_command, params, server, server.getPassword());
-	print();
-	switch (m_cmd_type)
-	{
-	// case e_pass:
-	// 	break;
-	// case e_nick:
-	// 	break;
-	// case e_user:
-	// 	break;
-	// case e_join:
-	// 	break;
-	// case e_msg:
-	// 	break;
-	// case e_kick:
-	// 	break;
-	// case e_invite:
-	// 	break;
-	// case e_topic:
-	// 	break;
-	case e_mode:
-		// Commands::mode(*this, server, user);
-		break;
-	// case e_whois:
-	// 	break;
-	default:
-		break;
-	}
-}
+// void	Message::operateCommand(Server &server, User *user) const
+// {
+// 	std::vector<std::string> params(m_params.begin(), m_params.end());
+// 	Commands::executeCommand(user, m_command, params, server, server.getPassword());
+// 	print();
+// 	switch (m_cmd_type)
+// 	{
+// 	// case e_pass:
+// 	// 	break;
+// 	// case e_nick:
+// 	// 	break;
+// 	// case e_user:
+// 	// 	break;
+// 	// case e_join:
+// 	// 	break;
+// 	// case e_msg:
+// 	// 	break;
+// 	// case e_kick:
+// 	// 	break;
+// 	// case e_invite:
+// 	// 	break;
+// 	// case e_topic:
+// 	// 	break;
+// 	case e_mode:
+// 		// Commands::mode(*this, server, user);
+// 		break;
+// 	// case e_whois:
+// 	// 	break;
+// 	default:
+// 		break;
+// 	}
+// }
 
 /* getters */
 const std::string	&Message::getCommandName() const
@@ -86,7 +86,7 @@ const std::string	&Message::getCommandName() const
 	return m_command;
 }
 
-const std::list<std::string>	&Message::getParamsList() const
+const std::vector<std::string>	&Message::getParamsList() const
 {
 	return m_params;
 }

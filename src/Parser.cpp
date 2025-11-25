@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 15:15:41 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/06 11:03:56 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2025/11/25 12:15:44 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,15 +38,6 @@ Parser::~Parser()
 }
 
 /* ==================== Public interfaces ==================== */
-
-Parser	&Parser::load(const std::string &input)
-{
-	m_buffer += input;
-	std::cout << "=== m_buffer at the beginning ===\n";
-	std::cout << m_buffer << "\n===\n";
-	parse();
-	return *this;
-}
 
 std::list<Message>	&Parser::getMessages()
 {
@@ -81,11 +72,15 @@ void	Parser::print() const
 
    The extracted message is parsed into the components <prefix>,
    <command> and list of parameters matched either by <middle> or
-   <trailing> components. 
+   <trailing> components.
 */
 
-void	Parser::parse()
+Parser	&Parser::parse(const std::string &input)
 {
+	m_buffer += input;
+	std::cout << "=== m_buffer at the beginning ===\n";
+	std::cout << m_buffer << "\n===\n";
+
 	std::istringstream 	messages{ m_buffer };
 	std::string			message{};
 
@@ -94,12 +89,13 @@ void	Parser::parse()
 		if (messages.eof())
 		{
 			m_buffer = message;
-			return ;
+			return *this;
 		}
 		message.pop_back();
 		m_messages.emplace_back(Message{message});
 	}
 	m_buffer.clear();
+	return *this;
 }
 
 /*

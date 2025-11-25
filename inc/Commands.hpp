@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.hpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 12:14:06 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.hpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/25 12:11:11 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,40 @@ class Commands
 		Commands(const Commands&) = delete;
 		Commands& operator=(const Commands&) = delete;
 		~Commands() = delete;
+
+		enum CommandType
+		{
+			CMD_PASS,
+			CMD_NICK,
+			CMD_USER,
+			CMD_JOIN,
+			CMD_PRIVMSG,
+			CMD_KICK,
+			CMD_PART,
+			CMD_TOPIC,
+			CMD_INVITE,
+			CMD_UNKNOWN
+		};
+
+		static inline const std::map<std::string, CommandType> k_commands
+		{
+			{"PASS", CMD_PASS},
+			{"NICK", CMD_NICK},
+			{"USER", CMD_USER},
+			{"JOIN", CMD_JOIN},
+			{"PRIVMSG", CMD_PRIVMSG},
+			{"KICK", CMD_KICK},
+			{"PART", CMD_PART},
+			{"TOPIC", CMD_TOPIC},
+			{"INVITE", CMD_INVITE}
+		};
+
+		static CommandType getCmdType( const std::string& command )
+		{
+			auto it { k_commands.find(command) };
+
+			return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
+		}
 
 		static Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 

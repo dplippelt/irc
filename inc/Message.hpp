@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Message.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/06 09:29:24 by tmitsuya      #+#    #+#                 */
-/*   Updated: 2025/11/24 12:17:24 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Message.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/06 09:29:24 by tmitsuya          #+#    #+#             */
+/*   Updated: 2025/11/25 12:12:58 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,11 @@ class Message
 
 private:
 
-	std::string				m_command{};
-	std::list<std::string>	m_params{};
-	int						m_nparams{};
-	int						m_need_nparams{};
-	int						m_cmd_type{};
+	std::string					m_command{};
+	std::vector<std::string>	m_params{};
+	int							m_nparams{};
+	int							m_need_nparams{};
+	int							m_cmd_type{};
 
 	static inline const std::vector<std::string>	k_commands ={
 		"PASS", "NICK", "USER", "JOIN", "PRIVMSG", "KICK", "INVITE",
@@ -77,10 +77,10 @@ public:
 	~Message();
 
 	void	print() const;
-	void	operateCommand(Server &server, User *user) const;
+	// void	operateCommand(Server &server, User *user) const;
 
 	const std::string				&getCommandName() const;
-	const std::list<std::string>	&getParamsList() const;
+	const std::vector<std::string>	&getParamsList() const;
 	const std::string				&getParam(int index) const;
 	const int						&getNumParams() const;
 	const int						&getNeedNumParas() const;
