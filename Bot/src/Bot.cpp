@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 16:18:35 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:02:51 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,14 +222,32 @@ void	Bot::processBuffer( const std::string& buffer )
 		if (message.length() == e_start)
 			startGame(username, channel);
 		else
-			sendResponse(username, channel, "To start a game please type only '!start'");
+			sendResponse(username, channel, "To start playing please type only '!start'");
 		break;
 	case CMD_FIRE:
-		target = message.substr(message.find_last_of(" ") + 1);
+		target = message.substr(message.find_first_of(" ") + 1);
 		if (message.length() == e_fire)
 			fireShot(username, channel, target);
 		else
 			sendResponse(username, channel, "This is not a valid battleships target: '" + capitalize(target) + "'");
+		break;
+	case CMD_BOARD:
+		if (message.length() == e_board)
+			showBoard(username, channel);
+		else
+			sendResponse(username, channel, "To see the current game's grid please type only '!board'");
+		break;
+	case CMD_SOLUTION:
+		if (message.length() == e_solution)
+			showSolution(username, channel);
+		else
+			sendResponse(username, channel, "To see the current game's solution please type only '!solution'");
+		break;
+	case CMD_NEWGAME:
+		if (message.length() == e_newgame)
+			newGame(username, channel);
+		else
+			sendResponse(username, channel, "To start a fresh game please type only '!newgame'");
 		break;
 	default:
 		break;
@@ -257,17 +275,17 @@ void	Bot::startGame( const std::string& username, const std::string& channel )
 			m_games.insert({username, game});
 		}
 		else
-			game = it->second;
+		{
+			sendResponse(username, channel, "You already have a Battleships game running!");
+			sendResponse(username, channel, "Type '!board' to see your current game board or '!newgame' to start a fresh game.");
+			return;
+		}
 	}
 	catch ( const std::exception& e )
 	{
 		sendResponse(username, channel, e.what());
 		return;
 	}
-
-	#ifdef DEBUG
-	sendGrid(username, channel, "CHEAT GRID for " + username + "'s game", game->getGridObject());
-	#endif
 
 	sendGrid(username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
 }
@@ -277,7 +295,7 @@ void	Bot::fireShot( const std::string& username, const std::string& channel, con
 	auto it = m_games.find(username);
 	if (it == m_games.end())
 	{
-		sendResponse(username, channel, "You need to start a game before you can fire a shot. You can start a new game by typing '!start'");
+		sendResponse(username, channel, "You need to start a game before you can use this command. You can start a new game by typing '!start'");
 		return;
 	}
 
@@ -285,7 +303,7 @@ void	Bot::fireShot( const std::string& username, const std::string& channel, con
 
 	if (!game->validInput(target))
 	{
-		sendResponse(username, channel, target + " is not a valid target!");
+		sendResponse(username, channel, "This is not a valid battleships target: '" + capitalize(target) + "'");
 		return;
 	}
 
@@ -296,22 +314,79 @@ void	Bot::fireShot( const std::string& username, const std::string& channel, con
 	switch (sr)
 	{
 	case ShotResult::MISS:
-		sendFeedback(username, channel, "Your shot at " + capitalize(target) + " missed!");
+		sendResponse(username, channel, "Your shot at " + capitalize(target) + " missed!");
 		break;
 	case ShotResult::HIT:
-		sendFeedback(username, channel, "You hit an enemy ship at " + capitalize(target) + "!");
+		sendResponse(username, channel, "You hit an enemy ship at " + capitalize(target) + "!");
 		break;
 	case ShotResult::SUNK:
-		sendFeedback(username, channel, "You sunk an enemy ship! Congrats, keep going!");
+		sendResponse(username, channel, "You sunk an enemy ship! Congrats, keep going!");
 		break;
 	case ShotResult::WON:
-		sendFeedback(username, channel, "Well done, you sunk all of the enemy's ships!");
+		sendResponse(username, channel, "Well done, you sunk all of the enemy's ships!");
 		m_games.erase(username);
-		sendFeedback(username, channel, "To play again just type !start in the Battleships channel or as a private message to BattleShipsBot.");
+		sendResponse(username, channel, "To play again just type !start in the Battleships channel or as a private message to BattleShipsBot.");
 		break;
 	default:
 		break;
 	}
+}
+
+void	Bot::showBoard( const std::string& username, const std::string& channel ) const
+{
+	auto it = m_games.find(username);
+	if (it == m_games.end())
+	{
+		sendResponse(username, channel, "You need to start a game before you can use this command. You can start a new game by typing '!start'");
+		return;
+	}
+
+	Game* game { it->second };
+
+	sendGrid(username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
+}
+
+void	Bot::showSolution( const std::string& username, const std::string& channel ) const
+{
+	auto it = m_games.find(username);
+	if (it == m_games.end())
+	{
+		sendResponse(username, channel, "You need to start a game before you can use this command. You can start a new game by typing '!start'");
+		return;
+	}
+
+	Game* game { it->second };
+
+	sendGrid(username, channel, "Battleships game solution for " + username + "'s game", game->getGridObject());
+}
+
+void	Bot::newGame( const std::string& username, const std::string& channel )
+{
+	Game*	game;
+
+	try
+	{
+		auto it = m_games.find(username);
+
+		if ( it == m_games.end() )
+		{
+			game = new Game {};
+			m_games.insert({username, game});
+		}
+		else
+		{
+			m_games.erase(username);
+			game = new Game {};
+			m_games.insert({username, game});
+		}
+	}
+	catch ( const std::exception& e )
+	{
+		sendResponse(username, channel, e.what());
+		return;
+	}
+
+	sendGrid(username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
 }
 
 
@@ -331,12 +406,7 @@ void	Bot::sendGrid( const std::string& username, const std::string& channel, con
 	sendResponse(username, channel, "");
 	while ( std::getline(iss, line) )
 		sendResponse(username, channel, line);
-}
-
-void	Bot::sendFeedback( const std::string& username, const std::string& channel, const std::string& msg ) const
-{
 	sendResponse(username, channel, "");
-	sendResponse(username, channel, msg);
 }
 
 void	Bot::sendResponse( const std::string& username, const std::string& channel, const std::string& msg ) const
