@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 18:31:13 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 13:34:37 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,19 @@ class Bot
 		void	doPoll();
 
 	private:
+		enum CommandLengths
+		{
+			e_start = 6,
+			e_fire = 8,
+		};
+
 		std::string			m_pw {};
 		struct addrinfo*	m_server_addr {};
 		int					m_bot_socket_fd {};
 		struct pollfd		m_pollfd {};
 
 		std::map<std::string, Game*>	m_games {};
+		std::string 					m_prefix {};
 
 		void	validatePort( const std::string& port ) const;
 		void	validateAddress( const std::string& address) const;
@@ -51,10 +58,14 @@ class Bot
 		void	receiveMessage();
 		void	processBuffer( const std::string& buffer );
 
+		void	startGame( const std::string& username, const std::string& channel );
+
+		void	sendResponse( const std::string& username, const std::string& channel, const std::string& msg );
+
 		std::string	getUserName( const std::string& buffer ) const;
 		std::string getMessage( const std::string& buffer ) const;
 		std::string getChannelName( const std::string& buffer ) const;
 
-		void	startGame( const std::string& username, const std::string& channel );
+		std::string&	rtrim( std::string& s ) const;
 
 };

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 18:43:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 13:34:33 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,12 @@ void	Bot::receiveMessage()
 	processBuffer(buffer);
 }
 
+
+
+
+
+/* ==================== Message Processing ==================== */
+
 void	Bot::processBuffer( const std::string& buffer )
 {
 	std::string username { getUserName(buffer) };
@@ -204,13 +210,89 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::cout << "Sender: " << username << std::endl;
 	std::cout << "Channel: " << channel << std::endl;
 	std::cout << "Message: " << message << std::endl;
+	std::cout << "Message length: " << rtrim(message).length() << std::endl;
 	#endif
 
-	if (message.substr(0, 6) == "!start")
+	if (rtrim(message).length() == e_start && message.substr(0, e_start) == "!start")
 		startGame(username, channel);
-	// if (message.substr(0, 5) == "!fire")
+	// if (message.substr(0, e) == "!fire")
 	// 	fireShot(username)
 }
+
+
+
+
+
+
+/* ===================== Bot Commands ===================== */
+
+void	Bot::startGame( const std::string& username, const std::string& channel )
+{
+	std::string response {};
+	Game*		game;
+
+	if (channel.length())
+		m_prefix = "PRIVMSG " +  channel + " :";
+	else
+		m_prefix = "PRIVMSG " +  username + " :";
+
+	try
+	{
+		auto it = m_games.find(username);
+
+		if ( it == m_games.end() )
+		{
+			game = new Game {};
+			m_games.insert({username, game});
+		}
+		else
+			game = it->second;
+	}
+	catch ( const std::exception& e )
+	{
+		sendResponse(username, channel, e.what());
+		// response = m_prefix + e.what() + "\r\n";
+		// send(m_bot_socket_fd, response.data(), response.length(), 0);
+		return;
+	}
+
+	std::string 		gridMsg { game->getGridObject().getGridMsg() };
+	std::istringstream	iss { gridMsg };
+	std::string			line {};
+
+	while ( std::getline(iss, line) )
+	{
+		sendResponse(username, channel, line);
+		// response = m_prefix + line + "\r\n";
+		// send(m_bot_socket_fd, response.data(), response.length(), 0);
+	}
+}
+
+
+
+
+/* ===================== Bot Response ===================== */
+
+void	Bot::sendResponse( const std::string& username, const std::string& channel, const std::string& msg )
+{
+	std::string	prefix {};
+	std::string	response {};
+
+	if (channel.length())
+		prefix = "PRIVMSG " +  channel + " :";
+	else
+		prefix = "PRIVMSG " +  username + " :";
+
+	response = prefix + msg + "\r\n";
+
+	send(m_bot_socket_fd, response.data(), response.length(), 0);
+}
+
+
+
+
+
+/* ===================== Parsing ===================== */
 
 std::string	Bot::getUserName( const std::string& buffer ) const
 {
@@ -235,43 +317,20 @@ std::string Bot::getChannelName( const std::string& buffer ) const
 	return ( buffer.substr(start_idx, start_idx + end_idx - start_idx + 1) );
 }
 
-void	Bot::startGame( const std::string& username, const std::string& channel )
+
+
+
+
+/* ===================== Utility ===================== */
+
+std::string&	Bot::rtrim( std::string& s ) const
 {
-	std::string response {};
-	std::string prefix {};
-	Game*		game;
+	std::size_t end_idx { s.find_last_not_of(" \t\n\r") };
 
-	if (channel.length())
-		prefix = "PRIVMSG " +  channel + " :";
+	if (end_idx != std::string::npos)
+		s.erase(end_idx + 1);
 	else
-		prefix = "PRIVMSG " +  username + " :";
+		s.clear();
 
-	try
-	{
-		auto it = m_games.find(username);
-
-		if ( it == m_games.end() )
-		{
-			game = new Game {};
-			m_games.insert({username, game});
-		}
-		else
-			game = it->second;
-	}
-	catch ( const std::exception& e )
-	{
-		response = prefix + e.what() + "\r\n";
-		send(m_bot_socket_fd, response.data(), response.length(), 0);
-		return;
-	}
-
-	std::string 		gridMsg { game->getGridObject().getGridMsg() };
-	std::istringstream	iss { gridMsg };
-	std::string			line {};
-
-	while ( std::getline(iss, line) )
-	{
-		response = prefix + line + "\r\n";
-		send(m_bot_socket_fd, response.data(), response.length(), 0);
-	}
+	return(s);
 }
