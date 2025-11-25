@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/25 12:47:34 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/25 13:41:51 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,26 +45,60 @@ void Commands::executeCommand(User* user, const std::string& command,
 		return;
 	}
 
-	if (command == "PASS")
+	switch ( getCmdType(command) )
+	{
+	case CMD_PASS:
 		handlePASS(user, params, serverPassword);
-	else if (command == "NICK")
+		break;
+	case CMD_NICK:
 		handleNICK(user, params, server);
-	else if (command == "USER")
+		break;
+	case CMD_USER:
 		handleUSER(user, params);
-	else if (command == "JOIN")
+		break;
+	case CMD_JOIN:
 		handleJOIN(user, params, server);
-	else if (command == "PRIVMSG")
+		break;
+	case CMD_PRIVMSG:
 		handlePRIVMSG(user, params, server);
-	else if (command == "KICK")
+		break;
+	case CMD_KICK:
 		handleKICK(user, params, server);
-	else if (command == "PART")
+		break;
+	case CMD_PART:
 		handlePART(user, params, server);
-	else if (command == "TOPIC")
+		break;
+	case CMD_TOPIC:
 		handleTOPIC(user, params, server);
-	else if (command == "INVITE")
+		break;
+	case CMD_INVITE:
 		handleINVITE(user, params, server);
-	else
+		break;
+	default:
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
+		break;
+	}
+
+	// if (command == "PASS")
+	// 	handlePASS(user, params, serverPassword);
+	// else if (command == "NICK")
+	// 	handleNICK(user, params, server);
+	// else if (command == "USER")
+	// 	handleUSER(user, params);
+	// else if (command == "JOIN")
+	// 	handleJOIN(user, params, server);
+	// else if (command == "PRIVMSG")
+	// 	handlePRIVMSG(user, params, server);
+	// else if (command == "KICK")
+	// 	handleKICK(user, params, server);
+	// else if (command == "PART")
+	// 	handlePART(user, params, server);
+	// else if (command == "TOPIC")
+	// 	handleTOPIC(user, params, server);
+	// else if (command == "INVITE")
+	// 	handleINVITE(user, params, server);
+	// else
+	// 	ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 }
 
 // ==================== PASS Command ====================
