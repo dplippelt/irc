@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 15:59:47 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 16:18:35 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,6 +205,7 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::string username { getUserName(buffer) };
 	std::string message { getMessage(buffer) };
 	std::string channel { getChannelName(buffer) };
+	std::string target {};
 
 	#ifdef DEBUG
 	std::cout << "Sender: " << username << std::endl;
@@ -213,10 +214,26 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::cout << "Message length: " << message.length() << std::endl;
 	#endif
 
-	if ( message.substr(0, e_start) == "!start" && message.length() == e_start )
-		startGame(username, channel);
-	else if ( message.substr(0, e_fire - 3) == "!fire" && message.length() == e_fire )
-		fireShot(username, channel, message.substr(message.find_last_of(" ") + 1));
+	std::string cmd { message.substr(0, message.find_first_of(" ")) };
+
+	switch ( getCmdType(cmd) )
+	{
+	case CMD_START:
+		if (message.length() == e_start)
+			startGame(username, channel);
+		else
+			sendResponse(username, channel, "To start a game please type only '!start'");
+		break;
+	case CMD_FIRE:
+		target = message.substr(message.find_last_of(" ") + 1);
+		if (message.length() == e_fire)
+			fireShot(username, channel, target);
+		else
+			sendResponse(username, channel, "This is not a valid battleships target: '" + capitalize(target) + "'");
+		break;
+	default:
+		break;
+	}
 }
 
 

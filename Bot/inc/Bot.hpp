@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 15:54:16 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 16:15:58 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ class Bot
 		void	doPoll();
 
 	private:
-
 		enum CommandLengths
 		{
 			e_start = 6,
@@ -55,7 +54,7 @@ class Bot
 		static inline const std::map<std::string, CommandType> k_commands
 		{
 			{"!start", CMD_START},
-			{"!fire", CMD_START}
+			{"!fire", CMD_FIRE}
 		};
 
 		std::string			m_pw {};
