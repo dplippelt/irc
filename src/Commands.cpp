@@ -3,10 +3,10 @@
 /*                                                        ::::::::            */
 /*   Commands.cpp                                       :+:    :+:            */
 /*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:42:23 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/25 12:47:34 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,8 +234,8 @@ void Commands::handlePRIVMSG(User* user, const std::list<std::string>& params, S
 	if (!message.empty() && message[0] == ':')
 		message = message.substr(1);
 
-	for (; it != params.end(); ++it)
-		message += " " + *it;
+	// for (; it != params.end(); ++it)  //DOMINIQUE: I removed this because it duplicated messages by the bot. I think this was a leftover from when we were not using Takato's parser class?
+	// 	message += " " + *it;
 
 	if (target[0] == '#' || target[0] == '&')
 	{
