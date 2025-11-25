@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 15:25:57 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/25 16:57:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,24 +69,6 @@ void	Grid::updateGrid(int x, int y, char symbol)
 
 
 /* ====================== Class Behavior ====================== */
-
-// START FOR DEBUG ONLY
-void	Grid::printGrid() const
-{
-	char rowLabel {'A'};
-
-	for ( int y {0}; y < m_size; ++y )
-	{
-		for ( int x {0}; x < m_size; ++x )
-		{
-			std::cout << m_grid[y][x];
-		}
-		std::cout << rowLabel++ << std::endl;
-	}
-	std::cout << "12345678\n" << std::endl;
-}
-// END FOR DEBUG ONLY
-
 
 const std::string Grid::getGridMsg() const
 {
