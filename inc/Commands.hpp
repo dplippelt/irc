@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/25 12:11:11 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.hpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/25 12:47:29 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 #include <algorithm>
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
 #include <sstream>
 #include <sys/socket.h>
@@ -29,6 +29,7 @@
 #include "ValidationHelper.hpp"
 #include "Validation.hpp"
 #include "Server.hpp"
+#include "IrcNumericCodes.hpp"
 
 class Server;
 class Validation;
@@ -99,15 +100,15 @@ class Commands
 							Server& server,
 							const std::string& serverPassword);
 
-		static void handlePASS(User* user, const std::list<std::string>& params, const std::string& serverPassword);
-		static void handleNICK(User* user, const std::list<std::string>& params, Server& server);
-		static void handleUSER(User* user, const std::list<std::string>& params);
-		static void handleJOIN(User* user, const std::list<std::string>& params, Server& server);
-		static void handlePRIVMSG(User* user, const std::list<std::string>& params, Server& server);
-		static void handleKICK(User* user, const std::list<std::string>& params, Server& server);
-		static void handlePART(User* user, const std::list<std::string>& params, Server& server);
-		static void handleTOPIC(User* user, const std::list<std::string>& params, Server& server);
-		static void handleINVITE(User* user, const std::list<std::string>& params, Server& server);
+		static void handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword);
+		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleUSER(User* user, const std::vector<std::string>& params);
+		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server);
+		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server);
+		static void handlePART(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
 };
 
 #endif

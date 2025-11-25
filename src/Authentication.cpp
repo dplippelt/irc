@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:17:23 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:33:46 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/24 14:10:02 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,9 +58,9 @@ bool Authentication::isRegistered(User* user)
 void Authentication::sendAuthenticationError(int fd, const std::string& command)
 {
 	if (command == "NICK" || command == "USER")
-		ResponseHandler::sendNumericReply(fd, ResponseHandler::ERR_NOTREGISTERED, ":You must provide a password first (PASS command)");
+		ResponseHandler::sendNumericReply(fd, ERR_NOTREGISTERED, ":You must provide a password first (PASS command)");
 	else
-		ResponseHandler::sendNumericReply(fd, ResponseHandler::ERR_NOTREGISTERED, ":You have not registered");
+		ResponseHandler::sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
 }
 
 // ==================== Password Validation ====================
