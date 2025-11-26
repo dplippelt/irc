@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/26 15:34:18 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/26 15:40:38 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,18 +169,21 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 
 void Commands::handlePING(User* user, const std::vector<std::string>& params)
 {
-	std::string pong_str { "PONG :" };
+	std::string pong_str;
 
 	if (!params.empty())
-		pong_str.append(params[0]).append("\r\n");
+		pong_str = "PONG " + params[0] + "\r\n";
 	else
-		pong_str.append("ft_irc\r\n");
+		pong_str = "PONG :ft_irc\r\n";
 
-	send(user->getFd(), pong_str.data(), pong_str.length(), 0);
+	ssize_t sent = send(user->getFd(), pong_str.c_str(), pong_str.length(), 0);
 
 	#ifdef DEBUG
-	std::cout << "Sent PONG response to client fd " << user->getFd() << std::endl;
-	#endif
+	if (sent < 0)
+		std::cout << "Failed to send PONG to fd " << user->getFd() << std::endl;
+	else
+		std::cout << "Sent PONG response to client fd " << user->getFd() << std::endl;
+    #endif
 }
 
 // ==================== JOIN Command ====================
