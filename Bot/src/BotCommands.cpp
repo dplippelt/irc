@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 12:11:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 12:28:17 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,9 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		break;
 	case CMD_NEWGAME:
 		newGame(username, channel, bot);
+		break;
+	case CMD_HELP:
+		help(username, channel, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "Unknow command: '" + cmd + "'. Please type '!help' for a list of commands");
@@ -187,6 +190,16 @@ void	BotCommands::newGame( const std::string& username, const std::string& chann
 	}
 
 	BotResponseHandler::sendGrid(bot.getSocket(), username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
+}
+
+void BotCommands::help( const std::string& username, const std::string& channel, Bot& bot )
+{
+	for ( const auto& cmd : k_help_content )
+	{
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, cmd.first);
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, cmd.second);
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+	}
 }
 
 
