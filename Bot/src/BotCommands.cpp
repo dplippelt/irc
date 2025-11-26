@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 13:53:06 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 13:57:51 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,7 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 	default:
 		break;
 	}
+	
 	BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
 }
 
