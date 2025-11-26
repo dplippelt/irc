@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 17:56:15 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 12:00:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,35 +22,23 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 	switch ( getCmdType(cmd) )
 	{
 	case CMD_START:
-		if (message.length() == e_start)
-			startGame(username, channel, bot);
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "To start playing please type only '!start'");
+		startGame(username, channel, bot);
 		break;
 	case CMD_FIRE:
 		target = message.substr(message.find_first_of(" ") + 1);
-		if (message.length() == e_fire)
-			fireShot(username, channel, target, bot);
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "This is not a valid battleships target: '" + capitalize(target) + "'");
+		fireShot(username, channel, target, bot);
 		break;
 	case CMD_BOARD:
-		if (message.length() == e_board)
-			showBoard(username, channel, bot);
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "To see the current game's grid please type only '!board'");
+		showBoard(username, channel, bot);
 		break;
 	case CMD_SOLUTION:
-		if (message.length() == e_solution)
-			showSolution(username, channel, bot);
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "To see the current game's solution please type only '!solution'");
+		showSolution(username, channel, bot);
 		break;
 	case CMD_NEWGAME:
-		if (message.length() == e_newgame)
-			newGame(username, channel, bot);
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "To start a fresh game please type only '!newgame'");
+		newGame(username, channel, bot);
+		break;
+	case CMD_UNKNOWN:
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "Unknow command: '" + cmd + "'. Please type '!help' for a list of commands");
 		break;
 	default:
 		break;
@@ -205,7 +193,12 @@ BotCommands::CommandType BotCommands::getCmdType( const std::string& command )
 {
 	auto it { k_commands.find(command) };
 
-	return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
+	if (it != k_commands.end())
+		return it->second;
+	if (command[0] == '!')
+		return CMD_UNKNOWN;
+	return CMD_NOTACMD;
+	// return ( it != k_commands.end() ? it->second : CMD_NOTACMD );
 }
 
 std::string	BotCommands::capitalize( const std::string& target )

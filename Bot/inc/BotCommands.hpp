@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 17:56:52 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:57:37 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,8 @@ class BotCommands
 			CMD_SOLUTION,
 			CMD_BOARD,
 			CMD_NEWGAME,
-			CMD_UNKNOWN
+			CMD_UNKNOWN,
+			CMD_NOTACMD
 		};
 
 		static inline const std::map<std::string, CommandType> k_commands
