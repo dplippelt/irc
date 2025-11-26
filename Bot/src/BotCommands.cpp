@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 12:00:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 12:11:12 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 
 void	BotCommands::executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot )
 {
-	std::string target {};
 	std::string cmd { message.substr(0, message.find_first_of(" ")) };
 
 	switch ( getCmdType(cmd) )
@@ -25,8 +24,7 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		startGame(username, channel, bot);
 		break;
 	case CMD_FIRE:
-		target = message.substr(message.find_first_of(" ") + 1);
-		fireShot(username, channel, target, bot);
+		fireShot(username, channel, message, bot);
 		break;
 	case CMD_BOARD:
 		showBoard(username, channel, bot);
@@ -76,7 +74,7 @@ void	BotCommands::startGame( const std::string& username, const std::string& cha
 	BotResponseHandler::sendGrid(bot.getSocket(), username, channel, "Battleships grid for " + username + "'s game", game->getPlayerGridObject());
 }
 
-void	BotCommands::fireShot( const std::string& username, const std::string& channel, const std::string& target, Bot& bot )
+void	BotCommands::fireShot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
 {
 	const std::map<std::string, Game*>& games { bot.getGames() };
 
@@ -87,11 +85,19 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 		return;
 	}
 
+	std::size_t space_idx = msg.find_first_of(" ");
+	if (space_idx == std::string::npos)
+	{
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "Please specify a target (e.g. '!fire B3')");
+		return;
+	}
+
 	Game* game { it->second };
+	std::string target { msg.substr(space_idx + 1) };
 
 	if (!game->validInput(target))
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "This is not a valid battleships target: '" + capitalize(target) + "'");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "This is not a valid target: '" + capitalize(target) + "'");
 		return;
 	}
 

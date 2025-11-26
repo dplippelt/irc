@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 11:57:37 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 12:06:54 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ class BotCommands
 
 	private:
 		static void	startGame( const std::string& username, const std::string& channel, Bot& bot );
-		static void	fireShot( const std::string& username, const std::string& channel, const std::string& target, Bot& bot );
+		static void	fireShot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
 		static void	showSolution( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	showBoard( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
