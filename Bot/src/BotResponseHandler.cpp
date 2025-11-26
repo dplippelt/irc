@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:49:03 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 15:05:45 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,9 +98,9 @@ void BotResponseHandler::sendHitFeedback( int bot_socket_fd, const std::string& 
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 
-void BotResponseHandler::sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel )
+void BotResponseHandler::sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& sunkName )
 {
-	sendResponse(bot_socket_fd, username, channel, BOLD COLOR PURPLE "You sunk an enemy ship! Congrats, keep going!" RESET);
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR PURPLE "You sunk the enemy's " + sunkName + "! Congrats, keep going!" RESET);
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 

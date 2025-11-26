@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:43:27 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 15:03:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ class BotResponseHandler
 		static void sendInvalidTargetFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& target );
 		static void sendMissFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& target );
 		static void sendHitFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& target );
-		static void sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
+		static void sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& sunkName );
 		static void sendWonFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
 		static void sendHelp( int bot_socket_fd, const std::string& username, const std::string& channel, const std::pair<std::string, std::string>& cmd );
 

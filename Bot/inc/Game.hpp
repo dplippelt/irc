@@ -37,10 +37,11 @@ class Game
 
 		void startGame();
 
-		const Grid&	getGridObject() const;
-		const Grid&	getPlayerGridObject() const;
-		bool	validInput(const std::string& input) const;
-		ShotResult	processShot(const std::string& input);
+		const Grid&			getGridObject() const;
+		const Grid&			getPlayerGridObject() const;
+		const std::string&	getSunkName() const;
+		bool				validInput(const std::string& input) const;
+		ShotResult			processShot(const std::string& input);
 
 	private:
 		typedef struct s_ship
@@ -66,6 +67,7 @@ class Game
 		Grid						m_grid {};
 		Grid						m_player_grid {};
 		std::vector<Battleship> 	m_game_ships {};
+		std::string					m_sunk_name {};
 
 		void	populateGrid();
 		void	enemySunk(std::vector<Battleship>::iterator it);

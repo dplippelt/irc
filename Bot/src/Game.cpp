@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 15:58:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 15:02:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,14 +91,19 @@ ShotResult	Game::processShot(const std::string& input)
 /* ====================== Getters ====================== */
 
 
-const Grid& Game::getGridObject() const
+const Grid&	Game::getGridObject() const
 {
 	return m_grid;
 }
 
-const Grid& Game::getPlayerGridObject() const
+const Grid&	Game::getPlayerGridObject() const
 {
 	return m_player_grid;
+}
+
+const std::string&	Game::getSunkName() const
+{
+	return m_sunk_name;
 }
 
 
@@ -143,6 +148,7 @@ void	Game::enemySunk(std::vector<Battleship>::iterator it)
 		for ( int x { startCoord.second }; x <= endCoord.second; ++x )
 			m_player_grid.updateGrid(x, y, it->m_symbol);
 
+	m_sunk_name = it->m_name;
 	m_nShips--;
 	m_game_ships.erase(it);
 }

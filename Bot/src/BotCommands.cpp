@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:29:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 15:04:50 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 		BotResponseHandler::sendHitFeedback(bot.getSocket(), username, channel, target);
 		break;
 	case ShotResult::SUNK:
-		BotResponseHandler::sendSunkFeedback(bot.getSocket(), username, channel);
+		BotResponseHandler::sendSunkFeedback(bot.getSocket(), username, channel, game->getSunkName());
 		break;
 	case ShotResult::WON:
 		BotResponseHandler::sendWonFeedback(bot.getSocket(), username, channel);
