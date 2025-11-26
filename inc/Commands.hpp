@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/25 12:47:29 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/26 15:51:55 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,14 @@ class Commands
 			CMD_PASS,
 			CMD_NICK,
 			CMD_USER,
+			CMD_PING,
 			CMD_JOIN,
 			CMD_PRIVMSG,
 			CMD_KICK,
 			CMD_PART,
 			CMD_TOPIC,
 			CMD_INVITE,
+			CMD_QUIT,
 			CMD_UNKNOWN
 		};
 
@@ -64,12 +66,14 @@ class Commands
 			{"PASS", CMD_PASS},
 			{"NICK", CMD_NICK},
 			{"USER", CMD_USER},
+			{"PING", CMD_PING},
 			{"JOIN", CMD_JOIN},
 			{"PRIVMSG", CMD_PRIVMSG},
 			{"KICK", CMD_KICK},
 			{"PART", CMD_PART},
 			{"TOPIC", CMD_TOPIC},
-			{"INVITE", CMD_INVITE}
+			{"INVITE", CMD_INVITE},
+			{"QUIT", CMD_QUIT}
 		};
 
 		static CommandType getCmdType( const std::string& command )
@@ -103,12 +107,14 @@ class Commands
 		static void handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword);
 		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleUSER(User* user, const std::vector<std::string>& params);
+		static void handlePING(User* user, const std::vector<std::string>& params);
 		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server);
 		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server);
 		static void handlePART(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server);
 };
 
 #endif

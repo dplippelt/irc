@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 14:19:59 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/26 15:43:43 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 	if ( params.size() < 2 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
-
+		return false;
 	}
 
 	auto it { params.begin() };
@@ -204,6 +204,26 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 		channelName = channelName.substr(1);
 	if ( !targetNick.empty() && targetNick[0] == ':' )
 		targetNick = targetNick.substr(1);
+	return true;
+}
+
+bool	Validation::validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage )
+{
+	(void)user;
+
+	if ( params.empty() )
+	{
+		quitMessage = "Client exited";
+		return true;
+	}
+
+	quitMessage = params[0];
+	if ( !quitMessage.empty() && quitMessage[0] == ':' )
+		quitMessage = quitMessage.substr(1);
+
+	for ( size_t i = 1; i < params.size(); ++i )
+		quitMessage += " " + params[i];
+
 	return true;
 }
 

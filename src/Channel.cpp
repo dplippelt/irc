@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Channel.hpp"
+#include "ResponseHandler.hpp"
 
 Channel::Channel(const std::string& name)
 	: _name(name)
@@ -189,10 +190,7 @@ void Channel::broadcast(const std::string& message, int excludeFd)
 	for (std::map<int, User*>::const_iterator it = _members.begin(); it != _members.end(); ++it)
 	{
 		if (it->first != excludeFd)
-		{
-			(void)message;
-			//placeholder for sending message to user
-		}
+			ResponseHandler::sendResponse(it->first, message);
 	}
 }
 

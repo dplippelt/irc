@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/25 13:41:51 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.cpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/26 15:52:11 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,9 @@ void Commands::executeCommand(User* user, const std::string& command,
 	case CMD_USER:
 		handleUSER(user, params);
 		break;
+	case CMD_PING:
+		handlePING(user, params);
+		break;
 	case CMD_JOIN:
 		handleJOIN(user, params, server);
 		break;
@@ -74,37 +77,18 @@ void Commands::executeCommand(User* user, const std::string& command,
 	case CMD_INVITE:
 		handleINVITE(user, params, server);
 		break;
+	case CMD_QUIT:
+		handleQUIT(user, params, server);
+		break;
 	default:
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 		break;
 	}
-
-	// if (command == "PASS")
-	// 	handlePASS(user, params, serverPassword);
-	// else if (command == "NICK")
-	// 	handleNICK(user, params, server);
-	// else if (command == "USER")
-	// 	handleUSER(user, params);
-	// else if (command == "JOIN")
-	// 	handleJOIN(user, params, server);
-	// else if (command == "PRIVMSG")
-	// 	handlePRIVMSG(user, params, server);
-	// else if (command == "KICK")
-	// 	handleKICK(user, params, server);
-	// else if (command == "PART")
-	// 	handlePART(user, params, server);
-	// else if (command == "TOPIC")
-	// 	handleTOPIC(user, params, server);
-	// else if (command == "INVITE")
-	// 	handleINVITE(user, params, server);
-	// else
-	// 	ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 }
 
 // ==================== PASS Command ====================
 
-void Commands::handlePASS(User* user, const std::vector<std::string>& params,
-						  const std::string& serverPassword)
+void Commands::handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword)
 {
 	if (!Validation::validatePASS(user, params))
 		return;
@@ -182,6 +166,27 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 			  << " set username to '" << username
 			  << "' and realname to '" << realname << "'" << std::endl;
 	#endif
+}
+
+// ==================== PING Command ====================
+
+void Commands::handlePING(User* user, const std::vector<std::string>& params)
+{
+	std::string pong_str;
+
+	if (!params.empty())
+		pong_str = "PONG " + params[0] + "\r\n";
+	else
+		pong_str = "PONG :ft_irc\r\n";
+
+	ssize_t sent = send(user->getFd(), pong_str.c_str(), pong_str.length(), 0);
+
+	#ifdef DEBUG
+	if (sent < 0)
+		std::cout << "Failed to send PONG to fd " << user->getFd() << std::endl;
+	else
+		std::cout << "Sent PONG response to client fd " << user->getFd() << std::endl;
+    #endif
 }
 
 // ==================== JOIN Command ====================
@@ -267,9 +272,6 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 	if (!message.empty() && message[0] == ':')
 		message = message.substr(1);
 
-	// for (; it != params.end(); ++it)  //DOMINIQUE: I removed this because it duplicated messages by the bot. I think this was a leftover from when we were not using Takato's parser class?
-	// 	message += " " + *it;
-
 	if (target[0] == '#' || target[0] == '&')
 	{
 		Channel* channel = Validation::validateCanSendMsg(user, target, server);
@@ -280,8 +282,7 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 		std::string privmsgToChannel = user->getPrefix() + " PRIVMSG " + target + " :" + message;
 
 		const std::map<int, User*>& members = channel->getMembers();
-		for (std::map<int, User*>::const_iterator it = members.begin();
-			 it != members.end(); ++it)
+		for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
 		{
 			if (it->first != user->getFd())
 				ResponseHandler::sendResponse(it->second->getFd(), privmsgToChannel);
@@ -457,8 +458,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 
 		if (currentTopic.empty())
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC,
-											  channelName + " :No topic is set");
+			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
 		}
 		else
 		{
@@ -540,4 +540,56 @@ void Commands::handleINVITE(User* user, const std::vector<std::string>& params, 
 			  << " invited " << targetNick
 			  << " to channel " << channelName << std::endl;
 	#endif
+}
+
+// ==================== QUIT Handler ====================
+
+void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Server& server)
+{
+	std::string quitMessage;
+
+	if (!Validation::validateQUIT(user, params, quitMessage))
+		return;
+
+	std::string quitMsg = user->getPrefix() + " QUIT :Quit: " + quitMessage;
+
+	const std::vector<std::string>& channels = user->getChannels();
+	std::map<std::string, Channel*>& serverChannels = server.getChannels();
+
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		std::map<std::string, Channel*>::iterator it = serverChannels.find(channels[i]);
+		if (it != serverChannels.end())
+		{
+			Channel* channel = it->second;
+
+			const std::map<int, User*>& members = channel->getMembers();
+			for (std::map<int, User*>::const_iterator memIt = members.begin();
+				 memIt != members.end(); ++memIt)
+			{
+				if (memIt->first != user->getFd())
+					ResponseHandler::sendResponse(memIt->first, quitMsg);
+			}
+
+			channel->removeMember(user->getFd());
+
+			if (channel->isEmpty())
+			{
+				serverChannels.erase(it);
+				delete channel;
+
+				#ifdef DEBUG
+				std::cout << "Channel " << channels[i] << " deleted as it became empty." << std::endl;
+				#endif
+			}
+		}
+	}
+
+	ResponseHandler::sendResponse(user->getFd(), "ERROR :Closing connection");
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname() << " quit: " << quitMessage << std::endl;
+	#endif
+
+	close(user->getFd());
 }

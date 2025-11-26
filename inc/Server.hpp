@@ -74,8 +74,6 @@ class Server
 		void		removeClient( int client_fd );
 		void		processBuffer( const std::string& buffer, int client_fd );
 		// bool		userIsAuthenticated( int client_fd );
-
-		void		pong( std::vector<std::string>& cmd_params, int client_fd );
 };
 
 enum Command
