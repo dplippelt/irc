@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 13:11:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 13:29:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,8 +95,9 @@ const std::string Grid::getGridMsg() const
 		rowLabel++;
 	}
 	msg += "\x02\x03" "08";
-	msg += "12345678\n";
+	msg += "12345678";
 	msg += "\x02\x03";
+	msg += "\n";
 
 	return msg;
 }
