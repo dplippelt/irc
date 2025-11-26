@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 17:59:36 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:36:49 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class Bot
 	public:
 		~Bot();
 		Bot() = delete;
-		Bot( const std::string& server_address, const std::string& server_port, std::string_view pw );
+		Bot( const std::string& server_port, std::string_view pw );
 		Bot( const Bot& ) = delete;
 		Bot& operator=( const Bot& ) = delete;
 
@@ -53,7 +53,6 @@ class Bot
 		std::string 					m_prefix {};
 
 		void	validatePort( const std::string& port ) const;
-		void	validateAddress( const std::string& address) const;
 		void	authenticateAndJoin() const;
 		void	receiveMessage();
 		void	processBuffer( const std::string& buffer );

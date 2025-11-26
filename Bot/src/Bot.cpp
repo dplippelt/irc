@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 18:00:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:36:15 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,14 @@ Bot::~Bot()
 		delete game.second;
 }
 
-Bot::Bot( const std::string& server_address, const std::string& server_port, std::string_view pw )
+Bot::Bot( const std::string& server_port, std::string_view pw )
 	: m_pw { pw }
 {
 	struct addrinfo	hints { 0, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
 	validatePort(server_port);
-	validateAddress(server_address);
 
-	if (getaddrinfo(server_address.data(), server_port.data(), &hints, &m_server_addr))
+	if (getaddrinfo("localhost", server_port.data(), &hints, &m_server_addr))
 		throw std::runtime_error("Error: failed to get required address info");
 	if ( m_server_addr->ai_next != NULL )
 		std::cerr << "Warning: found more than one matching set of address info";
@@ -82,40 +81,6 @@ void	Bot::validatePort( const std::string& port ) const
 
 	if ( port_int < 1 || port_int > 65535 )
 		throw std::runtime_error("Error: port '" + port + "' must be between 1 and 65535");
-}
-
-void	Bot::validateAddress( const std::string& address ) const
-{
-	if (address == "localhost")
-		return;
-
-	int					noctect {};
-	int					octet_num {};
-	std::string			octet_str {};
-	std::istringstream	iss { address };
-
-	while ( std::getline(iss, octet_str, '.') )
-	{
-		try
-		{
-			octet_num = std::stoi(octet_str);
-		}
-		catch ( const std::exception& e )
-		{
-			throw std::runtime_error("Error: could not convert address octect '" + octet_str + "' to integer");
-		}
-
-		if ( octet_num < 0 || octet_num > 255 )
-			throw std::runtime_error("Error: octect '" + octet_str + "' must be between 0 and 255");
-
-		noctect++;
-	}
-
-	if ( address.at(address.length() - 1) == '.' )
-		throw std::runtime_error("Error: the server address '" + address + "' cannot end with a '.'");
-
-	if ( noctect != 4 )
-		throw std::runtime_error("Error: the server address '" + address + "' contains an invalid number of octets");
 }
 
 void	Bot::authenticateAndJoin() const
