@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 17:25:29 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 18:13:30 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,13 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
+		void	removeClient( int client_fd );
 
 		std::map<int, User*>&					getUsers();
 		std::map<std::string, Channel*>&		getChannels();
-
 		const std::map<int, User*>&				getUsers() const;
 		const std::map<std::string, Channel*>&	getChannels() const;
-
-		const std::string& getPassword() const { return m_pw; }
+		const std::string& 						getPassword() const { return m_pw; }
 
 	private:
 		static const int									s_listen_backlog { 50 };
@@ -71,7 +70,6 @@ class Server
 		void		validatePort( const std::string& port );
 		void		acceptConn();
 		void		processClientAct( int client_fd );
-		void		removeClient( int client_fd );
 		void		processBuffer( const std::string& buffer, int client_fd );
 };
 
