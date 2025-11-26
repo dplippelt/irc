@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/24 14:19:59 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/26 15:43:43 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 	if ( params.size() < 2 )
 	{
 		ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
-
+		return false;
 	}
 
 	auto it { params.begin() };
