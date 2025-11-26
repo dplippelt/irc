@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 12:23:11 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 17:25:29 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void	Server::acceptConn()
 	User* newUser = new User(client_fd);
 	m_users.insert( { client_fd, newUser } );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
-	m_massagesList.emplace(client_fd, Parser{}); // [Takato]: added
+	m_messagesList.emplace(client_fd, Parser{}); // [Takato]: added
 
 	#ifdef DEBUG
 	std::cout << "Accepted client connection (client fd: " << client_fd << ")" << std::endl;
@@ -219,89 +219,15 @@ Server& Server::operator=( const Server& ) = default;
 
 void	Server::processBuffer( const std::string& buffer, int client_fd )
 {
-	m_massagesList[client_fd].parse(buffer);
+	m_messagesList[client_fd].parse(buffer);
 
-	std::list<Message> &messages { m_massagesList[client_fd].getMessages() };
+	std::list<Message> &messages { m_messagesList[client_fd].getMessages() };
 
 	for ( auto& msg : messages )
 		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this, m_pw);
 
 	messages.clear();
 }
-
-// bool	Server::foundEndOfMessage( std::string_view buffer, std::size_t *start_idx, std::size_t *eom_idx )
-// {
-// 	*eom_idx = buffer.find("\r\n", *start_idx);
-
-// 	if ( *eom_idx != std::string::npos )
-// 	{
-// 		*start_idx = *eom_idx + 2;
-// 		return (true);
-// 	}
-// 	return (false);
-// }
-
-// void	Server::processMsg( std::string_view buffer, std::size_t start_idx, std::size_t end_idx, int client_fd )
-// {
-// 	std::string					msg { buffer.substr(start_idx, end_idx - start_idx) };
-// 	std::string					el {};
-// 	std::istringstream			iss { msg };
-// 	std::vector<std::string>	cmd_params {};
-// 	std::string					command {};
-// 	bool						first_param { true };
-
-// 	#ifdef DEBUG
-// 	std::cout << "Processing message: " << msg << std::endl;
-// 	#endif
-
-// 	std::map<int, User*>::iterator userIt = m_users.find(client_fd);
-// 	if (userIt == m_users.end())
-// 	{
-// 		std::cerr << "Error: User not found for fd " << client_fd << std::endl;
-// 		return;
-// 	}
-// 	User* user = userIt->second;
-
-// 	while ( iss >> el )
-// 	{
-// 		if ( first_param )
-// 		{
-// 			command = el;
-// 			first_param = false;
-// 			continue;
-// 		}
-
-// 		if ( el[0] == ':' )
-// 		{
-// 			std::string rest;
-// 			std::getline(iss, rest);
-// 			el += rest;
-// 			cmd_params.push_back(el);
-// 			break;
-// 		}
-// 		cmd_params.push_back(el);
-// 	}
-
-// 	if (command == "PING")
-// 	{
-// 		pong(cmd_params, client_fd);
-// 		return;
-// 	}
-
-// 	Commands::executeCommand(user, command, cmd_params, *this, m_pw);
-
-// 	std::cout << msg;
-// }
-
-/* ==================== (Mock) Authentication ==================== */
-
-// bool	Server::userIsAuthenticated( int client_fd )
-// {
-// 	std::map<int, User*>::iterator it = m_users.find(client_fd);
-// 	if (it != m_users.end())
-// 		return it->second->isAuthenticated();
-// 	return false;
-// }
 
 /* ==================== Getters ==================== */
 

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 12:21:38 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 17:25:29 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
-#include "Parser.hpp" //[Takato]: added Parser class
+#include "Parser.hpp"
 
 class Channel;
 
@@ -66,14 +66,13 @@ class Server
 		std::map<int, User*>				m_users {};
 		std::map<std::string, Channel*>		m_channels {};
 		std::vector<struct pollfd>			m_pollfds {};
-		std::map<int, Parser>				m_massagesList{};   //[Takato]: added Parser class's map
+		std::map<int, Parser>				m_messagesList{};
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
 		void		processClientAct( int client_fd );
 		void		removeClient( int client_fd );
 		void		processBuffer( const std::string& buffer, int client_fd );
-		// bool		userIsAuthenticated( int client_fd );
 };
 
 enum Command
