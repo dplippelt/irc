@@ -207,6 +207,26 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 	return true;
 }
 
+bool	Validation::validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage )
+{
+	(void)user;
+
+	if ( params.empty() )
+	{
+		quitMessage = "Client exited";
+		return true;
+	}
+
+	quitMessage = params[0];
+	if ( !quitMessage.empty() && quitMessage[0] == ':' )
+		quitMessage = quitMessage.substr(1);
+
+	for ( size_t i = 1; i < params.size(); ++i )
+		quitMessage += " " + params[i];
+
+	return true;
+}
+
 bool	Validation::validateCanJoin( User* user, Channel* channel, std::string& channelKey )
 {
 

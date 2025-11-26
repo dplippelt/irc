@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/26 15:40:38 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/26 15:52:11 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,9 @@ void Commands::executeCommand(User* user, const std::string& command,
 		break;
 	case CMD_INVITE:
 		handleINVITE(user, params, server);
+		break;
+	case CMD_QUIT:
+		handleQUIT(user, params, server);
 		break;
 	default:
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
@@ -279,8 +282,7 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 		std::string privmsgToChannel = user->getPrefix() + " PRIVMSG " + target + " :" + message;
 
 		const std::map<int, User*>& members = channel->getMembers();
-		for (std::map<int, User*>::const_iterator it = members.begin();
-			 it != members.end(); ++it)
+		for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
 		{
 			if (it->first != user->getFd())
 				ResponseHandler::sendResponse(it->second->getFd(), privmsgToChannel);
@@ -538,4 +540,56 @@ void Commands::handleINVITE(User* user, const std::vector<std::string>& params, 
 			  << " invited " << targetNick
 			  << " to channel " << channelName << std::endl;
 	#endif
+}
+
+// ==================== QUIT Handler ====================
+
+void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Server& server)
+{
+	std::string quitMessage;
+
+	if (!Validation::validateQUIT(user, params, quitMessage))
+		return;
+
+	std::string quitMsg = user->getPrefix() + " QUIT :Quit: " + quitMessage;
+
+	const std::vector<std::string>& channels = user->getChannels();
+	std::map<std::string, Channel*>& serverChannels = server.getChannels();
+
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		std::map<std::string, Channel*>::iterator it = serverChannels.find(channels[i]);
+		if (it != serverChannels.end())
+		{
+			Channel* channel = it->second;
+
+			const std::map<int, User*>& members = channel->getMembers();
+			for (std::map<int, User*>::const_iterator memIt = members.begin();
+				 memIt != members.end(); ++memIt)
+			{
+				if (memIt->first != user->getFd())
+					ResponseHandler::sendResponse(memIt->first, quitMsg);
+			}
+
+			channel->removeMember(user->getFd());
+
+			if (channel->isEmpty())
+			{
+				serverChannels.erase(it);
+				delete channel;
+
+				#ifdef DEBUG
+				std::cout << "Channel " << channels[i] << " deleted as it became empty." << std::endl;
+				#endif
+			}
+		}
+	}
+
+	ResponseHandler::sendResponse(user->getFd(), "ERROR :Closing connection");
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname() << " quit: " << quitMessage << std::endl;
+	#endif
+
+	close(user->getFd());
 }
