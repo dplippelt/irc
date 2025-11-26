@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 11:36:15 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:42:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ Bot::Bot( const std::string& server_port, std::string_view pw )
 
 
 
-/* ==================== Initial Server Setup ==================== */
+/* ==================== Initial Bot Setup ==================== */
 
 void	Bot::validatePort( const std::string& port ) const
 {
@@ -179,7 +179,6 @@ void	Bot::processBuffer( const std::string& buffer )
 	#endif
 
 	BotCommands::executeCommand(username, channel, message, *this);
-
 }
 
 
