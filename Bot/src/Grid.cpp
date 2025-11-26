@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 16:57:48 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 13:11:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,24 @@ const std::string Grid::getGridMsg() const
 	{
 		for ( int x {0}; x < m_size; ++x )
 		{
+			if (m_grid[y][x] == k_hit)
+				msg += "\x03" "04,02";
+			else if (m_grid[y][x] == k_miss || m_grid[y][x] == k_empty)
+				msg += "\x03" "15,02";
+			else
+				msg += "\x03" "07,02";
 			msg += m_grid[y][x];
+			msg += "\x03";
 		}
+		msg += "\x02\x03" "08";
 		msg += rowLabel;
+		msg += "\x02\x03";
 		msg += "\n";
 		rowLabel++;
 	}
+	msg += "\x02\x03" "08";
 	msg += "12345678\n";
+	msg += "\x02\x03";
 
 	return msg;
 }
