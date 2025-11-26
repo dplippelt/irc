@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 12:31:43 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 14:29:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,5 @@ class BotCommands
 		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
 		static void help( const std::string& username, const std::string& channel, Bot& bot );
 
-
 		static CommandType	getCmdType( const std::string& command );
-		static std::string	capitalize( const std::string& target );
 };

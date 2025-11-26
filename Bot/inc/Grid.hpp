@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/25 16:58:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 14:43:37 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <random>
 #include "Battleship.hpp"
 #include "enums.hpp"
+#include "macros.hpp"
 
 class Grid
 {

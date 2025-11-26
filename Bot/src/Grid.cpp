@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 13:29:09 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 14:53:00 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,23 +80,23 @@ const std::string Grid::getGridMsg() const
 		for ( int x {0}; x < m_size; ++x )
 		{
 			if (m_grid[y][x] == k_hit)
-				msg += "\x03" "04,02";
+				msg += COLOR RED COLOR_BG BLUE;
 			else if (m_grid[y][x] == k_miss || m_grid[y][x] == k_empty)
-				msg += "\x03" "15,02";
+				msg += COLOR LIGHT_GREY COLOR_BG BLUE;
 			else
-				msg += "\x03" "07,02";
+				msg += COLOR ORANGE COLOR_BG BLUE;
 			msg += m_grid[y][x];
-			msg += "\x03";
+			msg += RESET;
 		}
-		msg += "\x02\x03" "08";
+		msg += BOLD COLOR YELLOW;
 		msg += rowLabel;
-		msg += "\x02\x03";
+		msg += RESET;
 		msg += "\n";
 		rowLabel++;
 	}
-	msg += "\x02\x03" "08";
+	msg += BOLD COLOR YELLOW;
 	msg += "12345678";
-	msg += "\x02\x03";
+	msg += RESET;
 	msg += "\n";
 
 	return msg;
