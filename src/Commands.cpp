@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/25 13:41:51 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.cpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/26 15:34:18 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,9 @@ void Commands::executeCommand(User* user, const std::string& command,
 	case CMD_USER:
 		handleUSER(user, params);
 		break;
+	case CMD_PING:
+		handlePING(user, params);
+		break;
 	case CMD_JOIN:
 		handleJOIN(user, params, server);
 		break;
@@ -78,33 +81,11 @@ void Commands::executeCommand(User* user, const std::string& command,
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 		break;
 	}
-
-	// if (command == "PASS")
-	// 	handlePASS(user, params, serverPassword);
-	// else if (command == "NICK")
-	// 	handleNICK(user, params, server);
-	// else if (command == "USER")
-	// 	handleUSER(user, params);
-	// else if (command == "JOIN")
-	// 	handleJOIN(user, params, server);
-	// else if (command == "PRIVMSG")
-	// 	handlePRIVMSG(user, params, server);
-	// else if (command == "KICK")
-	// 	handleKICK(user, params, server);
-	// else if (command == "PART")
-	// 	handlePART(user, params, server);
-	// else if (command == "TOPIC")
-	// 	handleTOPIC(user, params, server);
-	// else if (command == "INVITE")
-	// 	handleINVITE(user, params, server);
-	// else
-	// 	ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 }
 
 // ==================== PASS Command ====================
 
-void Commands::handlePASS(User* user, const std::vector<std::string>& params,
-						  const std::string& serverPassword)
+void Commands::handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword)
 {
 	if (!Validation::validatePASS(user, params))
 		return;
@@ -181,6 +162,24 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	std::cout << "User fd " << user->getFd()
 			  << " set username to '" << username
 			  << "' and realname to '" << realname << "'" << std::endl;
+	#endif
+}
+
+// ==================== PING Command ====================
+
+void Commands::handlePING(User* user, const std::vector<std::string>& params)
+{
+	std::string pong_str { "PONG :" };
+
+	if (!params.empty())
+		pong_str.append(params[0]).append("\r\n");
+	else
+		pong_str.append("ft_irc\r\n");
+
+	send(user->getFd(), pong_str.data(), pong_str.length(), 0);
+
+	#ifdef DEBUG
+	std::cout << "Sent PONG response to client fd " << user->getFd() << std::endl;
 	#endif
 }
 
@@ -266,9 +265,6 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 
 	if (!message.empty() && message[0] == ':')
 		message = message.substr(1);
-
-	// for (; it != params.end(); ++it)  //DOMINIQUE: I removed this because it duplicated messages by the bot. I think this was a leftover from when we were not using Takato's parser class?
-	// 	message += " " + *it;
 
 	if (target[0] == '#' || target[0] == '&')
 	{
@@ -457,8 +453,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 
 		if (currentTopic.empty())
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC,
-											  channelName + " :No topic is set");
+			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
 		}
 		else
 		{

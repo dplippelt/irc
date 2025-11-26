@@ -50,6 +50,7 @@ class Commands
 			CMD_PASS,
 			CMD_NICK,
 			CMD_USER,
+			CMD_PING,
 			CMD_JOIN,
 			CMD_PRIVMSG,
 			CMD_KICK,
@@ -64,6 +65,7 @@ class Commands
 			{"PASS", CMD_PASS},
 			{"NICK", CMD_NICK},
 			{"USER", CMD_USER},
+			{"PING", CMD_PING},
 			{"JOIN", CMD_JOIN},
 			{"PRIVMSG", CMD_PRIVMSG},
 			{"KICK", CMD_KICK},
@@ -103,6 +105,7 @@ class Commands
 		static void handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword);
 		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleUSER(User* user, const std::vector<std::string>& params);
+		static void handlePING(User* user, const std::vector<std::string>& params);
 		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server);
 		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server);

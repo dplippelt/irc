@@ -303,24 +303,6 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 // 	return false;
 // }
 
-/* ==================== Pong implementation so connection doesn't time out ==================== */
-
-void	Server::pong( std::vector<std::string>& cmd_params, int client_fd )
-{
-	std::string pong_str { "PONG :" };
-
-	if (!cmd_params.empty())
-		pong_str.append(cmd_params[0]).append("\r\n");
-	else
-		pong_str.append("ft_irc\r\n");
-
-	send(client_fd, pong_str.data(), pong_str.length(), 0);
-
-	#ifdef DEBUG
-	std::cout << "Sent PONG response to client fd " << client_fd << std::endl;
-	#endif
-}
-
 /* ==================== Getters ==================== */
 
 const std::map<int, User*>&	Server::getUsers() const
