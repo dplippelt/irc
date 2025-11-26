@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 14:42:49 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 15:02:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,7 @@ Game::~Game() = default;
 
 Game::Game()
 {
-	startGame();
-}
-
-Game::Game( int nShips )
-	: m_nShips { nShips }
-{
-	if ( m_nShips > k_max_ships )
-		throw std::runtime_error("Error: cannot start game with more than " + std::to_string(k_max_ships) + " ships on the grid");
-
-	startGame();
+	populateGrid();
 }
 
 
@@ -36,113 +27,39 @@ Game::Game( int nShips )
 
 /* ====================== Public Interface ====================== */
 
-void	Game::startGame()
+bool	Game::validInput(const std::string& input) const
 {
-	// std::string	input {};
+	if ( input.length() != 2 )
+		return false;
 
-	populateGrid();
-
-	// #ifdef DEBUG
-	// // m_grid.printGrid();
-	// #endif
-
-	// m_player_grid.printGrid();
-
-	// while (true)
-	// {
-	// 	std::cout << "Enter coordinates to shoot at (e.g. B3): ";
-	// 	std::cin >> input;
-	// 	if ( std::cin.eof() )
-	// 		return;
-	// 	if ( std::cin.fail() || !validInput(input) )
-	// 	{
-	// 		std::cin.clear();
-	// 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	// 		continue;
-	// 	}
-
-	// 	processShot(input);
-	// 	m_player_grid.printGrid();
-
-	// 	if (!m_nShips)
-	// 	{
-	// 		std::cout << "Congrats, you sunk all of the enemy's ships!" << std::endl;
-	// 		return;
-	// 	}
-	// }
-}
-
-
-
-
-
-/* ====================== Getters ====================== */
-
-
-const Grid& Game::getGridObject() const
-{
-	return m_grid;
-}
-
-const Grid& Game::getPlayerGridObject() const
-{
-	return m_player_grid;
-}
-
-/* ====================== Class Behavior ====================== */
-
-void	Game::populateGrid()
-{
-	bool	success {};
-
-	for ( int grid_attempt {0}; grid_attempt < k_max_grid_attempts; ++grid_attempt )
-	{
-		success = true;
-
-		for ( int i {0}; i < m_nShips; ++i )
-		{
-			Battleship ship {	k_allShips[i].name,
-								k_allShips[i].type,
-								k_allShips[i].symbol,
-								k_allShips[i].size };
-
-			try
-			{
-				m_grid.addShip(ship);
-				m_game_ships.push_back(ship);
-			}
-			catch ( const std::exception& e )
-			{
-				std::cout << e.what() << std::endl;
-				if (grid_attempt == k_max_grid_attempts - 1)
-					throw std::runtime_error("Error: unable to populate the grid with " + std::to_string(m_nShips) + " ships. Please try again with a larger grid or less ships.");
-
-				std::cout << "Trying again with a new empty grid..." << std::endl;
-				m_grid.clearGrid();
-				m_game_ships.clear();
-				success = false;
-				break;
-			}
-		}
-
-		if ( success )
-			break;
-	}
-}
-
-void	Game::processShot(const std::string& input)
-{
 	int	x { input[1] - '0' - 1 };
 	int	y { std::toupper(input[0]) - 'A' };
 
+	if ( x < 0 )
+		return false;
+	if ( y < 0 )
+		return false;
+	if ( x >= m_grid.getSize() )
+		return false;
+	if ( y >= m_grid.getSize() )
+		return false;
+	if ( m_player_grid.getGrid()[y][x] != m_player_grid.getEmptySymbol() )
+		return false;
+	return true;
+}
+
+ShotResult	Game::processShot(const std::string& input)
+{
+	bool		sunk {};
+	int			x { input[1] - '0' - 1 };
+	int			y { std::toupper(input[0]) - 'A' };
+
 	if ( m_grid.getGrid()[y][x] == m_grid.getEmptySymbol() )
 	{
-		std::cout << "\nYou miss!\n" << std::endl;
 		m_player_grid.updateGrid(x, y, m_player_grid.getMissSymbol());
-		return;
+		return ShotResult::MISS;
 	}
 
-	std::cout << "\nYou hit an enemy ship!\n" << std::endl;
 	m_player_grid.updateGrid(x, y, m_player_grid.getHitSymbol());
 
 	for( auto it { m_game_ships.begin() }; it != m_game_ships.end(); ++it )
@@ -153,10 +70,59 @@ void	Game::processShot(const std::string& input)
 			if (it->m_health == 0)
 			{
 				enemySunk(it);
+				sunk = true;
 				break;
 			}
 			break;
 		}
+	}
+
+	if (!m_nShips)
+		return ShotResult::WON;
+	if (sunk)
+		return ShotResult::SUNK;
+	return ShotResult::HIT;
+}
+
+
+
+
+
+/* ====================== Getters ====================== */
+
+
+const Grid&	Game::getGridObject() const
+{
+	return m_grid;
+}
+
+const Grid&	Game::getPlayerGridObject() const
+{
+	return m_player_grid;
+}
+
+const std::string&	Game::getSunkName() const
+{
+	return m_sunk_name;
+}
+
+
+
+
+
+/* ====================== Class Behavior ====================== */
+
+void	Game::populateGrid()
+{
+	for ( int i {0}; i < m_nShips; ++i )
+	{
+		Battleship ship {	k_allShips[i].name,
+							k_allShips[i].type,
+							k_allShips[i].symbol,
+							k_allShips[i].size };
+
+		m_grid.addShip(ship);
+		m_game_ships.push_back(ship);
 	}
 }
 
@@ -182,28 +148,7 @@ void	Game::enemySunk(std::vector<Battleship>::iterator it)
 		for ( int x { startCoord.second }; x <= endCoord.second; ++x )
 			m_player_grid.updateGrid(x, y, it->m_symbol);
 
-	std::cout << "You sunk the enemy's " + it->m_name + "! Congrats, keep going!\n" << std::endl;
+	m_sunk_name = it->m_name;
 	m_nShips--;
 	m_game_ships.erase(it);
-}
-
-bool	Game::validInput(const std::string& input) const
-{
-	if ( input.length() != 2 )
-		return false;
-
-	int	x { input[1] - '0' - 1 };
-	int	y { std::toupper(input[0]) - 'A' };
-
-	if ( x < 0 )
-		return false;
-	if ( y < 0 )
-		return false;
-	if ( x >= m_grid.getSize() )
-		return false;
-	if ( y >= m_grid.getSize() )
-		return false;
-	if ( m_player_grid.getGrid()[y][x] != m_player_grid.getEmptySymbol() )
-		return false;
-	return true;
 }

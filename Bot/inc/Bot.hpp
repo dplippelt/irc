@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 18:31:13 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:36:49 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,23 @@
 #include <poll.h>
 
 #include "Game.hpp"
+#include "BotCommands.hpp"
 
 class Bot
 {
 	public:
 		~Bot();
 		Bot() = delete;
-		Bot( const std::string& server_address, const std::string& server_port, std::string_view pw );
+		Bot( const std::string& server_port, std::string_view pw );
 		Bot( const Bot& ) = delete;
 		Bot& operator=( const Bot& ) = delete;
 
 		void	doPoll();
+
+		int									getSocket() const;
+		const std::map<std::string, Game*>	getGames() const;
+		void								removeGame( std::string username );
+		void								addGame( std::string username, Game* game );
 
 	private:
 		std::string			m_pw {};
@@ -44,9 +50,9 @@ class Bot
 		struct pollfd		m_pollfd {};
 
 		std::map<std::string, Game*>	m_games {};
+		std::string 					m_prefix {};
 
 		void	validatePort( const std::string& port ) const;
-		void	validateAddress( const std::string& address) const;
 		void	authenticateAndJoin() const;
 		void	receiveMessage();
 		void	processBuffer( const std::string& buffer );
@@ -55,6 +61,5 @@ class Bot
 		std::string getMessage( const std::string& buffer ) const;
 		std::string getChannelName( const std::string& buffer ) const;
 
-		void	startGame( const std::string& username, const std::string& channel );
-
+		std::string&	rtrim( std::string& s ) const;
 };

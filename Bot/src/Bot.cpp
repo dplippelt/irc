@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/20 18:43:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/26 11:42:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,14 @@ Bot::~Bot()
 		delete game.second;
 }
 
-Bot::Bot( const std::string& server_address, const std::string& server_port, std::string_view pw )
+Bot::Bot( const std::string& server_port, std::string_view pw )
 	: m_pw { pw }
 {
 	struct addrinfo	hints { 0, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
 	validatePort(server_port);
-	validateAddress(server_address);
 
-	if (getaddrinfo(server_address.data(), server_port.data(), &hints, &m_server_addr))
+	if (getaddrinfo("localhost", server_port.data(), &hints, &m_server_addr))
 		throw std::runtime_error("Error: failed to get required address info");
 	if ( m_server_addr->ai_next != NULL )
 		std::cerr << "Warning: found more than one matching set of address info";
@@ -59,7 +58,7 @@ Bot::Bot( const std::string& server_address, const std::string& server_port, std
 
 
 
-/* ==================== Initial Server Setup ==================== */
+/* ==================== Initial Bot Setup ==================== */
 
 void	Bot::validatePort( const std::string& port ) const
 {
@@ -82,40 +81,6 @@ void	Bot::validatePort( const std::string& port ) const
 
 	if ( port_int < 1 || port_int > 65535 )
 		throw std::runtime_error("Error: port '" + port + "' must be between 1 and 65535");
-}
-
-void	Bot::validateAddress( const std::string& address ) const
-{
-	if (address == "localhost")
-		return;
-
-	int					noctect {};
-	int					octet_num {};
-	std::string			octet_str {};
-	std::istringstream	iss { address };
-
-	while ( std::getline(iss, octet_str, '.') )
-	{
-		try
-		{
-			octet_num = std::stoi(octet_str);
-		}
-		catch ( const std::exception& e )
-		{
-			throw std::runtime_error("Error: could not convert address octect '" + octet_str + "' to integer");
-		}
-
-		if ( octet_num < 0 || octet_num > 255 )
-			throw std::runtime_error("Error: octect '" + octet_str + "' must be between 0 and 255");
-
-		noctect++;
-	}
-
-	if ( address.at(address.length() - 1) == '.' )
-		throw std::runtime_error("Error: the server address '" + address + "' cannot end with a '.'");
-
-	if ( noctect != 4 )
-		throw std::runtime_error("Error: the server address '" + address + "' contains an invalid number of octets");
 }
 
 void	Bot::authenticateAndJoin() const
@@ -194,6 +159,12 @@ void	Bot::receiveMessage()
 	processBuffer(buffer);
 }
 
+
+
+
+
+/* ==================== Message Processing ==================== */
+
 void	Bot::processBuffer( const std::string& buffer )
 {
 	std::string username { getUserName(buffer) };
@@ -204,13 +175,18 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::cout << "Sender: " << username << std::endl;
 	std::cout << "Channel: " << channel << std::endl;
 	std::cout << "Message: " << message << std::endl;
+	std::cout << "Message length: " << message.length() << std::endl;
 	#endif
 
-	if (message.substr(0, 6) == "!start")
-		startGame(username, channel);
-	// if (message.substr(0, 5) == "!fire")
-	// 	fireShot(username)
+	BotCommands::executeCommand(username, channel, message, *this);
 }
+
+
+
+
+
+
+/* ===================== Parsing ===================== */
 
 std::string	Bot::getUserName( const std::string& buffer ) const
 {
@@ -219,7 +195,9 @@ std::string	Bot::getUserName( const std::string& buffer ) const
 
 std::string Bot::getMessage( const std::string& buffer ) const
 {
-	return ( buffer.substr(buffer.find(" :", 2) + 2) );
+	std::string message { buffer.substr(buffer.find(" :", 2) + 2) };
+
+	return ( rtrim(message) );
 }
 
 std::string Bot::getChannelName( const std::string& buffer ) const
@@ -235,43 +213,46 @@ std::string Bot::getChannelName( const std::string& buffer ) const
 	return ( buffer.substr(start_idx, start_idx + end_idx - start_idx + 1) );
 }
 
-void	Bot::startGame( const std::string& username, const std::string& channel )
+
+
+
+
+/* ===================== Utility ===================== */
+
+std::string&	Bot::rtrim( std::string& s ) const
 {
-	std::string response {};
-	std::string prefix {};
-	Game*		game;
+	std::size_t end_idx { s.find_last_not_of(" \t\n\r") };
 
-	if (channel.length())
-		prefix = "PRIVMSG " +  channel + " :";
+	if (end_idx != std::string::npos)
+		s.erase(end_idx + 1);
 	else
-		prefix = "PRIVMSG " +  username + " :";
+		s.clear();
 
-	try
-	{
-		auto it = m_games.find(username);
+	return s;
+}
 
-		if ( it == m_games.end() )
-		{
-			game = new Game {};
-			m_games.insert({username, game});
-		}
-		else
-			game = it->second;
-	}
-	catch ( const std::exception& e )
-	{
-		response = prefix + e.what() + "\r\n";
-		send(m_bot_socket_fd, response.data(), response.length(), 0);
-		return;
-	}
 
-	std::string 		gridMsg { game->getGridObject().getGridMsg() };
-	std::istringstream	iss { gridMsg };
-	std::string			line {};
 
-	while ( std::getline(iss, line) )
-	{
-		response = prefix + line + "\r\n";
-		send(m_bot_socket_fd, response.data(), response.length(), 0);
-	}
+
+
+/* ===================== Getters and Setters ===================== */
+
+int	Bot::getSocket() const
+{
+	return m_bot_socket_fd;
+}
+
+const std::map<std::string, Game*>	Bot::getGames() const
+{
+	return m_games;
+}
+
+void	Bot::removeGame( std::string username )
+{
+	m_games.erase(username);
+}
+
+void	Bot::addGame( std::string username, Game* game )
+{
+	m_games.insert( {username, game} );
 }
