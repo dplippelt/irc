@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/26 15:52:11 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/26 18:05:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -591,5 +591,7 @@ void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Se
 	std::cout << "User " << user->getNickname() << " quit: " << quitMessage << std::endl;
 	#endif
 
-	close(user->getFd());
+	close(user->getFd());	// Can't do this here like this.
+							// The fd is still part of the list of fd's that gets polled and if it doesn't get removed from that list poll will keep returning an error because it's trying to poll a closed fd
+							// Also unless I'm missing it the client also needs to be removed from the user list.
 }
