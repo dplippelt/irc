@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   IrcNumericCodes.hpp                                :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/24 13:55:19 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/27 11:31:10 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   IrcNumericCodes.hpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/24 13:55:19 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/27 14:53:51 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,6 @@ enum IrcNumericCodes
 	RPL_CREATED = 003,
 	RPL_MYINFO = 004,
 
-	RPL_WHOISUSER = 311,
-	RPL_WHOISSERVER = 312,
-	RPL_ENDOFWHOIS = 318,
-	RPL_WHOISCHANNELS = 319,
 	RPL_CHANNELMODEIS = 324,
 	RPL_NOTOPIC = 331,
 	RPL_TOPIC = 332,
@@ -52,6 +48,7 @@ enum IrcNumericCodes
 	ERR_UNKNOWNMODE = 472,
 	ERR_INVITEONLYCHAN = 473,
 	ERR_BADCHANNELKEY = 475,
+	ERR_NOCHANMODES = 477,
 	ERR_CHANOPRIVSNEEDED = 482,
 };
 

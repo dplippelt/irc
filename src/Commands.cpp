@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/27 11:31:39 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/27 14:56:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,9 @@ void Commands::executeCommand(User* user, const std::string& command,
 		break;
 	case CMD_WHOIS:
 		handleWHOIS(user, params, server);
+		break;
+	case CMD_MODE:
+		handleMODE(user, params, server);
 		break;
 	default:
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
@@ -633,3 +636,280 @@ void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Se
 
 	server.removeClient(user->getFd(), quitMsg);
 }
+
+// [Takato]: added from here
+// Edited by Dominique
+void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Server &server)
+{
+	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
+
+	std::string		channelName {};
+	Channel* 		channel { Validation::validateMODE(user, params, server, channelName) };
+
+	if (!channel)
+		return;
+
+	if (params.size() == 1)
+	{
+		// Dominique:
+		// NOTE: In Irssi, typing just '/mode' triggers client-side "Irssi: not enough parameters" warning, but
+		// Irssi still auto-appends the current channel and sends "MODE #currentchannel".
+		// However, Irssi then rejects/doesn't display the (correctly formatted) server response.
+		// Unless you can find a solution this seems to be an irssi quirk we should just accept.
+		ResponseHandler::sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, user->getNickname(), channelName + " " + channel->getModeString());
+		return;
+	}
+
+	if (!Validation::validateCanChangeModes(user, channel, channelName))
+		return;
+
+	const std::string	&modes{ params[1] };
+	const char 			sign{ modes.front() };
+
+	if (!Validation::validateModes(user, modes))
+		return;
+
+	int	modeSettingIdxOffset {};
+
+	for (int i{ 1 }; i < static_cast<int>(std::min(modes.size(), k_max_mode_num + 1)); ++i)
+	{
+		if (!Validation::validateModeCharacter(user, modes[i], k_mode_set_param + k_mode_set_toggle))
+			return;
+
+		if (k_mode_set_toggle.find(modes[i]) != std::string::npos)
+			modeOperateToggle(modes[i], sign, params, server);
+		else if (k_mode_set_param.find(modes[i]) != std::string::npos)
+		{
+			if (params.size() < MINIMUM_PARAMS_MODE + 1)
+			{
+				ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+				return;
+			}
+			try
+			{
+				modeOperateParam(modes[i], sign, params, server, modeSettingIdxOffset);
+				if (!(sign == '-' && modes[i] == 'l'))
+					modeSettingIdxOffset++;
+			}
+			catch ( IrcNumericCodes error_code )
+			{
+				Validation::handleModeOperationError(user, channelName, error_code);
+				if (!(sign == '-' && modes[i] == 'l'))
+					modeSettingIdxOffset++;
+				continue;
+			}
+		}
+	}
+
+	#ifdef DEBUG
+	server.printModeStates();
+	#endif
+}
+
+void	Commands::modeOperateToggle(char mode, char sign, const std::vector<std::string>& params, Server &server)
+{
+	switch (mode)
+	{
+	case 'i':
+		modeOperateToggleInvite(sign, params, server);
+		break ;
+	case 't':
+		modeOperateToggleTopic(sign, params, server);
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateParam(char mode, char sign, const std::vector<std::string>& params, Server &server, int idxOffset)
+{
+	switch (mode)
+	{
+	case 'k':
+		modeOperateParamKey(sign, params, server, idxOffset);
+		break ;
+	case 'o':
+		modeOperateParamPrivilege(sign, params, server, idxOffset);
+		break;
+	case 'l':
+		modeOperateParamLimit(sign, params, server, idxOffset);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateToggleInvite(char sign, const std::vector<std::string>& params, Server &server)
+{
+	const std::string	&channel_name { params[0] };
+	Channel				*channel { server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setInviteOnly(true);
+		break ;
+	case '-':
+		channel->setInviteOnly(false);
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateToggleTopic(char sign, const std::vector<std::string>& params, Server &server)
+{
+	const std::string	&channel_name { params[0] };
+	Channel				*channel { server.getChannels().at(channel_name)};
+
+	switch (sign)
+	{
+	case '+':
+		channel->setTopicRestricted(true);
+		break;
+	case '-':
+		channel->setTopicRestricted(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateParamKey(char sign, const std::vector<std::string>& params, Server &server, int idxOffset)
+{
+	const std::string	&channel_name { params[0] };
+	const std::string	&param { params[MINIMUM_PARAMS_MODE + idxOffset] };
+	Channel				*channel { server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		if (channel->hasKey())
+			throw ERR_KEYSET;
+		channel->setKey(param);
+		channel->setHasKey(true);
+		break;
+	case '-':
+		channel->setHasKey(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Commands::modeOperateParamPrivilege(char sign, const std::vector<std::string>& params, Server &server, int idxOffset)
+{
+	const std::string	&channel_name { params[0] };
+	const std::string	&param { params[MINIMUM_PARAMS_MODE + idxOffset] };
+	Channel				*channel { server.getChannels().at(channel_name) };
+	User				*user {};
+
+	for (auto it{ server.getUsers().begin() }; it != server.getUsers().end(); ++it)
+	{
+		if (it->second->getNickname() == param)
+		{
+			user = it->second;
+			break ;
+		}
+	}
+	if (!user || !user->isInChannel(channel_name))
+		throw ERR_NOTONCHANNEL;
+	switch (sign)
+	{
+	case '+':
+		channel->addOperator(user->getFd());
+		break ;
+	case '-':
+		channel->removeOperator(user->getFd());
+		break ;
+	default:
+		break ;
+	}
+}
+
+void	Commands::modeOperateParamLimit(char sign, const std::vector<std::string>& params, Server &server, int idxOffset)
+{
+	const std::string	&channel_name { params[0] };
+	const std::string	&param { params[MINIMUM_PARAMS_MODE + idxOffset] };
+	Channel				*channel { server.getChannels().at(channel_name) };
+
+	switch (sign)
+	{
+	case '+':
+		try
+		{
+			channel->setUserLimit(std::stoi(param));
+		}
+		catch(const std::exception& e)
+		{
+			throw ERR_NEEDMOREPARAMS;
+		}
+		channel->setHasUserLimit(true);
+		break ;
+	case '-':
+		channel->setHasUserLimit(false);
+		break ;
+	default:
+		break ;
+	}
+}
+
+/* Channel Namespace
+Channels names are strings (beginning with a '&', '#', '+' or '!'
+   character) of length up to fifty (50) characters.
+   Channel names are case insensitive.
+   Apart from the the requirement that the first character being either
+   '&', '#', '+' or '!' (hereafter called "channel prefix"). The only
+   restriction on a channel name is that it SHALL NOT contain any spaces
+   (' '), a control G (^G or ASCII 7), a comma (',' which is used as a
+   list item separator by the protocol).  Also, a colon (':') is used as
+   a delimiter for the channel mask.
+ */
+
+/* Channel Modes
+Mandatory implementation: i, t, k, o, l
+
+Note that there is a maximum limit of three (3) changes per command for modes that take a parameter.
+	The various modes available for channels are as follows:
+	O - give "channel creator" status;
+	o - give/take channel operator privilege;
+	v - give/take the voice privilege;
+	a - toggle the anonymous channel flag;
+	i - toggle the invite-only channel flag;
+	m - toggle the moderated channel;
+	n - toggle the no messages to channel from clients on the
+	    outside;
+	q - toggle the quiet channel flag;
+	p - toggle the private channel flag;
+	s - toggle the secret channel flag;
+	r - toggle the server reop channel flag;
+	t - toggle the topic settable by channel operator only flag;
+	k - set/remove the channel key (password);
+	l - set/remove the user limit to channel;
+	b - set/remove ban mask to keep users out;
+	e - set/remove an exception mask to override a ban mask;
+	I - set/remove an invitation mask to automatically override
+	    the invite-only flag;
+	https://datatracker.ietf.org/doc/html/rfc2811
+
+	Channel modes can be manipulated by the channel members.
+	The modes affect the way servers manage the channels.
+	Channels with '+' as prefix do not support channel modes.
+	This means that all the modes are unset, with the exception of the 't' channel flag which is set.
+
+	In order for the channel members to keep some control over a channel,
+    and some kind of sanity, some channel members are privileged.  Only
+	these members are allowed to perform the following actions on the channel:
+        INVITE  - Invite a client to an invite-only channel (mode +i)
+        KICK    - Eject a client from the channel
+        MODE    - Change the channel's mode, as well as
+                  members' privileges
+        PRIVMSG - Sending messages to the channel (mode +n, +m, +v)
+        TOPIC   - Change the channel topic in a mode +t channel
+
+	Since channels starting with the character '+' as prefix do not
+    support channel modes, no member can therefore have the status of channel operator.
+
+ */
+
+// [Takato]: added to here
