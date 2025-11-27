@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/27 14:56:47 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/27 15:41:32 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -680,7 +680,7 @@ void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Se
 			modeOperateToggle(modes[i], sign, params, server);
 		else if (k_mode_set_param.find(modes[i]) != std::string::npos)
 		{
-			if (params.size() < MINIMUM_PARAMS_MODE + 1)
+			if (params.size() < MINIMUM_PARAMS_MODE + 1 + modeSettingIdxOffset)
 			{
 				ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
 				return;
