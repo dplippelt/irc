@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/26 18:16:20 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.cpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/27 11:31:39 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,9 @@ void Commands::executeCommand(User* user, const std::string& command,
 		break;
 	case CMD_QUIT:
 		handleQUIT(user, params, server);
+		break;
+	case CMD_WHOIS:
+		handleWHOIS(user, params, server);
 		break;
 	default:
 		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
@@ -542,6 +545,75 @@ void Commands::handleINVITE(User* user, const std::vector<std::string>& params, 
 	#endif
 }
 
+// ==================== WHOIS Handler ====================
+
+void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, Server& server)
+{
+	std::string targetNick;
+
+	if (!Validation::validateWHOIS(user, params, targetNick))
+		return;
+
+	User* targetUser = nullptr;
+	const std::map<int, User*>& users = server.getUsers();
+	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+	{
+		if (it->second->getNickname() == targetNick)
+		{
+			targetUser = it->second;
+			break;
+		}
+	}
+
+	if (targetUser == nullptr)
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		return;
+	}
+
+	std::ostringstream whoisUserMsg;
+	whoisUserMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISUSER
+				 << " " << user->getNickname() << " "
+				 << targetUser->getNickname() << " "
+				 << targetUser->getUsername() << " "
+				 << targetUser->getHostname() << " * :"
+				 << targetUser->getRealname();
+	ResponseHandler::sendResponse(user->getFd(), whoisUserMsg.str());
+
+	const std::vector<std::string>& channels = targetUser->getChannels();
+	if (!channels.empty())
+	{
+		std::ostringstream whoisChannelsMsg;
+		whoisChannelsMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISCHANNELS
+						 << " " << user->getNickname() << " "
+						 << targetUser->getNickname() << " :";
+
+		for (size_t i = 0; i < channels.size(); ++i)
+		{
+			if (i > 0)
+				whoisChannelsMsg << " ";
+			whoisChannelsMsg << channels[i];
+		}
+		ResponseHandler::sendResponse(user->getFd(), whoisChannelsMsg.str());
+	}
+
+	std::ostringstream whoisServerMsg;
+	whoisServerMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISSERVER
+				   << " " << user->getNickname() << " "
+				   << targetUser->getNickname() << " ft_irc :ft_irc server";
+	ResponseHandler::sendResponse(user->getFd(), whoisServerMsg.str());
+
+	std::ostringstream endOfWhoisMsg;
+	endOfWhoisMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFWHOIS
+				  << " " << user->getNickname() << " "
+				  << targetUser->getNickname() << " :End of /WHOIS list";
+	ResponseHandler::sendResponse(user->getFd(), endOfWhoisMsg.str());
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname() << " requested WHOIS for " << targetNick << std::endl;
+	#endif
+}
+
 // ==================== QUIT Handler ====================
 
 void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Server& server)
@@ -553,49 +625,11 @@ void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Se
 
 	std::string quitMsg = user->getPrefix() + " QUIT :Quit: " + quitMessage;
 
-	const std::vector<std::string>& channels = user->getChannels();
-	std::map<std::string, Channel*>& serverChannels = server.getChannels();
-
-	for (size_t i = 0; i < channels.size(); ++i)
-	{
-		std::map<std::string, Channel*>::iterator it = serverChannels.find(channels[i]);
-		if (it != serverChannels.end())
-		{
-			Channel* channel = it->second;
-
-			const std::map<int, User*>& members = channel->getMembers();
-			for (std::map<int, User*>::const_iterator memIt = members.begin();
-				 memIt != members.end(); ++memIt)
-			{
-				if (memIt->first != user->getFd())
-					ResponseHandler::sendResponse(memIt->first, quitMsg);
-			}
-
-			channel->removeMember(user->getFd());
-
-			if (channel->isEmpty())
-			{
-				serverChannels.erase(it);
-				delete channel;
-
-				#ifdef DEBUG
-				std::cout << "Channel " << channels[i] << " deleted as it became empty." << std::endl;
-				#endif
-			}
-		}
-	}
-
 	ResponseHandler::sendResponse(user->getFd(), "ERROR :Closing connection");
 
 	#ifdef DEBUG
 	std::cout << "User " << user->getNickname() << " quit: " << quitMessage << std::endl;
 	#endif
 
-	// close(user->getFd());	// You can't do this here like this.
-	// 						// The fd is still part of the list of fd's that gets polled and if it doesn't get removed from that list poll() will keep returning an error because it's trying to poll a closed fd
-	// 						// Also unless I'm missing it the client also needs to be removed from the user list.
-	// 						// So instead I made the removeClient() method of the Server class public and call that one here.
-	// 						// It takes care of removing the user from the user list, removing the FD from the polling list, and closes the fd
-
-	server.removeClient(user->getFd());
+	server.removeClient(user->getFd(), quitMsg);
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/26 17:23:54 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.hpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
+/*   Updated: 2025/11/27 11:31:20 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Commands
 			CMD_TOPIC,
 			CMD_INVITE,
 			CMD_QUIT,
+			CMD_WHOIS,
 			CMD_UNKNOWN
 		};
 
@@ -71,7 +72,8 @@ class Commands
 			{"PART", CMD_PART},
 			{"TOPIC", CMD_TOPIC},
 			{"INVITE", CMD_INVITE},
-			{"QUIT", CMD_QUIT}
+			{"QUIT", CMD_QUIT},
+			{"WHOIS", CMD_WHOIS}
 		};
 
 		static CommandType getCmdType( const std::string& command )
@@ -113,6 +115,7 @@ class Commands
 		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server);
+		static void handleWHOIS(User* user, const std::vector<std::string>& params, Server& server);
 };
 
 #endif

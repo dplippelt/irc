@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Parser.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/29 15:15:41 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/25 12:15:44 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Parser.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/29 15:15:41 by tmitsuya      #+#    #+#                 */
+/*   Updated: 2025/11/27 11:31:47 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ Parser	&Parser::parse(const std::string &input)
 			m_buffer = message;
 			return *this;
 		}
-		message.pop_back();
+		if (!message.empty() && message.back() == '\r')
+			message.pop_back();
 		m_messages.emplace_back(Message{message});
 	}
 	m_buffer.clear();

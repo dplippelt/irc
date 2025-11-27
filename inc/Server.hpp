@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 18:13:30 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/27 09:31:29 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ class Server
 		Server& operator=( const Server& );
 
 		void	doPoll();
-		void	removeClient( int client_fd );
+		void	removeClient( int client_fd, const std::string& quitMessage = "" );
 
 		std::map<int, User*>&					getUsers();
 		std::map<std::string, Channel*>&		getChannels();

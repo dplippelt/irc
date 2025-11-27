@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/26 15:43:43 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/27 11:31:52 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,21 @@ bool	Validation::validateQUIT( User* user, const std::vector<std::string>& param
 
 	for ( size_t i = 1; i < params.size(); ++i )
 		quitMessage += " " + params[i];
+
+	return true;
+}
+
+bool	Validation::validateWHOIS( User* user, const std::vector<std::string>& params, std::string& targetNick )
+{
+	if ( params.empty() )
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, ":No nickname given");
+		return false;
+	}
+
+	targetNick = params[0];
+	if ( !targetNick.empty() && targetNick[0] == ':' )
+		targetNick = targetNick.substr(1);
 
 	return true;
 }

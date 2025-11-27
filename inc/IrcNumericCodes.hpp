@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/24 13:55:19 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:07:42 by spyun         ########   odam.nl         */
+/*   Updated: 2025/11/27 11:31:10 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,11 @@ enum IrcNumericCodes
 	RPL_YOURHOST = 002,
 	RPL_CREATED = 003,
 	RPL_MYINFO = 004,
-	
+
+	RPL_WHOISUSER = 311,
+	RPL_WHOISSERVER = 312,
+	RPL_ENDOFWHOIS = 318,
+	RPL_WHOISCHANNELS = 319,
 	RPL_CHANNELMODEIS = 324,
 	RPL_NOTOPIC = 331,
 	RPL_TOPIC = 332,
