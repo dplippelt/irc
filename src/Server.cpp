@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 17:25:29 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/11/27 11:31:59 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "ResponseHandler.hpp"
 
 /* ==================== Constructors & Destructors ==================== */
 
@@ -143,7 +144,11 @@ void	Server::doPoll()
 				throw std::runtime_error("Error: error on listening socket");
 			else
 			{
-				removeClient(m_pollfds[i].fd);
+				std::map<int, User*>::iterator userIt = m_users.find(m_pollfds[i].fd);
+				std::string quitMsg;
+				if (userIt != m_users.end())
+					quitMsg = userIt->second->getPrefix() + " QUIT :Connection reset by peer";
+				removeClient(m_pollfds[i].fd, quitMsg);
 				continue;
 			}
 		}
@@ -158,18 +163,51 @@ void	Server::doPoll()
 	}
 }
 
-void	Server::removeClient( int client_fd )
+void	Server::removeClient( int client_fd, const std::string& quitMessage )
 {
 	#ifdef DEBUG
 	std::cout << "Client disconnected (client fd: " << client_fd << ")" << std::endl;
 	#endif
 
 	std::map<int, User*>::iterator it = m_users.find(client_fd);
-	if ( it != m_users.end() )
+	if ( it == m_users.end() )
+		return;
+
+	User* user = it->second;
+
+	const std::vector<std::string>& channels = user->getChannels();
+	for (size_t i = 0; i < channels.size(); ++i)
 	{
-		delete it->second;
-		m_users.erase(it);
+		std::map<std::string, Channel*>::iterator chanIt = m_channels.find(channels[i]);
+		if (chanIt != m_channels.end())
+		{
+			Channel* channel = chanIt->second;
+			if (!quitMessage.empty())
+			{
+				const std::map<int, User*>& members = channel->getMembers();
+				for (std::map<int, User*>::const_iterator memIt = members.begin(); memIt != members.end(); ++memIt)
+				{
+					if (memIt->first != client_fd)
+						ResponseHandler::sendResponse(memIt->first, quitMessage);
+				}
+			}
+
+			channel->removeMember(client_fd);
+
+			if (channel->isEmpty())
+			{
+				m_channels.erase(chanIt);
+				delete channel;
+
+				#ifdef DEBUG
+				std::cout << "Channel " << channels[i] << " deleted as it became empty." << std::endl;
+				#endif
+			}
+		}
 	}
+
+	delete user;
+	m_users.erase(it);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;

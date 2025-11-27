@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:29 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/26 15:52:03 by seungah       ########   odam.nl         */
+/*   Updated: 2025/11/27 11:31:31 by seungah       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Validation
 		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName );
 		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName );
 		static bool			validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage );
+		static bool			validateWHOIS( User* user, const std::vector<std::string>& params, std::string& targetNick );
 
 		static bool			validateCanJoin( User* user, Channel* channel, std::string& channelKey );
 		static Channel*		validateCanSendMsg( User* user, const std::string& target, const Server& server );
