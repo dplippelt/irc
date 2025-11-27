@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/26 17:23:54 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/27 13:36:55 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Commands
 			CMD_TOPIC,
 			CMD_INVITE,
 			CMD_QUIT,
+			CMD_MODE,
 			CMD_UNKNOWN
 		};
 
@@ -71,7 +72,8 @@ class Commands
 			{"PART", CMD_PART},
 			{"TOPIC", CMD_TOPIC},
 			{"INVITE", CMD_INVITE},
-			{"QUIT", CMD_QUIT}
+			{"QUIT", CMD_QUIT},
+			{"MODE", CMD_MODE}
 		};
 
 		static CommandType getCmdType( const std::string& command )
@@ -86,15 +88,13 @@ class Commands
 		static inline const size_t		k_max_mode_num{ 3 }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_toggle{ "it" }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_param{ "kol" }; // [Takato]: added for mode operation
-		static void	modeOperateToggle(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggleInvite(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggleTopic(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParam(char mode, char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParamPrivilege(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParamKey(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParamLimit(char sign, const Message &message, Server &server); // [Takato]: added for mode operation
-		static void	channelValidation(const Server &server, User *user, const std::string &channel); // [Takato]: added for mode operation
-		static void	modesValidation(const std::string &modes); // [Takato]: added for mode operation
+		static void	modeOperateToggle(char mode, char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateToggleInvite(char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateToggleTopic(char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
+		static void	modeOperateParam(char mode, char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
+		static void	modeOperateParamPrivilege(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
+		static void	modeOperateParamKey(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
+		static void	modeOperateParamLimit(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
 
 	public:
 		static void executeCommand(User* user, const std::string& command,
@@ -113,6 +113,7 @@ class Commands
 		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
 		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server);
+		static void	handleMODE(User *user, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
 };
 
 #endif

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Validation.hpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:41:29 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/26 15:52:03 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Validation.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/27 14:11:43 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Validation
 		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName );
 		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName );
 		static bool			validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage );
+		static Channel*		validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName );
 
 		static bool			validateCanJoin( User* user, Channel* channel, std::string& channelKey );
 		static Channel*		validateCanSendMsg( User* user, const std::string& target, const Server& server );
@@ -46,6 +47,10 @@ class Validation
 		static Channel*		validateCanChangeTopic( User* user, const std::string& channelName, const Server& server );
 		static Channel*		validateCanInvite( User* user, const std::string& channelName, const Server& server );
 		static User*		validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server );
+		static bool			validateCanChangeModes( User* user, Channel* channel, const std::string& channelName );
+		static bool			validateModes( User *user, const std::string &modes );
+		static bool			validateModeCharacter( User* user, char mode, const std::string& availableModes );
+		static void			handleModeOperationError( User* user, const std::string& channelName, IrcNumericCodes error_code );
 
 	private:
 		Validation() = delete;

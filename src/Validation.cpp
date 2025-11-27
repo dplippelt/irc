@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Validation.cpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/11/26 15:43:43 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Validation.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/11/27 14:14:33 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,6 +227,37 @@ bool	Validation::validateQUIT( User* user, const std::vector<std::string>& param
 	return true;
 }
 
+Channel*	Validation::validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName )
+{
+	if (params.empty())
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "MODE :Not enough parameters");
+		return nullptr;
+	}
+
+	channelName = params[0];
+
+	if (channelName[0] != '#' && channelName[0] != '+')
+		return nullptr; // we do not implement user mode changes, only channel mode changes - so do nothing in this case
+
+	auto it { server.getChannels().find(channelName) };
+	if ( it == server.getChannels().end() )
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), channelName + " :No such channel");
+		return nullptr;
+	}
+
+	Channel* channel { it->second };
+
+	if (channelName[0] == '+')
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOCHANMODES, user->getNickname(), channelName + " :Channel doesn't support modes");
+		return nullptr;
+	}
+
+	return channel;
+}
+
 bool	Validation::validateCanJoin( User* user, Channel* channel, std::string& channelKey )
 {
 
@@ -425,4 +456,69 @@ User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const s
 	}
 
 	return targetUser;
+}
+
+bool	Validation::validateCanChangeModes( User* user, Channel* channel, const std::string& channelName )
+{
+	if (!user->isInChannel(channelName))
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), channelName + " :You're not on that channel");
+		return false;
+	}
+
+	if (!channel->isOperator(user->getFd()))
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, user->getNickname(), channelName + " :You're not channel operator");
+		return false;
+	}
+
+	return true;
+}
+
+bool	Validation::validateModes(User *user, const std::string &modes)
+{
+	// Dominique
+	// NOTE: This might reject "MODE #channel +" which some servers actually allow apparently (and just doesn't do anything)
+	if (modes.size() < 2)
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), modes + " :is unknown mode char to me");
+		return false;
+	}
+
+	if (!(modes.front() == '+' || modes.front() == '-'))
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), std::string(1, modes.front())  + " :is unknown mode char to me");
+		return false;
+	}
+
+	return true;
+}
+
+bool	Validation::validateModeCharacter( User* user, char mode, const std::string& availableModes )
+{
+	if (availableModes.find(mode) == std::string::npos)
+	{
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, std::string(1, mode) + " :is unknown mode char to me");
+		return false;
+	}
+	return true;
+}
+
+void	Validation::handleModeOperationError( User* user, const std::string& channelName, IrcNumericCodes error_code )
+{
+	switch (error_code)
+	{
+	case ERR_KEYSET:
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_KEYSET, channelName + " :Channel key already set");
+		break;
+	case ERR_NOTONCHANNEL:
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		break;
+	case ERR_NEEDMOREPARAMS:
+		ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+		break;
+	default:
+		ResponseHandler::sendError(user->getFd(), "MODE", "Unknown error occurred");
+		break;
+	}
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Channel.cpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 11:37:11 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 10:31:56 by spyun             #+#    #+#             */
+/*   Updated: 2025/11/27 13:24:13 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,4 +212,24 @@ std::string Channel::getMemberList() const
 bool Channel::isEmpty() const
 {
 	return _members.empty();
+}
+
+std::string Channel::getModeString() const
+{
+	std::string mode_string { "+" };
+
+	if (isInviteOnly())
+		mode_string += 'i';
+	if (isTopicRestricted())
+		mode_string += 't';
+	if (hasKey())
+		mode_string += 'k';
+	if (hasUserLimit())
+		mode_string += 'l';
+	if (hasKey())
+		mode_string += " " + getKey();
+	if (hasUserLimit())
+		mode_string += " " + std::to_string(getUserLimit());
+
+	return mode_string;
 }

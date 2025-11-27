@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 18:13:30 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/27 10:49:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,10 @@ class Server
 		const std::map<int, User*>&				getUsers() const;
 		const std::map<std::string, Channel*>&	getChannels() const;
 		const std::string& 						getPassword() const { return m_pw; }
+
+		#ifdef DEBUG
+		void	printModeStates() const;
+		#endif
 
 	private:
 		static const int									s_listen_backlog { 50 };
