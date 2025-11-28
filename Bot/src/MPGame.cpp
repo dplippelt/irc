@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 12:39:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 12:48:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ MPGame::MPGame( const std::string& player_one_name, const std::string& player_tw
 
 /* ====================== Public Interface ====================== */
 
-bool	MPGame::validInput( const std::string& input, const Grid& player_grid ) const
+bool	MPGame::validInput( const std::string& input, int curr_player ) const
 {
 	if ( input.length() != 2 )
 		return false;
@@ -39,15 +39,29 @@ bool	MPGame::validInput( const std::string& input, const Grid& player_grid ) con
 	int	x { input[1] - '0' - 1 };
 	int	y { std::toupper(input[0]) - 'A' };
 
+	const Grid* player_grid {};
+
+	switch (curr_player)
+	{
+	case 1:
+		player_grid = &m_player_one_shots_grid;
+		break;
+	case 2:
+		player_grid = &m_player_two_shots_grid;
+		break;
+	default:
+		throw std::runtime_error("Invalid player number: '" + std::to_string(curr_player) + "'");
+	}
+
 	if ( x < 0 )
 		return false;
 	if ( y < 0 )
 		return false;
-	if ( x >= player_grid.getSize() )
+	if ( x >= player_grid->getSize() )
 		return false;
-	if ( y >= player_grid.getSize() )
+	if ( y >= player_grid->getSize() )
 		return false;
-	if ( player_grid.getGrid()[y][x] != player_grid.getEmptySymbol() )
+	if ( player_grid->getGrid()[y][x] != player_grid->getEmptySymbol() )
 		return false;
 	return true;
 }

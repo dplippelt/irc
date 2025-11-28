@@ -46,7 +46,7 @@ class MPGame
 		const std::map<std::string, int>&	getPlayerList() const;
 		const std::string&					getSunkName() const;
 
-		bool				validInput( const std::string& input, const Grid& player_grid ) const;
+		bool				validInput( const std::string& input, int curr_player ) const;
 		ShotResult			processShot( const std::string& input, int curr_player );
 
 	private:
