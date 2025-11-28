@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 11:42:04 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 10:50:32 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,15 +170,36 @@ void	Bot::processBuffer( const std::string& buffer )
 	std::string username { getUserName(buffer) };
 	std::string message { getMessage(buffer) };
 	std::string channel { getChannelName(buffer) };
+	std::string irc_cmd { getIRCCommand(buffer) };
 
 	#ifdef DEBUG
 	std::cout << "Sender: " << username << std::endl;
 	std::cout << "Channel: " << channel << std::endl;
 	std::cout << "Message: " << message << std::endl;
+	std::cout << "IRC Command: " << irc_cmd << std::endl;
 	std::cout << "Message length: " << message.length() << std::endl;
 	#endif
 
+	if ( needWelcome(irc_cmd, username) )
+		BotResponseHandler::sendWelcome(m_bot_socket_fd, username, channel);
+
 	BotCommands::executeCommand(username, channel, message, *this);
+}
+
+bool	Bot::needWelcome( const std::string& irc_cmd, const std::string& username )
+{
+	if ( username == "BattleshipsBot" )
+		return false;
+
+	if ( irc_cmd != "JOIN" && irc_cmd != "PRIVMSG" )
+		return false;
+
+	for ( auto it { m_welcomed.begin() }; it != m_welcomed.end(); ++it )
+		if ( (*it) == username )
+			return false;
+
+	m_welcomed.push_back(username);
+	return true;
 }
 
 
@@ -204,13 +225,28 @@ std::string Bot::getChannelName( const std::string& buffer ) const
 {
 	std::size_t start_idx {};
 	std::size_t end_idx {};
+	std::string channelName {};
 
-	if ((start_idx = buffer.find_first_of("#")) == std::string::npos)
+	start_idx = buffer.find_first_of("#");
+	if ( start_idx == std::string::npos )
 		return "";
 
-	end_idx = buffer.substr(start_idx).find_first_of(" ");
+	end_idx = buffer.find_first_of(" \r\n", start_idx);
 
-	return ( buffer.substr(start_idx, start_idx + end_idx - start_idx + 1) );
+	channelName = buffer.substr(start_idx, start_idx + end_idx - start_idx + 1);
+
+	return ( rtrim(channelName) );
+}
+
+std::string Bot::getIRCCommand( const std::string& buffer ) const
+{
+	std::size_t start_idx {};
+	std::size_t end_idx {};
+
+	start_idx = buffer.find_first_of(" ") + 1;
+	end_idx = buffer.find_first_of(" ", start_idx );
+
+	return ( buffer.substr(start_idx, end_idx - start_idx) );
 }
 
 
