@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 12:48:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 14:04:35 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,11 @@ MPGame::~MPGame() = default;
 
 MPGame::MPGame( const std::string& player_one_name, const std::string& player_two_name )
 {
-	m_players.insert({player_one_name, 1});
-	m_players.insert({player_two_name, 2});
+	t_player_data player_one_data { &m_player_two_grid, &m_player_one_shots_grid, &m_player_two_game_ships, &m_player_two_nShips };
+	t_player_data player_two_data { &m_player_one_grid, &m_player_two_shots_grid, &m_player_one_game_ships, &m_player_one_nShips };
+
+	m_players.insert({player_one_name, player_one_data});
+	m_players.insert({player_two_name, player_two_data});
 
 	populateGrid( m_player_one_grid, m_player_one_game_ships );
 	populateGrid( m_player_two_grid, m_player_two_game_ships );
@@ -31,7 +34,7 @@ MPGame::MPGame( const std::string& player_one_name, const std::string& player_tw
 
 /* ====================== Public Interface ====================== */
 
-bool	MPGame::validInput( const std::string& input, int curr_player ) const
+bool	MPGame::validInput( const std::string& input, const std::string& playerName ) const
 {
 	if ( input.length() != 2 )
 		return false;
@@ -39,19 +42,11 @@ bool	MPGame::validInput( const std::string& input, int curr_player ) const
 	int	x { input[1] - '0' - 1 };
 	int	y { std::toupper(input[0]) - 'A' };
 
-	const Grid* player_grid {};
+	auto player_it { m_players.find(playerName) };
+	if (player_it == m_players.end())
+		throw std::runtime_error("Invalid player name: '" + playerName + "'");
 
-	switch (curr_player)
-	{
-	case 1:
-		player_grid = &m_player_one_shots_grid;
-		break;
-	case 2:
-		player_grid = &m_player_two_shots_grid;
-		break;
-	default:
-		throw std::runtime_error("Invalid player number: '" + std::to_string(curr_player) + "'");
-	}
+	const Grid* player_grid { player_it->second.player_grid };
 
 	if ( x < 0 )
 		return false;
@@ -66,13 +61,13 @@ bool	MPGame::validInput( const std::string& input, int curr_player ) const
 	return true;
 }
 
-ShotResult	MPGame::processShot( const std::string& input, int curr_player )
+ShotResult	MPGame::processShot( const std::string& input, const std::string& playerName )
 {
 	bool		sunk {};
 	int			x { input[1] - '0' - 1 };
 	int			y { std::toupper(input[0]) - 'A' };
 
-	t_player_data	data { getPlayerData(curr_player) };
+	t_player_data	data { getPlayerData(playerName) };
 
 	if ( data.opponent_grid->getGrid()[y][x] == data.opponent_grid->getEmptySymbol() )
 	{
@@ -89,7 +84,7 @@ ShotResult	MPGame::processShot( const std::string& input, int curr_player )
 			it->m_health--;
 			if (it->m_health == 0)
 			{
-				enemySunk(it, curr_player);
+				enemySunk(it, playerName);
 				sunk = true;
 				break;
 			}
@@ -136,34 +131,18 @@ const std::string&	MPGame::getSunkName() const
 	return m_sunk_name;
 }
 
-const std::map<std::string, int>&	MPGame::getPlayerList() const
+std::map<std::string, MPGame::t_player_data>&	MPGame::getPlayerList()
 {
 	return m_players;
 }
 
-MPGame::t_player_data	MPGame::getPlayerData( int curr_player )
+MPGame::t_player_data	MPGame::getPlayerData( const std::string& playerName )
 {
-	t_player_data data {};
+	auto player_it { m_players.find(playerName) };
+	if (player_it == m_players.end())
+		throw std::runtime_error("Invalid player name: '" + playerName + "'");
 
-	switch (curr_player)
-	{
-	case 1:
-		data.opponent_grid = &m_player_two_grid;
-		data.player_grid = &m_player_one_shots_grid;
-		data.opponent_ships = &m_player_two_game_ships;
-		data.opponent_nships = &m_player_two_nShips;
-		break;
-	case 2:
-		data.opponent_grid = &m_player_one_grid;
-		data.player_grid = &m_player_two_shots_grid;
-		data.opponent_ships = &m_player_one_game_ships;
-		data.opponent_nships = &m_player_one_nShips;
-		break;
-	default:
-		throw std::runtime_error("Invalid player number: '" + std::to_string(curr_player) + "'");
-	}
-
-	return data;
+	return player_it->second;
 }
 
 
@@ -186,7 +165,7 @@ void	MPGame::populateGrid( Grid& grid, std::vector<Battleship>& game_ships )
 	}
 }
 
-void	MPGame::enemySunk( std::vector<Battleship>::iterator it, int curr_player )
+void	MPGame::enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName )
 {
 	std::pair<int, int>	startCoord { it->m_location.first };
 	std::pair<int, int>	endCoord { it->m_location.second };
@@ -204,7 +183,7 @@ void	MPGame::enemySunk( std::vector<Battleship>::iterator it, int curr_player )
 		endCoord.second = temp;
 	}
 
-	t_player_data	data { getPlayerData(curr_player) };
+	t_player_data	data { getPlayerData(playerName) };
 
 	for ( int y { startCoord.first }; y <= endCoord.first; ++y )
 		for ( int x { startCoord.second }; x <= endCoord.second; ++x )

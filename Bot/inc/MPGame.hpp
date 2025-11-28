@@ -37,17 +37,25 @@ class MPGame
 		MPGame( const MPGame& ) = delete;
 		MPGame& operator=( const MPGame& ) = delete;
 
+		typedef struct s_player_data
+		{
+			const Grid*					opponent_grid {};
+			Grid*						player_grid {};
+			std::vector<Battleship>*	opponent_ships {};
+			int*						opponent_nships {};
+		}								t_player_data;
+
 		void startGame();
 
-		const Grid&							getPlayerOneGridObject() const;
-		const Grid&							getPlayerTwoGridObject() const;
-		const Grid&							getPlayerOneShotsGridObject() const;
-		const Grid&							getPlayerTwoShotsGridObject() const;
-		const std::map<std::string, int>&	getPlayerList() const;
-		const std::string&					getSunkName() const;
+		const Grid&								getPlayerOneGridObject() const;
+		const Grid&								getPlayerTwoGridObject() const;
+		const Grid&								getPlayerOneShotsGridObject() const;
+		const Grid&								getPlayerTwoShotsGridObject() const;
+		std::map<std::string, t_player_data>&	getPlayerList();
+		const std::string&						getSunkName() const;
 
-		bool				validInput( const std::string& input, int curr_player ) const;
-		ShotResult			processShot( const std::string& input, int curr_player );
+		bool				validInput( const std::string& input, const std::string& playerName ) const;
+		ShotResult			processShot( const std::string& input, const std::string& playerName );
 
 	private:
 		typedef struct s_ship
@@ -57,14 +65,6 @@ class MPGame
 			char		symbol {};
 			int			size {};
 		}				t_ship;
-
-		typedef struct s_player_data
-		{
-			const Grid*					opponent_grid {};
-			Grid*						player_grid {};
-			std::vector<Battleship>*	opponent_ships {};
-			int*						opponent_nships {};
-		}								t_player_data;
 
 		static const inline int							k_max_ships { 5 };
 		static const inline int							k_max_grid_attempts { 10 };
@@ -77,19 +77,19 @@ class MPGame
 																	{k_ship_names[SUBMARINE], SUBMARINE, k_ship_symbols[SUBMARINE], k_ship_sizes[SUBMARINE]},
 																	{k_ship_names[DESTROYER], DESTROYER, k_ship_symbols[DESTROYER], k_ship_sizes[DESTROYER]}};
 
-		int							m_player_one_nShips { NSHIPS };
-		int							m_player_two_nShips { NSHIPS };
-		Grid						m_player_two_grid {};
-		Grid						m_player_one_grid {};
-		Grid						m_player_two_shots_grid {};
-		Grid						m_player_one_shots_grid {};
-		std::vector<Battleship> 	m_player_one_game_ships {};
-		std::vector<Battleship> 	m_player_two_game_ships {};
-		std::string					m_sunk_name {};
-		std::map<std::string, int>	m_players {}; // must be initialized with player ID (1 or 2 and the usernames in constructor)
+		int										m_player_one_nShips { NSHIPS };
+		int										m_player_two_nShips { NSHIPS };
+		Grid									m_player_two_grid {};
+		Grid									m_player_one_grid {};
+		Grid									m_player_two_shots_grid {};
+		Grid									m_player_one_shots_grid {};
+		std::vector<Battleship> 				m_player_one_game_ships {};
+		std::vector<Battleship>				 	m_player_two_game_ships {};
+		std::string								m_sunk_name {};
+		std::map<std::string, t_player_data>	m_players {};
 
 		void	populateGrid( Grid& grid, std::vector<Battleship>& game_ships );
-		void	enemySunk( std::vector<Battleship>::iterator it, int curr_player );
+		void	enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName );
 
-		t_player_data	getPlayerData( int curr_player );
+		t_player_data	getPlayerData( const std::string& playerName );
 };
