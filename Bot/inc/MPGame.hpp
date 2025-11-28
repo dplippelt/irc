@@ -52,6 +52,7 @@ class MPGame
 		const Grid&								getPlayerOneShotsGridObject() const;
 		const Grid&								getPlayerTwoShotsGridObject() const;
 		std::map<std::string, t_player_data>&	getPlayerList();
+		const std::string&						getCurrentPlayer() const;
 		const std::string&						getSunkName() const;
 
 		bool				validInput( const std::string& input, const std::string& playerName ) const;
@@ -87,9 +88,12 @@ class MPGame
 		std::vector<Battleship>				 	m_player_two_game_ships {};
 		std::string								m_sunk_name {};
 		std::map<std::string, t_player_data>	m_players {};
+		std::vector<std::string>				m_player_names {};
+		std::string								m_curr_player {};
 
 		void	populateGrid( Grid& grid, std::vector<Battleship>& game_ships );
 		void	enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName );
+		void	switchTurns();
 
 		t_player_data	getPlayerData( const std::string& playerName );
 };

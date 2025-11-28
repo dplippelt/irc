@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 14:04:35 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 14:21:24 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 MPGame::~MPGame() = default;
 
 MPGame::MPGame( const std::string& player_one_name, const std::string& player_two_name )
+	: m_curr_player { player_two_name }
+	, m_player_names { player_one_name, player_two_name }
 {
 	t_player_data player_one_data { &m_player_two_grid, &m_player_one_shots_grid, &m_player_two_game_ships, &m_player_two_nShips };
 	t_player_data player_two_data { &m_player_one_grid, &m_player_two_shots_grid, &m_player_one_game_ships, &m_player_one_nShips };
@@ -92,6 +94,8 @@ ShotResult	MPGame::processShot( const std::string& input, const std::string& pla
 		}
 	}
 
+	switchTurns();
+
 	if (!(*data.opponent_nships))
 		return ShotResult::WON;
 	if (sunk)
@@ -129,6 +133,11 @@ const Grid&	MPGame::getPlayerTwoShotsGridObject() const
 const std::string&	MPGame::getSunkName() const
 {
 	return m_sunk_name;
+}
+
+const std::string&	MPGame::getCurrentPlayer() const
+{
+	return m_curr_player;
 }
 
 std::map<std::string, MPGame::t_player_data>&	MPGame::getPlayerList()
@@ -192,4 +201,9 @@ void	MPGame::enemySunk( std::vector<Battleship>::iterator it, const std::string&
 	m_sunk_name = it->m_name;
 	(*data.opponent_nships)--;
 	data.opponent_ships->erase(it);
+}
+
+void	MPGame::switchTurns()
+{
+	m_curr_player = (m_player_names[0] == m_curr_player) ? m_player_names[1] : m_player_names[0];
 }
