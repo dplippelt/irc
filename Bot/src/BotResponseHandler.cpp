@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 15:05:45 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 10:09:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,15 @@ void BotResponseHandler::sendWonFeedback( int bot_socket_fd, const std::string& 
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR GREEN "Well done, you sunk all of the enemy's ships!" RESET);
 	sendResponse(bot_socket_fd, username, channel, "");
 	sendResponse(bot_socket_fd, username, channel, "To play again just type " COLOR YELLOW "!start" RESET " in the Battleships channel or as a private message to BattleShipsBot.");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void BotResponseHandler::sendWelcome( int bot_socket_fd, const std::string& username, const std::string& channel )
+{
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Hello, I am the BattleshipsBot, " + username + "!" RESET);
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Type " COLOR YELLOW "!start" COLOR LIGHT_CYAN " to start a game of battleships and " COLOR YELLOW "!fire <target>" COLOR LIGHT_CYAN " (e.g., !fire B3) to shoot at a target on the grid." RESET);
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "For a full list of commands type " COLOR YELLOW "!help" COLOR LIGHT_CYAN "." RESET);
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 

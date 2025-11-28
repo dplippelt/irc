@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 11:36:49 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 10:24:05 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ class Bot
 
 		std::map<std::string, Game*>	m_games {};
 		std::string 					m_prefix {};
+		std::vector<std::string>		m_welcomed {};
 
 		void	validatePort( const std::string& port ) const;
 		void	authenticateAndJoin() const;
@@ -60,6 +61,9 @@ class Bot
 		std::string	getUserName( const std::string& buffer ) const;
 		std::string getMessage( const std::string& buffer ) const;
 		std::string getChannelName( const std::string& buffer ) const;
+		std::string getIRCCommand( const std::string& buffer ) const;
+
+		bool	needWelcome( const std::string& irc_cmd, const std::string& username );
 
 		std::string&	rtrim( std::string& s ) const;
 };

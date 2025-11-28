@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 15:03:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/28 10:51:35 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class BotResponseHandler
 		static void sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& sunkName );
 		static void sendWonFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
 		static void sendHelp( int bot_socket_fd, const std::string& username, const std::string& channel, const std::pair<std::string, std::string>& cmd );
+		static void sendWelcome( int bot_socket_fd, const std::string& username, const std::string& channel );
 
 		static void	sendResponse( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& msg );
 		static std::string	capitalize( const std::string& target );
