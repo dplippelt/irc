@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 10:50:32 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/29 09:24:28 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,7 +233,7 @@ std::string Bot::getChannelName( const std::string& buffer ) const
 
 	end_idx = buffer.find_first_of(" \r\n", start_idx);
 
-	channelName = buffer.substr(start_idx, start_idx + end_idx - start_idx + 1);
+	channelName = buffer.substr(start_idx, end_idx - start_idx);
 
 	return ( rtrim(channelName) );
 }
