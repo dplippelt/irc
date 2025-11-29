@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 15:02:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/29 09:30:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,25 +128,15 @@ void	Game::populateGrid()
 
 void	Game::enemySunk(std::vector<Battleship>::iterator it)
 {
-	std::pair<int, int>	startCoord { it->m_location.first };
-	std::pair<int, int>	endCoord { it->m_location.second };
+	int	x {};
+	int	y {};
 
-	if ( startCoord.first > endCoord.first )
+	for ( auto itt { it->m_location.begin() }; itt != it->m_location.end(); ++itt )
 	{
-		int	temp { startCoord.first };
-		startCoord.first = endCoord.first;
-		endCoord.first = temp;
+		x = itt->second;
+		y = itt->first;
+		m_player_grid.updateGrid(x, y, it->m_symbol);
 	}
-	if ( startCoord.second > endCoord.second )
-	{
-		int	temp { startCoord.second };
-		startCoord.second = endCoord.second;
-		endCoord.second = temp;
-	}
-
-	for ( int y { startCoord.first }; y <= endCoord.first; ++y )
-		for ( int x { startCoord.second }; x <= endCoord.second; ++x )
-			m_player_grid.updateGrid(x, y, it->m_symbol);
 
 	m_sunk_name = it->m_name;
 	m_nShips--;

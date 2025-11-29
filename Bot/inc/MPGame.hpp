@@ -88,8 +88,8 @@ class MPGame
 		std::vector<Battleship>				 	m_player_two_game_ships {};
 		std::string								m_sunk_name {};
 		std::map<std::string, t_player_data>	m_players {};
-		std::vector<std::string>				m_player_names {};
 		std::string								m_curr_player {};
+		std::vector<std::string>				m_player_names {};
 
 		void	populateGrid( Grid& grid, std::vector<Battleship>& game_ships );
 		void	enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName );

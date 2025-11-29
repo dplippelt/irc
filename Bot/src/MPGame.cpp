@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 14:21:24 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/29 09:29:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,27 +176,17 @@ void	MPGame::populateGrid( Grid& grid, std::vector<Battleship>& game_ships )
 
 void	MPGame::enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName )
 {
-	std::pair<int, int>	startCoord { it->m_location.first };
-	std::pair<int, int>	endCoord { it->m_location.second };
-
-	if ( startCoord.first > endCoord.first )
-	{
-		int	temp { startCoord.first };
-		startCoord.first = endCoord.first;
-		endCoord.first = temp;
-	}
-	if ( startCoord.second > endCoord.second )
-	{
-		int	temp { startCoord.second };
-		startCoord.second = endCoord.second;
-		endCoord.second = temp;
-	}
-
 	t_player_data	data { getPlayerData(playerName) };
 
-	for ( int y { startCoord.first }; y <= endCoord.first; ++y )
-		for ( int x { startCoord.second }; x <= endCoord.second; ++x )
-			data.player_grid->updateGrid(x, y, it->m_symbol);
+	int	x {};
+	int	y {};
+
+	for ( auto itt { it->m_location.begin() }; itt != it->m_location.end(); ++itt )
+	{
+		x = itt->second;
+		y = itt->first;
+		data.player_grid->updateGrid(x, y, it->m_symbol);
+	}
 
 	m_sunk_name = it->m_name;
 	(*data.opponent_nships)--;

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:53:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/29 09:29:53 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,28 +125,14 @@ void	Grid::addShip( Battleship& ship )
 
 void	Grid::placeShip(Battleship& ship, int x, int y, const std::pair<int, int>& dir)
 {
-	ship.m_location.first.first = y;
-	ship.m_location.first.second = x;
-
-	int	endX {};
-	int endY {};
-
 	for ( int i {0}; i < ship.m_size; ++i )
 	{
 		m_grid[y][x] = ship.m_symbol;
-
-		if (i == ship.m_size - 1)
-		{
-			endX = x;
-			endY = y;
-		}
+		ship.m_location.push_back({y, x});
 
 		x += dir.first;
 		y += dir.second;
 	}
-
-	ship.m_location.second.first = endY;
-	ship.m_location.second.second = endX;
 }
 
 bool	Grid::validShipPlacement(int x, int y, int shipSize, const std::pair<int, int>& dir) const

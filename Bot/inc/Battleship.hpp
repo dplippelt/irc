@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:33:39 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/13 11:57:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/11/29 09:31:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include <string>
 #include <string_view>
+#include <vector>
 
 class Battleship
 {
@@ -29,5 +30,5 @@ class Battleship
 		char												m_symbol {};
 		int													m_size {};
 		int													m_health {};
-		std::pair<std::pair<int, int>, std::pair<int, int>>	m_location {};
+		std::vector<std::pair<int, int>>					m_location {};
 };
