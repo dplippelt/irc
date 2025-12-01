@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 14:07:48 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:54:37 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,9 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		break;
 	case CMD_CHALLENGE:
 		challenge(username, channel, message, bot);
+		break;
+	case CMD_ACCEPT:
+		accept(username, channel, message, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
@@ -195,7 +198,7 @@ void	BotCommands::newGame( const std::string& username, const std::string& chann
 	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, channel, game->getPlayerGridObject());
 }
 
-void BotCommands::help( const std::string& username, const std::string& channel, Bot& bot )
+void BotCommands::help( const std::string& username, const std::string& channel, const Bot& bot )
 {
 	for ( const auto& cmd : k_help_content )
 		BotResponseHandler::sendHelp(bot.getSocket(), username, channel, cmd);
@@ -220,9 +223,39 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 
 	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
+	if (challengeExists(challenger, challenged, bot))
+	{
+		BotResponseHandler::sendAlreadyChallengedFeedback(bot.getSocket(), challenger, channel, challenged);
+		return;
+	}
+
 	BotResponseHandler::sendChallenge(bot.getSocket(), challenger, challenged, channel);
 
 	bot.addChallenge(challenger, challenged);
+}
+
+void	BotCommands::accept( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	std::size_t space_idx = msg.find_first_of(" ");
+	if ( space_idx == std::string::npos )
+	{
+		BotResponseHandler::sendNoChallengerFeedback(bot.getSocket(), challenged, channel);
+		return;
+	}
+
+	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
+
+	std::string challenger { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+
+	if (!challengeExists(challenger, challenged, bot))
+	{
+		BotResponseHandler::sendNoChallengeToAcceptFeedback(bot.getSocket(), challenged, channel, challenger);
+		return;
+	}
+
+	BotResponseHandler::sendAccept(bot.getSocket(), challenger, challenged, channel);
+
+	bot.removeChallenge(challenger, challenged);
 }
 
 
@@ -240,4 +273,15 @@ BotCommands::CommandType BotCommands::getCmdType( const std::string& command )
 	if (command[0] == '!')
 		return CMD_UNKNOWN;
 	return CMD_NOTACMD;
+}
+
+bool	BotCommands::challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot )
+{
+	const auto challenges { bot.getChallenges() };
+
+	for ( auto it {challenges.begin()}; it != challenges.end(); ++it )
+		if ( it->first == challenger && it-> second == challenged )
+			return true;
+
+	return false;
 }

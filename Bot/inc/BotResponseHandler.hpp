@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 13:31:34 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:35:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,12 @@ class BotResponseHandler
 
 		// MP response handler
 		static void sendChallenge( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
+		static void sendAccept( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
 		static void sendNoChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
+		static void sendNoChallengerFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
+		static void sendAlreadyChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel,const std::string& challenged );
+		static void sendNoChallengeToAcceptFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& challenger );
+
 
 
 		static void	sendResponse( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& msg );

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 13:42:15 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:27:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class BotCommands
 			CMD_NEWGAME,
 			CMD_HELP,
 			CMD_CHALLENGE,
+			CMD_ACCEPT,
 			CMD_UNKNOWN,
 			CMD_NOTACMD
 		};
@@ -48,6 +49,7 @@ class BotCommands
 			{"!newgame", CMD_NEWGAME},
 			{"!help", CMD_HELP},
 			{"!challenge", CMD_CHALLENGE},
+			{"!accept", CMD_ACCEPT},
 		};
 
 		static inline const std::vector<std::pair<std::string, std::string>> k_help_content
@@ -58,7 +60,8 @@ class BotCommands
 			{COLOR YELLOW "!fire <target>" RESET, "Fire a shot at the board (e.g. '!fire B3')."},
 			{COLOR YELLOW "!board" RESET, "Show your current game board."},
 			{COLOR YELLOW "!solution" RESET, "Show the board with all ships visible (i.e. cheat sheet)."},
-			{COLOR YELLOW "!challenge <name>" RESET, "Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!"},
+			{COLOR YELLOW "!challenge <username>" RESET, "Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!"},
+			{COLOR YELLOW "!accept <username>" RESET, "Accept another user's challenge to a game of battleships (e.g. '!accept alice). Please make sure to enter the username correctly or the challenge will not be accepted!"},
 		};
 
 		static void	executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot );
@@ -69,10 +72,12 @@ class BotCommands
 		static void	showSolution( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	showBoard( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
-		static void help( const std::string& username, const std::string& channel, Bot& bot );
+		static void help( const std::string& username, const std::string& channel, const Bot& bot );
 
 		// MP Game commands
 		static void	challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot );
+		static void	accept( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot );
 
 		static CommandType	getCmdType( const std::string& command );
+		static bool			challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
 };
