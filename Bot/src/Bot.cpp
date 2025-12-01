@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 12:48:50 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:06:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,7 +298,6 @@ const std::map<std::pair<std::string, std::string>, MPGame*>	Bot::getMPGames() c
 	return m_mp_games;
 }
 
-
 void	Bot::removeMPGame( std::pair<std::string, std::string> usernames )
 {
 	m_mp_games.erase(usernames);
@@ -307,4 +306,26 @@ void	Bot::removeMPGame( std::pair<std::string, std::string> usernames )
 void	Bot::addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game )
 {
 	m_mp_games.insert( {usernames, mp_game} );
+}
+
+const std::vector<std::pair<std::string, std::string>>	Bot::getChallenges() const
+{
+	return m_challenges;
+}
+
+void	Bot::addChallenge( std::string challenger, std::string challenged )
+{
+	m_challenges.push_back( {challenger, challenged} );
+}
+
+void	Bot::removeChallenge( std::string challenger, std::string challenged )
+{
+	for ( auto it {m_challenges.begin()}; it != m_challenges.end(); ++it )
+	{
+		if ( it->first == challenger && it->second == challenged )
+		{
+			m_challenges.erase(it);
+			return;
+		}
+	}
 }

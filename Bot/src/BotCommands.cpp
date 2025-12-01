@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 13:51:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:07:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,6 +221,8 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	BotResponseHandler::sendChallenge(bot.getSocket(), challenger, challenged, channel);
+
+	bot.addChallenge(challenger, challenged);
 }
 
 

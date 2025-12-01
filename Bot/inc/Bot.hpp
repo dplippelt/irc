@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 12:46:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:00:14 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,9 @@ class Bot
 		const std::map<std::pair<std::string, std::string>, MPGame*>	getMPGames() const;
 		void															addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game );
 		void															removeMPGame( std::pair<std::string, std::string> usernames );
+		const std::vector<std::pair<std::string, std::string>>			getChallenges() const;
+		void															addChallenge( std::string challenger, std::string challenged );
+		void															removeChallenge( std::string challenger, std::string challenged );
 
 	private:
 		std::string			m_pw {};
@@ -57,6 +60,7 @@ class Bot
 		std::vector<std::string>								m_welcomed {};
 		std::map<std::string, Game*>							m_games {};
 		std::map<std::pair<std::string, std::string>, MPGame*>	m_mp_games {};
+		std::vector<std::pair<std::string, std::string>>		m_challenges {};
 
 		void	validatePort( const std::string& port ) const;
 		void	authenticateAndJoin() const;
