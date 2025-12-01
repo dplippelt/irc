@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 14:54:37 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 15:33:11 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,7 +256,53 @@ void	BotCommands::accept( const std::string& challenged, const std::string& chan
 	BotResponseHandler::sendAccept(bot.getSocket(), challenger, challenged, channel);
 
 	bot.removeChallenge(challenger, challenged);
+
+	startMPGame(challenger, challenged, channel, bot);
 }
+
+
+
+
+
+/* ===================== Helper ===================== */
+
+void BotCommands::startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot )
+{
+	MPGame*	mp_game;
+
+	try
+	{
+		const auto& mp_games { bot.getMPGames() };
+
+		auto it = mp_games.find({challenger, challenged});
+
+		if (it == mp_games.end())
+		{
+			mp_game = new MPGame {challenged, challenger};
+			bot.addMPGame({challenger, challenged}, mp_game);
+		}
+		else
+		{
+			BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot.getSocket(), challenger, challenged, channel );
+			return;
+		}
+	}
+	catch ( const std::exception& e )
+	{
+		if (channel.empty())
+		{
+			BotResponseHandler::sendResponse(bot.getSocket(), challenger, channel, e.what());
+			BotResponseHandler::sendResponse(bot.getSocket(), challenged, channel, e.what());
+		}
+		else
+			BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
+		return;
+	}
+
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, channel, mp_game->getPlayerOneShotsGridObject());
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, channel, mp_game->getPlayerTwoShotsGridObject());
+}
+
 
 
 

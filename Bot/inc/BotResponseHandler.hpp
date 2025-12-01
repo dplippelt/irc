@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 14:35:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 15:27:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class BotResponseHandler
 		static void sendNoChallengerFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
 		static void sendAlreadyChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel,const std::string& challenged );
 		static void sendNoChallengeToAcceptFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& challenger );
+		static void sendMPGameAlreadyRunningFeedback( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
 
 
 
