@@ -20,14 +20,6 @@
 #include "Battleship.hpp"
 #include "enums.hpp"
 
-enum ShotResult
-{
-	MISS,
-	HIT,
-	SUNK,
-	WON
-};
-
 class MPGame
 {
 	public:
