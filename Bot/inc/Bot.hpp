@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 10:24:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 12:46:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <poll.h>
 
 #include "Game.hpp"
+#include "MPGame.hpp"
 #include "BotCommands.hpp"
 
 class Bot
@@ -38,10 +39,14 @@ class Bot
 
 		void	doPoll();
 
-		int									getSocket() const;
-		const std::map<std::string, Game*>	getGames() const;
-		void								removeGame( std::string username );
-		void								addGame( std::string username, Game* game );
+		int																getSocket() const;
+		const std::map<std::string, Game*>								getGames() const;
+		void															removeGame( std::string username );
+		void															addGame( std::string username, Game* game );
+
+		const std::map<std::pair<std::string, std::string>, MPGame*>	getMPGames() const;
+		void															addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game );
+		void															removeMPGame( std::pair<std::string, std::string> usernames );
 
 	private:
 		std::string			m_pw {};
@@ -49,9 +54,9 @@ class Bot
 		int					m_bot_socket_fd {};
 		struct pollfd		m_pollfd {};
 
-		std::map<std::string, Game*>	m_games {};
-		std::string 					m_prefix {};
-		std::vector<std::string>		m_welcomed {};
+		std::vector<std::string>								m_welcomed {};
+		std::map<std::string, Game*>							m_games {};
+		std::map<std::pair<std::string, std::string>, MPGame*>	m_mp_games {};
 
 		void	validatePort( const std::string& port ) const;
 		void	authenticateAndJoin() const;

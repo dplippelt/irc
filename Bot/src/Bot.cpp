@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/29 09:24:28 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 12:48:50 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,4 +291,20 @@ void	Bot::removeGame( std::string username )
 void	Bot::addGame( std::string username, Game* game )
 {
 	m_games.insert( {username, game} );
+}
+
+const std::map<std::pair<std::string, std::string>, MPGame*>	Bot::getMPGames() const
+{
+	return m_mp_games;
+}
+
+
+void	Bot::removeMPGame( std::pair<std::string, std::string> usernames )
+{
+	m_mp_games.erase(usernames);
+}
+
+void	Bot::addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game )
+{
+	m_mp_games.insert( {usernames, mp_game} );
 }
