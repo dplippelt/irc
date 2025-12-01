@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 13:34:57 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 13:51:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,8 +97,10 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 		return;
 	}
 
+	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
+
 	Game* game { it->second };
-	std::string target { msg.substr(space_idx + 1) };
+	std::string target { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if (!game->validInput(target))
 	{
@@ -214,7 +216,9 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 		return;
 	}
 
-	std::string challenged { msg.substr(space_idx + 1) };
+	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
+
+	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	BotResponseHandler::sendChallenge(bot.getSocket(), challenger, challenged, channel);
 }
