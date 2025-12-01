@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 15:04:50 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 13:34:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,9 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		break;
 	case CMD_HELP:
 		help(username, channel, bot);
+		break;
+	case CMD_CHALLENGE:
+		challenge(username, channel, message, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
@@ -194,6 +197,26 @@ void BotCommands::help( const std::string& username, const std::string& channel,
 {
 	for ( const auto& cmd : k_help_content )
 		BotResponseHandler::sendHelp(bot.getSocket(), username, channel, cmd);
+}
+
+
+
+
+
+/* ===================== Multiplayer Bot Commands ===================== */
+
+void	BotCommands::challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	std::size_t space_idx = msg.find_first_of(" ");
+	if ( space_idx == std::string::npos )
+	{
+		BotResponseHandler::sendNoChallengedFeedback(bot.getSocket(), challenger, channel);
+		return;
+	}
+
+	std::string challenged { msg.substr(space_idx + 1) };
+
+	BotResponseHandler::sendChallenge(bot.getSocket(), challenger, challenged, channel);
 }
 
 

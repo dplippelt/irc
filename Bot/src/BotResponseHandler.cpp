@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 10:09:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 13:39:53 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,6 +118,44 @@ void BotResponseHandler::sendWelcome( int bot_socket_fd, const std::string& user
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Hello, I am the BattleshipsBot, " + username + "!" RESET);
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Type " COLOR YELLOW "!start" COLOR LIGHT_CYAN " to start a game of battleships and " COLOR YELLOW "!fire <target>" COLOR LIGHT_CYAN " (e.g., !fire B3) to shoot at a target on the grid." RESET);
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "For a full list of commands type " COLOR YELLOW "!help" COLOR LIGHT_CYAN "." RESET);
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+
+
+
+
+/* ===================== Bot Response (Multiplayer) ===================== */
+
+void	BotResponseHandler::sendChallenge( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel )
+{
+	if (channel.empty())
+	{
+		sendResponse(bot_socket_fd, challenger, channel, "");
+		sendResponse(bot_socket_fd, challenger, channel, "You have challenged " COLOR RED + challenged + RESET " to a game of Battleships!");
+		sendResponse(bot_socket_fd, challenger, channel, "They have been notified and will need to accept your challenge before the game can begin.");
+		sendResponse(bot_socket_fd, challenger, channel, "");
+
+
+		sendResponse(bot_socket_fd, challenged, channel, "");
+		sendResponse(bot_socket_fd, challenged, channel, "You have been challenged to a game of Battleships by " COLOR RED + challenger + RESET "!");
+		sendResponse(bot_socket_fd, challenged, channel, "To accept the challenge and start playing type " COLOR YELLOW "!accept " + challenger + RESET ".");
+		sendResponse(bot_socket_fd, challenged, channel, "");
+
+	}
+	else
+	{
+		sendResponse(bot_socket_fd, challenged, channel, "");
+		sendResponse(bot_socket_fd, challenged, channel, COLOR RED + challenger + RESET " challenges " COLOR RED + challenged + RESET " to game of Battleships!");
+		sendResponse(bot_socket_fd, challenged, channel, "To accept the challenge and start playing, " COLOR RED + challenged + RESET ", please type " COLOR YELLOW "!accept " + challenger + RESET ".");
+		sendResponse(bot_socket_fd, challenged, channel, "");
+	}
+}
+
+void	BotResponseHandler::sendNoChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel )
+{
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "Please specify the name of the user you would like to challenge (e.g. " COLOR YELLOW "!challenge bob" RESET ").");
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 

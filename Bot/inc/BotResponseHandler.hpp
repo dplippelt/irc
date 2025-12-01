@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/28 10:51:35 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 13:31:34 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,11 @@ class BotResponseHandler
 		static void sendWonFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
 		static void sendHelp( int bot_socket_fd, const std::string& username, const std::string& channel, const std::pair<std::string, std::string>& cmd );
 		static void sendWelcome( int bot_socket_fd, const std::string& username, const std::string& channel );
+
+		// MP response handler
+		static void sendChallenge( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
+		static void sendNoChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
+
 
 		static void	sendResponse( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& msg );
 		static std::string	capitalize( const std::string& target );

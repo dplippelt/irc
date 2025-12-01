@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:29:04 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/01 13:42:15 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class BotCommands
 			CMD_BOARD,
 			CMD_NEWGAME,
 			CMD_HELP,
+			CMD_CHALLENGE,
 			CMD_UNKNOWN,
 			CMD_NOTACMD
 		};
@@ -45,17 +46,19 @@ class BotCommands
 			{"!solution", CMD_SOLUTION},
 			{"!board", CMD_BOARD},
 			{"!newgame", CMD_NEWGAME},
-			{"!help", CMD_HELP}
+			{"!help", CMD_HELP},
+			{"!challenge", CMD_CHALLENGE},
 		};
 
 		static inline const std::vector<std::pair<std::string, std::string>> k_help_content
 		{
-			{"\x03" "08" "!help" "\x03", "Show the current help menu."},
-			{"\x03" "08" "!start" "\x03", "Start playing battlehips."},
-			{"\x03" "08" "!newgame" "\x03", "Start a fresh game (will abort your currently running game)."},
-			{"\x03" "08" "!fire <target>" "\x03", "Fire a shot at the board (e.g. '!fire B3')."},
-			{"\x03" "08" "!board" "\x03", "Show your current game board."},
-			{"\x03" "08" "!solution" "\x03", "Show the board with all ships visible (i.e. cheat sheet)."}
+			{COLOR YELLOW "!help" RESET, "Show the current help menu."},
+			{COLOR YELLOW "!start" RESET, "Start playing battlehips."},
+			{COLOR YELLOW "!newgame" RESET, "Start a fresh game (will abort your currently running game)."},
+			{COLOR YELLOW "!fire <target>" RESET, "Fire a shot at the board (e.g. '!fire B3')."},
+			{COLOR YELLOW "!board" RESET, "Show your current game board."},
+			{COLOR YELLOW "!solution" RESET, "Show the board with all ships visible (i.e. cheat sheet)."},
+			{COLOR YELLOW "!challenge <name>" RESET, "Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!"},
 		};
 
 		static void	executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot );
@@ -67,6 +70,9 @@ class BotCommands
 		static void	showBoard( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
 		static void help( const std::string& username, const std::string& channel, Bot& bot );
+
+		// MP Game commands
+		static void	challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot );
 
 		static CommandType	getCmdType( const std::string& command );
 };
