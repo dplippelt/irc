@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 15:27:48 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/04 17:19:01 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "Grid.hpp"
+#include "Bot.hpp"
 #include "macros.hpp"
+
+class Bot;
 
 class BotResponseHandler
 {
@@ -39,13 +42,13 @@ class BotResponseHandler
 		static void sendWelcome( int bot_socket_fd, const std::string& username, const std::string& channel );
 
 		// MP response handler
-		static void sendChallenge( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
-		static void sendAccept( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
-		static void sendNoChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
-		static void sendNoChallengerFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
-		static void sendAlreadyChallengedFeedback( int bot_socket_fd, const std::string& username, const std::string& channel,const std::string& challenged );
-		static void sendNoChallengeToAcceptFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& challenger );
-		static void sendMPGameAlreadyRunningFeedback( int bot_socket_fd, const std::string& challenger, const std::string& challenged, const std::string& channel );
+		static void sendChallenge( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel );
+		static void sendAccept( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel );
+		static void sendNoChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel );
+		static void sendNoChallengerFeedback( const Bot& bot, const std::string& username, const std::string& channel );
+		static void sendAlreadyChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel,const std::string& challenged );
+		static void sendNoChallengeToAcceptFeedback( const Bot& bot, const std::string& username, const std::string& channel, const std::string& challenger );
+		static void sendMPGameAlreadyRunningFeedback( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel );
 
 
 

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 14:06:26 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/04 17:44:36 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,6 +183,8 @@ void	Bot::processBuffer( const std::string& buffer )
 	if ( needWelcome(irc_cmd, username) )
 		BotResponseHandler::sendWelcome(m_bot_socket_fd, username, channel);
 
+	trackChannelMembers(username, irc_cmd);
+
 	BotCommands::executeCommand(username, channel, message, *this);
 }
 
@@ -202,6 +204,53 @@ bool	Bot::needWelcome( const std::string& irc_cmd, const std::string& username )
 	return true;
 }
 
+
+
+
+
+/* ===================== Channel Member Tracking ===================== */
+
+void	Bot::trackChannelMembers( const std::string& username, const std::string& irc_cmd )
+{
+	switch ( getIRCCmdType(irc_cmd) )
+	{
+	case CMD_JOIN:
+		addChannelMember(username);
+		break;
+	case CMD_PART:
+		removeChannelMember(username);
+		break;
+	case CMD_QUIT:
+		removeChannelMember(username);
+		break;
+	case CMD_KICK:
+		removeChannelMember(username);
+		break;
+	default:
+		break;
+	}
+}
+
+void	Bot::addChannelMember( const std::string& username )
+{
+	m_channel_members.push_back(username);
+}
+
+void	Bot::removeChannelMember( const std::string& username )
+{
+	for ( auto it { m_channel_members.begin() }; it != m_channel_members.end(); ++it )
+		if ( *it == username )
+			m_channel_members.erase(it);
+}
+
+bool	Bot::memberInChannel( const std::string& username ) const
+{
+	for ( auto member : m_channel_members )
+		if ( member == username )
+			return true;
+
+	return false;
+}
 
 
 
@@ -265,6 +314,13 @@ std::string&	Bot::rtrim( std::string& s ) const
 		s.clear();
 
 	return s;
+}
+
+Bot::BotIRCCommandType Bot::getIRCCmdType( const std::string& irc_cmd ) const
+{
+	auto it { k_commands.find(irc_cmd) };
+
+	return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
 }
 
 

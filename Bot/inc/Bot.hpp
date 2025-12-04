@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 14:00:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/04 17:21:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,23 @@ class Bot
 		Bot( const Bot& ) = delete;
 		Bot& operator=( const Bot& ) = delete;
 
+		enum BotIRCCommandType
+		{
+			CMD_JOIN,
+			CMD_PART,
+			CMD_QUIT,
+			CMD_KICK,
+			CMD_UNKNOWN,
+		};
+
+		static inline const std::map<std::string, BotIRCCommandType> k_commands
+		{
+			{"JOIN", CMD_JOIN},
+			{"PART", CMD_PART},
+			{"QUIT", CMD_QUIT},
+			{"KICK", CMD_KICK},
+		};
+
 		void	doPoll();
 
 		int																getSocket() const;
@@ -51,6 +68,8 @@ class Bot
 		void															addChallenge( std::string challenger, std::string challenged );
 		void															removeChallenge( std::string challenger, std::string challenged );
 
+		bool															memberInChannel( const std::string& username ) const;
+
 	private:
 		std::string			m_pw {};
 		struct addrinfo*	m_server_addr {};
@@ -61,6 +80,7 @@ class Bot
 		std::map<std::string, Game*>							m_games {};
 		std::map<std::pair<std::string, std::string>, MPGame*>	m_mp_games {};
 		std::vector<std::pair<std::string, std::string>>		m_challenges {};
+		std::vector<std::string>								m_channel_members {};
 
 		void	validatePort( const std::string& port ) const;
 		void	authenticateAndJoin() const;
@@ -73,6 +93,10 @@ class Bot
 		std::string getIRCCommand( const std::string& buffer ) const;
 
 		bool	needWelcome( const std::string& irc_cmd, const std::string& username );
+		void	trackChannelMembers( const std::string& username, const std::string& irc_cmd );
+		void	addChannelMember( const std::string& username );
+		void	removeChannelMember( const std::string& username );
 
-		std::string&	rtrim( std::string& s ) const;
+		std::string&		rtrim( std::string& s ) const;
+		BotIRCCommandType	getIRCCmdType( const std::string& irc_cmd ) const;
 };

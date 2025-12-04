@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/01 15:33:11 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/04 18:03:44 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		challenge(username, channel, message, bot);
 		break;
 	case CMD_ACCEPT:
-		accept(username, channel, message, bot);
+		acceptChallenge(username, channel, message, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
@@ -215,7 +215,7 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 	std::size_t space_idx = msg.find_first_of(" ");
 	if ( space_idx == std::string::npos )
 	{
-		BotResponseHandler::sendNoChallengedFeedback(bot.getSocket(), challenger, channel);
+		BotResponseHandler::sendNoChallengedFeedback(bot, challenger, channel);
 		return;
 	}
 
@@ -225,21 +225,21 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 
 	if (challengeExists(challenger, challenged, bot))
 	{
-		BotResponseHandler::sendAlreadyChallengedFeedback(bot.getSocket(), challenger, channel, challenged);
+		BotResponseHandler::sendAlreadyChallengedFeedback(bot, challenger, channel, challenged);
 		return;
 	}
 
-	BotResponseHandler::sendChallenge(bot.getSocket(), challenger, challenged, channel);
+	BotResponseHandler::sendChallenge(bot, challenger, challenged, channel);
 
 	bot.addChallenge(challenger, challenged);
 }
 
-void	BotCommands::accept( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::acceptChallenge( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot )
 {
 	std::size_t space_idx = msg.find_first_of(" ");
 	if ( space_idx == std::string::npos )
 	{
-		BotResponseHandler::sendNoChallengerFeedback(bot.getSocket(), challenged, channel);
+		BotResponseHandler::sendNoChallengerFeedback(bot, challenged, channel);
 		return;
 	}
 
@@ -249,11 +249,11 @@ void	BotCommands::accept( const std::string& challenged, const std::string& chan
 
 	if (!challengeExists(challenger, challenged, bot))
 	{
-		BotResponseHandler::sendNoChallengeToAcceptFeedback(bot.getSocket(), challenged, channel, challenger);
+		BotResponseHandler::sendNoChallengeToAcceptFeedback(bot, challenged, channel, challenger);
 		return;
 	}
 
-	BotResponseHandler::sendAccept(bot.getSocket(), challenger, challenged, channel);
+	BotResponseHandler::sendAccept(bot, challenger, challenged, channel);
 
 	bot.removeChallenge(challenger, challenged);
 
@@ -283,7 +283,7 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 		}
 		else
 		{
-			BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot.getSocket(), challenger, challenged, channel );
+			BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenger, challenged, channel );
 			return;
 		}
 	}
@@ -291,15 +291,21 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 	{
 		if (channel.empty())
 		{
-			BotResponseHandler::sendResponse(bot.getSocket(), challenger, channel, e.what());
-			BotResponseHandler::sendResponse(bot.getSocket(), challenged, channel, e.what());
+			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
+			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
 		}
-		else
-			BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
+
+		BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
+
+		if ( !bot.memberInChannel(challenger) )
+			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
+		if ( !bot.memberInChannel(challenged) )
+			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
+
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, channel, mp_game->getPlayerOneShotsGridObject());
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, channel, mp_game->getPlayerOneShotsGridObject());
 	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, channel, mp_game->getPlayerTwoShotsGridObject());
 }
 
@@ -307,10 +313,9 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 
 
 
-
 /* ===================== Utility ===================== */
 
-BotCommands::CommandType BotCommands::getCmdType( const std::string& command )
+BotCommands::BotCommandType BotCommands::getCmdType( const std::string& command )
 {
 	auto it { k_commands.find(command) };
 
