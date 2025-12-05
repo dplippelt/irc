@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/04 18:12:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 10:12:00 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,8 +239,13 @@ void	Bot::addChannelMember( const std::string& username )
 void	Bot::removeChannelMember( const std::string& username )
 {
 	for ( auto it { m_channel_members.begin() }; it != m_channel_members.end(); ++it )
+	{
 		if ( (*it) == username )
+		{
 			m_channel_members.erase(it);
+			return;
+		}
+	}
 }
 
 bool	Bot::memberInChannel( const std::string& username ) const
