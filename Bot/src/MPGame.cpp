@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:35:08 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/29 09:29:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 15:38:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,22 @@ MPGame::MPGame( const std::string& player_one_name, const std::string& player_tw
 	: m_curr_player { player_two_name }
 	, m_player_names { player_one_name, player_two_name }
 {
-	t_player_data player_one_data { &m_player_two_grid, &m_player_one_shots_grid, &m_player_two_game_ships, &m_player_two_nShips };
-	t_player_data player_two_data { &m_player_one_grid, &m_player_two_shots_grid, &m_player_one_game_ships, &m_player_one_nShips };
+
+	m_player_grids[player_one_name] = std::make_unique<Grid>();
+    m_player_grids[player_two_name] = std::make_unique<Grid>();
+    m_player_shots_grids[player_one_name] = std::make_unique<Grid>();
+    m_player_shots_grids[player_two_name] = std::make_unique<Grid>();
+    m_player_game_ships[player_one_name] = std::make_unique<std::vector<Battleship>>();
+    m_player_game_ships[player_two_name] = std::make_unique<std::vector<Battleship>>();
+
+	t_player_data player_one_data { m_player_grids[player_two_name].get(), m_player_shots_grids[player_one_name].get(), m_player_game_ships[player_two_name].get(), &m_player_two_nShips };
+	t_player_data player_two_data { m_player_grids[player_one_name].get(), m_player_shots_grids[player_two_name].get(), m_player_game_ships[player_one_name].get(), &m_player_one_nShips };
 
 	m_players.insert({player_one_name, player_one_data});
 	m_players.insert({player_two_name, player_two_data});
 
-	populateGrid( m_player_one_grid, m_player_one_game_ships );
-	populateGrid( m_player_two_grid, m_player_two_game_ships );
+	populateGrid( *(m_player_grids[player_one_name]), *(m_player_game_ships[player_one_name]) );
+	populateGrid( *(m_player_grids[player_two_name]), *(m_player_game_ships[player_two_name]) );
 }
 
 
@@ -74,6 +82,8 @@ ShotResult	MPGame::processShot( const std::string& input, const std::string& pla
 	if ( data.opponent_grid->getGrid()[y][x] == data.opponent_grid->getEmptySymbol() )
 	{
 		data.player_grid->updateGrid(x, y, data.player_grid->getMissSymbol());
+		data.opponent_grid->updateGrid(x, y, data.player_grid->getMissSymbol());
+		switchTurns();
 		return ShotResult::MISS;
 	}
 
@@ -94,6 +104,8 @@ ShotResult	MPGame::processShot( const std::string& input, const std::string& pla
 		}
 	}
 
+	data.opponent_grid->updateGrid(x, y, data.player_grid->getHitSymbol());
+
 	switchTurns();
 
 	if (!(*data.opponent_nships))
@@ -110,24 +122,14 @@ ShotResult	MPGame::processShot( const std::string& input, const std::string& pla
 /* ====================== Getters ====================== */
 
 
-const Grid&	MPGame::getPlayerOneGridObject() const
+const Grid*	MPGame::getPlayerGridObject( const std::string& player_name ) const
 {
-	return m_player_one_grid;
+	return m_player_grids.at(player_name).get();
 }
 
-const Grid&	MPGame::getPlayerTwoGridObject() const
+const Grid*	MPGame::getPlayerShotsGridObject( const std::string& player_name ) const
 {
-	return m_player_two_grid;
-}
-
-const Grid&	MPGame::getPlayerOneShotsGridObject() const
-{
-	return m_player_one_shots_grid;
-}
-
-const Grid&	MPGame::getPlayerTwoShotsGridObject() const
-{
-	return m_player_two_shots_grid;
+	return m_player_shots_grids.at(player_name).get();
 }
 
 const std::string&	MPGame::getSunkName() const

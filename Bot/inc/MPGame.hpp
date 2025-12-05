@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <exception>
+#include <memory>
 #include "Grid.hpp"
 #include "Battleship.hpp"
 #include "enums.hpp"
@@ -31,7 +32,7 @@ class MPGame
 
 		typedef struct s_player_data
 		{
-			const Grid*					opponent_grid {};
+			Grid*						opponent_grid {};
 			Grid*						player_grid {};
 			std::vector<Battleship>*	opponent_ships {};
 			int*						opponent_nships {};
@@ -39,10 +40,8 @@ class MPGame
 
 		void startGame();
 
-		const Grid&								getPlayerOneGridObject() const;
-		const Grid&								getPlayerTwoGridObject() const;
-		const Grid&								getPlayerOneShotsGridObject() const;
-		const Grid&								getPlayerTwoShotsGridObject() const;
+		const Grid*								getPlayerGridObject( const std::string& player_name ) const;
+		const Grid*								getPlayerShotsGridObject( const std::string& player_name ) const;
 		std::map<std::string, t_player_data>&	getPlayerList();
 		const std::string&						getCurrentPlayer() const;
 		const std::string&						getSunkName() const;
@@ -70,18 +69,15 @@ class MPGame
 																	{k_ship_names[SUBMARINE], SUBMARINE, k_ship_symbols[SUBMARINE], k_ship_sizes[SUBMARINE]},
 																	{k_ship_names[DESTROYER], DESTROYER, k_ship_symbols[DESTROYER], k_ship_sizes[DESTROYER]}};
 
-		int										m_player_one_nShips { NSHIPS };
-		int										m_player_two_nShips { NSHIPS };
-		Grid									m_player_two_grid {};
-		Grid									m_player_one_grid {};
-		Grid									m_player_two_shots_grid {};
-		Grid									m_player_one_shots_grid {};
-		std::vector<Battleship> 				m_player_one_game_ships {};
-		std::vector<Battleship>				 	m_player_two_game_ships {};
-		std::string								m_sunk_name {};
-		std::map<std::string, t_player_data>	m_players {};
-		std::string								m_curr_player {};
-		std::vector<std::string>				m_player_names {};
+		int																m_player_one_nShips { NSHIPS };
+		int																m_player_two_nShips { NSHIPS };
+		std::map<std::string, std::unique_ptr<Grid>>					m_player_grids {};
+		std::map<std::string, std::unique_ptr<Grid>>					m_player_shots_grids {};
+		std::map<std::string, std::unique_ptr<std::vector<Battleship>>>	m_player_game_ships {};
+		std::string														m_sunk_name {};
+		std::map<std::string, t_player_data>							m_players {};
+		std::string														m_curr_player {};
+		std::vector<std::string>										m_player_names {};
 
 		void	populateGrid( Grid& grid, std::vector<Battleship>& game_ships );
 		void	enemySunk( std::vector<Battleship>::iterator it, const std::string& playerName );

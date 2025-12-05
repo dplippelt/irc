@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 10:12:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 13:11:31 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -339,7 +339,7 @@ int	Bot::getSocket() const
 	return m_bot_socket_fd;
 }
 
-const std::map<std::string, Game*>	Bot::getGames() const
+const std::map<std::string, Game*>&	Bot::getGames() const
 {
 	return m_games;
 }
@@ -354,14 +354,25 @@ void	Bot::addGame( std::string username, Game* game )
 	m_games.insert( {username, game} );
 }
 
-const std::map<std::pair<std::string, std::string>, MPGame*>	Bot::getMPGames() const
+const std::map<std::pair<std::string, std::string>, MPGame*>&	Bot::getMPGames() const
 {
 	return m_mp_games;
 }
 
-void	Bot::removeMPGame( std::pair<std::string, std::string> usernames )
+std::map<std::pair<std::string, std::string>, MPGame *>::iterator	Bot::getMPGame( const std::string& player_one, const std::string& player_two )
 {
-	m_mp_games.erase(usernames);
+	auto it { m_mp_games.find({ player_one, player_two }) };
+	if (it != m_mp_games.end())
+		return it;
+
+	it = m_mp_games.find({ player_two, player_one });
+	return it;
+}
+
+void	Bot::removeMPGame( const std::string& player_one, const std::string& player_two )
+{
+	m_mp_games.erase( {player_one, player_two} );
+	m_mp_games.erase( {player_two, player_one} );
 }
 
 void	Bot::addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game )
@@ -369,21 +380,21 @@ void	Bot::addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_g
 	m_mp_games.insert( {usernames, mp_game} );
 }
 
-const std::vector<std::pair<std::string, std::string>>	Bot::getChallenges() const
+const std::vector<std::pair<std::string, std::string>>&	Bot::getChallenges() const
 {
 	return m_challenges;
 }
 
-void	Bot::addChallenge( std::string challenger, std::string challenged )
+void	Bot::addChallenge( std::string player_one, std::string player_two )
 {
-	m_challenges.push_back( {challenger, challenged} );
+	m_challenges.push_back( {player_one, player_two} );
 }
 
-void	Bot::removeChallenge( std::string challenger, std::string challenged )
+void	Bot::removeChallenge( std::string player_one, std::string player_two )
 {
 	for ( auto it {m_challenges.begin()}; it != m_challenges.end(); ++it )
 	{
-		if ( it->first == challenger && it->second == challenged )
+		if ( (it->first == player_one && it->second == player_two) || (it->first == player_two && it->second == player_one) )
 		{
 			m_challenges.erase(it);
 			return;

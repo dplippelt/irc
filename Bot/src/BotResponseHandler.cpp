@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 11:19:44 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 17:38:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,21 @@
 
 /* ===================== Bot Response ===================== */
 
-void	BotResponseHandler::sendPlayerGrid( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
+void	BotResponseHandler::sendPlayerGrid( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid, const std::string& opponent, GridType type )
 {
 	std::string 		gridMsg { grid.getGridMsg() };
 	std::istringstream	iss { gridMsg };
 	std::string			line {};
 
 	sendResponse(bot_socket_fd, username, channel, "");
-	sendResponse(bot_socket_fd, username, channel, "Battleships grid for " COLOR RED + username + "'s " RESET "game");
+	if ( type == GridType::TRACKING )
+		sendResponse(bot_socket_fd, username, "", "Your " COLOR RED "shots" RESET " vs " COLOR RED + opponent + RESET "." );
+	else if ( type == GridType::REFERENCE )
+		sendResponse(bot_socket_fd, username, "", "Your " COLOR GREEN "fleet" RESET " vs " COLOR RED + opponent + RESET "." );
+	else
+		sendResponse(bot_socket_fd, username, "", "Your single player Battleships grid");
 	sendResponse(bot_socket_fd, username, channel, "");
+
 	while ( std::getline(iss, line) )
 		sendResponse(bot_socket_fd, username, channel, line);
 	sendResponse(bot_socket_fd, username, channel, "");
@@ -34,12 +40,15 @@ void	BotResponseHandler::sendSolution( int bot_socket_fd, const std::string& use
 	std::istringstream	iss { gridMsg };
 	std::string			line {};
 
-	sendResponse(bot_socket_fd, username, channel, "");
-	sendResponse(bot_socket_fd, username, channel, "Battleships game solution for " COLOR RED + username + "'s " RESET "game");
-	sendResponse(bot_socket_fd, username, channel, "");
+	if ( !channel.empty() )
+		sendResponse(bot_socket_fd, username, channel, "A grid with all ships visible for your single player game was sent to your DMs " COLOR RED + username + RESET ".");
+
+	sendResponse(bot_socket_fd, username, "", "");
+	sendResponse(bot_socket_fd, username, "", "Battleships game solution for " COLOR RED + username + "'s " RESET "game");
+	sendResponse(bot_socket_fd, username, "", "");
 	while ( std::getline(iss, line) )
-		sendResponse(bot_socket_fd, username, channel, line);
-	sendResponse(bot_socket_fd, username, channel, "");
+		sendResponse(bot_socket_fd, username, "", line);
+	sendResponse(bot_socket_fd, username, "", "");
 }
 
 void BotResponseHandler::sendUnknownCmdFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& cmd )
@@ -79,37 +88,78 @@ void BotResponseHandler::sendInvalidTargetFeedback( int bot_socket_fd, const std
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 
-void BotResponseHandler::sendHelp( int bot_socket_fd, const std::string& username, const std::string& channel, const std::pair<std::string, std::string>& cmd )
+void BotResponseHandler::sendHelp( int bot_socket_fd, const std::string& username, const std::pair<std::string, std::string>& cmd )
 {
-	sendResponse(bot_socket_fd, username, channel, cmd.first);
-	sendResponse(bot_socket_fd, username, channel, cmd.second);
-	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, "", cmd.first);
+	sendResponse(bot_socket_fd, username, "", cmd.second);
+	sendResponse(bot_socket_fd, username, "", "");
 }
 
-void BotResponseHandler::sendMissFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& target )
+void BotResponseHandler::sendMissFeedback( int bot_socket_fd, const std::string& username, const std::string& target, const std::string& opponent )
 {
-	sendResponse(bot_socket_fd, username, channel, "Your shot at " COLOR YELLOW + capitalize(target) + COLOR CYAN " missed" RESET "!");
-	sendResponse(bot_socket_fd, username, channel, "");
+	if (opponent.length())
+	{
+		sendResponse(bot_socket_fd, opponent, "", COLOR RED + username + "'s" RESET " shot at " COLOR YELLOW + capitalize(target) + COLOR CYAN " missed" RESET "!");
+		sendResponse(bot_socket_fd, opponent, "", "");
+	}
+
+	sendResponse(bot_socket_fd, username, "", "Your shot at " COLOR YELLOW + capitalize(target) + COLOR CYAN " missed" RESET "!");
+	sendResponse(bot_socket_fd, username, "", "");
 }
 
-void BotResponseHandler::sendHitFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& target )
+void BotResponseHandler::sendHitFeedback( int bot_socket_fd, const std::string& username, const std::string& target, const std::string& opponent )
 {
-	sendResponse(bot_socket_fd, username, channel, "You " COLOR RED "hit" RESET " an enemy ship at " COLOR YELLOW + capitalize(target) + RESET "!");
-	sendResponse(bot_socket_fd, username, channel, "");
+	if (opponent.length())
+	{
+		sendResponse(bot_socket_fd, opponent, "", COLOR RED + username + "'s" RESET " shot at " COLOR YELLOW + capitalize(target) + " was a " COLOR RED "hit" RESET "!");
+		sendResponse(bot_socket_fd, username, "", "You " COLOR RED "hit" RESET " one of " COLOR RED + opponent + "'s" RESET " ships at " COLOR YELLOW + capitalize(target) + RESET "!");
+		sendResponse(bot_socket_fd, opponent, "", "");
+		sendResponse(bot_socket_fd, username, "", "");
+	}
+	else
+	{
+		sendResponse(bot_socket_fd, username, "", "You " COLOR RED "hit" RESET " an enemy ship at " COLOR YELLOW + capitalize(target) + RESET "!");
+		sendResponse(bot_socket_fd, username, "", "");
+	}
 }
 
-void BotResponseHandler::sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& sunkName )
+void BotResponseHandler::sendSunkFeedback( int bot_socket_fd, const std::string& username, const std::string& sunkName, const std::string& opponent )
 {
-	sendResponse(bot_socket_fd, username, channel, BOLD COLOR PURPLE "You sunk the enemy's " + sunkName + "! Congrats, keep going!" RESET);
-	sendResponse(bot_socket_fd, username, channel, "");
+	if (opponent.length())
+	{
+		sendResponse(bot_socket_fd, opponent, "", BOLD COLOR RED + username + " sunk your " + sunkName + "!" RESET);
+		sendResponse(bot_socket_fd, username, "", BOLD COLOR PURPLE "You sunk " + opponent + "'s " + sunkName + "! Congrats, keep going!" RESET);
+		sendResponse(bot_socket_fd, opponent, "", "");
+		sendResponse(bot_socket_fd, username, "", "");
+	}
+	else
+	{
+		sendResponse(bot_socket_fd, username, "", BOLD COLOR PURPLE "You sunk the enemy's " + sunkName + "! Congrats, keep going!" RESET);
+		sendResponse(bot_socket_fd, username, "", "");
+	}
 }
 
-void BotResponseHandler::sendWonFeedback( int bot_socket_fd, const std::string& username, const std::string& channel )
+void BotResponseHandler::sendWonFeedback( int bot_socket_fd, const std::string& username, const std::string& opponent )
 {
-	sendResponse(bot_socket_fd, username, channel, BOLD COLOR GREEN "Well done, you sunk all of the enemy's ships!" RESET);
-	sendResponse(bot_socket_fd, username, channel, "");
-	sendResponse(bot_socket_fd, username, channel, "To play again just type " COLOR YELLOW "!start" RESET " in the Battleships channel or as a private message to BattleShipsBot.");
-	sendResponse(bot_socket_fd, username, channel, "");
+	if (opponent.length())
+	{
+		sendResponse(bot_socket_fd, username, "", BOLD COLOR GREEN "You sunk all of " + opponent + "'s ships and won the game!" RESET);
+		sendResponse(bot_socket_fd, username, "", "");
+		sendResponse(bot_socket_fd, username, "", "To play against " COLOR RED + opponent + RESET " again type " COLOR YELLOW "!challenge " + opponent + RESET " to challenge them to another round.");
+		sendResponse(bot_socket_fd, username, "", "");
+
+		sendResponse(bot_socket_fd, opponent, "", BOLD COLOR RED "Oof, " + username + " sunk all of your ships. You have been defeated." RESET);
+		sendResponse(bot_socket_fd, opponent, "", "");
+		sendResponse(bot_socket_fd, opponent, "", "To challenge " COLOR RED + username + RESET " to a rematch type " COLOR YELLOW "!challenge " + username + RESET ". You'll get 'em this time!");
+		sendResponse(bot_socket_fd, opponent, "", "");
+	}
+	else
+	{
+		sendResponse(bot_socket_fd, username, "", BOLD COLOR GREEN "Well done, you sunk all of the enemy's ships!" RESET);
+		sendResponse(bot_socket_fd, username, "", "");
+		sendResponse(bot_socket_fd, username, "", "To play again just type " COLOR YELLOW "!start" RESET " in the Battleships channel or as a private message to BattleShipsBot.");
+		sendResponse(bot_socket_fd, username, "", "");
+	}
 }
 
 void BotResponseHandler::sendWelcome( int bot_socket_fd, const std::string& username, const std::string& channel )
@@ -125,7 +175,7 @@ void BotResponseHandler::sendWelcome( int bot_socket_fd, const std::string& user
 
 
 
-/* ===================== Bot Response (Multiplayer) ===================== */
+/* ===================== Bot Response (Multiplayer specific) ===================== */
 
 void	BotResponseHandler::sendChallenge( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel )
 {
@@ -182,6 +232,7 @@ void	BotResponseHandler::sendAccept( const Bot& bot, const std::string& challeng
 	{
 		sendResponse(bot_socket_fd, "", channel, "");
 		sendResponse(bot_socket_fd, "", channel, COLOR RED + challenged + RESET " has accepted " COLOR RED + challenger + RESET "'s challenge to a game of Battleships! The game will now begin.");
+		sendResponse(bot_socket_fd, "", channel, "Your grids have been sent to your DMs.");
 		sendResponse(bot_socket_fd, "", channel, "");
 	}
 
@@ -258,6 +309,48 @@ void	BotResponseHandler::sendMPGameAlreadyRunningFeedback( const Bot& bot, const
 	sendResponse(bot_socket_fd, username, "", "");
 }
 
+void	BotResponseHandler::sendNoMPGameFeedback( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "There is no Battleships game running between you and '" COLOR RED + opponent + RESET "' at the moment.");
+	sendResponse(bot_socket_fd, username, channel, "You can challenge them to a game by typing " COLOR YELLOW "!challenge " + opponent + RESET ".");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendNotYourTurnFeedback( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "It is not your turn! Please wait for " COLOR RED + opponent + RESET " to take their shot.");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendTurnInfo( const Bot& bot, const std::string& player_one, const std::string& player_two, const MPGame* mp_game )
+{
+	const std::string&	current_player { mp_game->getCurrentPlayer() };
+	int					bot_socket_fd { bot.getSocket() };
+
+	if ( player_one == current_player )
+	{
+		sendResponse(bot_socket_fd, player_one, "", "It is your turn, " COLOR RED + player_one + RESET "!");
+		sendResponse(bot_socket_fd, player_one, "", "");
+
+		sendResponse(bot_socket_fd, player_two, "", "It is " COLOR RED + player_one + "'s" RESET " turn.");
+		sendResponse(bot_socket_fd, player_two, "", "");
+	}
+	else
+	{
+		sendResponse(bot_socket_fd, player_two, "", "It is your turn, " COLOR RED + player_two + RESET "!");
+		sendResponse(bot_socket_fd, player_two, "", "");
+
+		sendResponse(bot_socket_fd, player_one, "", "It is " COLOR RED + player_two + "'s" RESET " turn.");
+		sendResponse(bot_socket_fd, player_one, "", "");
+	}
+
+}
 
 
 
