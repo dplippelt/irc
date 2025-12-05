@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 10:28:56 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 11:19:44 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ void	BotResponseHandler::sendChallenge( const Bot& bot, const std::string& chall
 		sendResponse(bot_socket_fd, "", channel, "");
 	}
 
-	if ( !bot.memberInChannel(challenger) )
+	if ( !bot.memberInChannel(challenger) || channel.empty())
 	{
 		sendResponse(bot_socket_fd, challenger, "", "");
 		sendResponse(bot_socket_fd, challenger, "", "You have challenged " COLOR RED + challenged + RESET " to a game of Battleships!");
@@ -147,7 +147,7 @@ void	BotResponseHandler::sendChallenge( const Bot& bot, const std::string& chall
 		sendResponse(bot_socket_fd, challenger, "", "");
 	}
 
-	if ( !bot.memberInChannel(challenged) )
+	if ( !bot.memberInChannel(challenged) || channel.empty() )
 	{
 		sendResponse(bot_socket_fd, challenged, "", "");
 		sendResponse(bot_socket_fd, challenged, "", "You have been challenged to a game of Battleships by " COLOR RED + challenger + RESET "!");
@@ -165,12 +165,12 @@ void	BotResponseHandler::sendNoChallengedFeedback( const Bot& bot, const std::st
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 
-void	BotResponseHandler::sendAlreadyChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel,const std::string& challenged )
+void	BotResponseHandler::sendAlreadyChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel, const std::string& challenged )
 {
 	int	bot_socket_fd { bot.getSocket() };
 
 	sendResponse(bot_socket_fd, username, channel, "");
-	sendResponse(bot_socket_fd, username, channel, "You have already challenged " COLOR RED + challenged + RESET " to a game of Battleships. Please wait for them to accept your challenge.");
+	sendResponse(bot_socket_fd, username, channel, "You have already challenged " COLOR RED + challenged + RESET " or they have already challenged you to a game of Battleships. Please either accept their challenge or wait for them to accept your challenge.");
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 
@@ -185,14 +185,14 @@ void	BotResponseHandler::sendAccept( const Bot& bot, const std::string& challeng
 		sendResponse(bot_socket_fd, "", channel, "");
 	}
 
-	if ( !bot.memberInChannel(challenger) )
+	if ( !bot.memberInChannel(challenger) || channel.empty() )
 	{
 		sendResponse(bot_socket_fd, challenger, "", "");
 		sendResponse(bot_socket_fd, challenger, "", COLOR RED + challenged + RESET " has accepted your challenge! The game will now begin.");
 		sendResponse(bot_socket_fd, challenger, "", "");
 	}
 
-	if ( !bot.memberInChannel(challenged) )
+	if ( !bot.memberInChannel(challenged) || channel.empty() )
 	{
 		sendResponse(bot_socket_fd, challenged, "", "");
 		sendResponse(bot_socket_fd, challenged, "", "You have accepted " COLOR RED + challenger + RESET "'s challenge! The game will now begin.");
@@ -200,7 +200,25 @@ void	BotResponseHandler::sendAccept( const Bot& bot, const std::string& challeng
 	}
 }
 
-void BotResponseHandler::sendNoChallengerFeedback( const Bot& bot, const std::string& username, const std::string& channel )
+void	BotResponseHandler::sendCannotChallengeSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "You cannot challenge yourself to a game of Battleships...");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendCannotAcceptSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "You cannot accept a challenge to a game of Battleships from yourself...");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendNoChallengerFeedback( const Bot& bot, const std::string& username, const std::string& channel )
 {
 	int	bot_socket_fd { bot.getSocket() };
 
@@ -220,34 +238,24 @@ void	BotResponseHandler::sendNoChallengeToAcceptFeedback( const Bot& bot, const 
 	sendResponse(bot_socket_fd, username, channel, "");
 }
 
-void	BotResponseHandler::sendMPGameAlreadyRunningFeedback( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel )
+void	BotResponseHandler::sendMPGameAlreadyRunningFeedback( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel )
 {
 	int	bot_socket_fd { bot.getSocket() };
 
 	if ( !channel.empty() )
 	{
 		sendResponse(bot_socket_fd, "", channel, "");
-		sendResponse(bot_socket_fd, "", channel, "There is already a Battleships game in progress between " COLOR RED + challenger + RESET " and " COLOR RED + challenged + RESET ".");
-		sendResponse(bot_socket_fd, "", channel, COLOR RED + challenger + RESET ": to see your current game board type " COLOR YELLOW "!board " + challenged + RESET ".");
-		sendResponse(bot_socket_fd, "", channel, COLOR RED + challenged + RESET ": to see your current game board type " COLOR YELLOW "!board " + challenger + RESET ".");
+		sendResponse(bot_socket_fd, "", channel, "There is already a Battleships game in progress between " COLOR RED + username + RESET " and " COLOR RED + opponent + RESET ".");
+		sendResponse(bot_socket_fd, "", channel, COLOR RED + username + RESET ": to see your current game board type " COLOR YELLOW "!board " + opponent + RESET ".");
 		sendResponse(bot_socket_fd, "", channel, "");
+
+		return;
 	}
 
-	if ( !bot.memberInChannel(challenger) )
-	{
-		sendResponse(bot_socket_fd, challenger, "", "");
-		sendResponse(bot_socket_fd, challenger, "", "There is already a Battleships game in progress between you and " COLOR RED + challenged + RESET ".");
-		sendResponse(bot_socket_fd, challenger, "", "Type " COLOR YELLOW "!board " + challenged + RESET " to see your current game board.");
-		sendResponse(bot_socket_fd, challenger, "", "");
-	}
-
-	if ( !bot.memberInChannel(challenged) )
-	{
-		sendResponse(bot_socket_fd, challenged, "", "");
-		sendResponse(bot_socket_fd, challenged, "", "There is already a Battleships game in progress between you and " COLOR RED + challenger + RESET ".");
-		sendResponse(bot_socket_fd, challenged, "", "Type " COLOR YELLOW "!board " + challenged + RESET " to see your current game board.");
-		sendResponse(bot_socket_fd, challenged, "", "");
-	}
+	sendResponse(bot_socket_fd, username, "", "");
+	sendResponse(bot_socket_fd, username, "", "There is already a Battleships game in progress between you and " COLOR RED + opponent + RESET ".");
+	sendResponse(bot_socket_fd, username, "", "Type " COLOR YELLOW "!board " + opponent + RESET " to see your current game board.");
+	sendResponse(bot_socket_fd, username, "", "");
 }
 
 

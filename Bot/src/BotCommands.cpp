@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 10:26:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 11:22:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,7 +223,19 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 
 	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
-	if (challengeExists(challenger, challenged, bot))
+	if ( challenger == challenged )
+	{
+		BotResponseHandler::sendCannotChallengeSelfFeedback(bot, challenger, channel);
+		return;
+	}
+
+	if ( gameAlreadyExists(challenger, challenged, bot) )
+	{
+		BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenger, challenged, channel );
+		return;
+	}
+
+	if ( challengeExists(challenger, challenged, bot) )
 	{
 		BotResponseHandler::sendAlreadyChallengedFeedback(bot, challenger, channel, challenged);
 		return;
@@ -244,10 +256,21 @@ void	BotCommands::acceptChallenge( const std::string& challenged, const std::str
 	}
 
 	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
-
 	std::string challenger { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
-	if (!challengeExists(challenger, challenged, bot))
+	if ( challenger == challenged )
+	{
+		BotResponseHandler::sendCannotAcceptSelfFeedback(bot, challenged, channel);
+		return;
+	}
+
+	if ( gameAlreadyExists(challenger, challenged, bot) )
+	{
+		BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenged, challenger, channel );
+		return;
+	}
+
+	if ( !challengeExists(challenger, challenged, bot) )
 	{
 		BotResponseHandler::sendNoChallengeToAcceptFeedback(bot, challenged, channel, challenger);
 		return;
@@ -255,7 +278,7 @@ void	BotCommands::acceptChallenge( const std::string& challenged, const std::str
 
 	BotResponseHandler::sendAccept(bot, challenger, challenged, channel);
 
-	bot.removeChallenge(challenger, challenged);
+	bot.removeChallenge(challenger, challenged); // needs to be called when the game has been won instead; or an end game command is called
 
 	startMPGame(challenger, challenged, channel, bot);
 }
@@ -272,37 +295,25 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 
 	try
 	{
-		const auto& mp_games { bot.getMPGames() };
-
-		auto it = mp_games.find({challenger, challenged});
-
-		if (it == mp_games.end())
-		{
-			mp_game = new MPGame {challenged, challenger};
-			bot.addMPGame({challenger, challenged}, mp_game);
-		}
-		else
-		{
-			BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenger, challenged, channel );
-			return;
-		}
+		mp_game = new MPGame {challenged, challenger};
+		bot.addMPGame({challenger, challenged}, mp_game);
 	}
 	catch ( const std::exception& e )
 	{
 		if ( !channel.empty() )
 			BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
-		if ( !bot.memberInChannel(challenger) )
+		if ( !bot.memberInChannel(challenger) || channel.empty() )
 			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
-		if ( !bot.memberInChannel(challenged) )
+		if ( !bot.memberInChannel(challenged) || channel.empty() )
 			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
 		return;
 	}
 
 	if ( !channel.empty() )
 		BotResponseHandler::sendPlayerGrid(bot.getSocket(), "", channel, mp_game->getPlayerOneShotsGridObject());
-	if ( !bot.memberInChannel(challenged) )
+	if ( !bot.memberInChannel(challenged) || channel.empty() )
 		BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, "", mp_game->getPlayerOneShotsGridObject());
-	if ( !!bot.memberInChannel(challenger) )
+	if ( !!bot.memberInChannel(challenger) || channel.empty() )
 		BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, "", mp_game->getPlayerTwoShotsGridObject());
 }
 
@@ -328,8 +339,19 @@ bool	BotCommands::challengeExists( const std::string& challenger, const std::str
 	const auto challenges { bot.getChallenges() };
 
 	for ( auto it {challenges.begin()}; it != challenges.end(); ++it )
-		if ( it->first == challenger && it-> second == challenged )
+		if ( (it->first == challenger && it-> second == challenged) || (it->first == challenged && it-> second == challenger) )
 			return true;
 
+	return false;
+}
+
+bool	BotCommands::gameAlreadyExists( const std::string& challenger, const std::string& challenged, const Bot& bot )
+{
+	const auto& mp_games { bot.getMPGames() };
+
+	if ( mp_games.find({challenger, challenged}) != mp_games.end() )
+		return true;
+	if ( mp_games.find({challenged, challenger}) != mp_games.end() )
+		return true;
 	return false;
 }

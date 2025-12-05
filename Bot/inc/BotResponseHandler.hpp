@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/04 17:19:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 11:26:13 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,11 @@ class BotResponseHandler
 		static void sendAccept( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel );
 		static void sendNoChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel );
 		static void sendNoChallengerFeedback( const Bot& bot, const std::string& username, const std::string& channel );
-		static void sendAlreadyChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel,const std::string& challenged );
+		static void sendAlreadyChallengedFeedback( const Bot& bot, const std::string& username, const std::string& channel, const std::string& challenged );
 		static void sendNoChallengeToAcceptFeedback( const Bot& bot, const std::string& username, const std::string& channel, const std::string& challenger );
 		static void sendMPGameAlreadyRunningFeedback( const Bot& bot, const std::string& challenger, const std::string& challenged, const std::string& channel );
-
-
+		static void sendCannotChallengeSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel );
+		static void sendCannotAcceptSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel );
 
 		static void	sendResponse( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& msg );
 		static std::string	capitalize( const std::string& target );

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/04 16:54:29 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 11:26:25 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,5 +81,6 @@ class BotCommands
 		static void startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot );
 
 		static BotCommandType	getCmdType( const std::string& command );
-		static bool			challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
+		static bool				challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
+		static bool				gameAlreadyExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
 };
