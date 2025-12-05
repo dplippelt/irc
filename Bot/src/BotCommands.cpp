@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/04 18:03:44 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/05 10:26:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,24 +289,21 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 	}
 	catch ( const std::exception& e )
 	{
-		if (channel.empty())
-		{
-			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
-			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
-		}
-
-		BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
-
+		if ( !channel.empty() )
+			BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
 		if ( !bot.memberInChannel(challenger) )
 			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
 		if ( !bot.memberInChannel(challenged) )
 			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
-
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, channel, mp_game->getPlayerOneShotsGridObject());
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, channel, mp_game->getPlayerTwoShotsGridObject());
+	if ( !channel.empty() )
+		BotResponseHandler::sendPlayerGrid(bot.getSocket(), "", channel, mp_game->getPlayerOneShotsGridObject());
+	if ( !bot.memberInChannel(challenged) )
+		BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, "", mp_game->getPlayerOneShotsGridObject());
+	if ( !!bot.memberInChannel(challenger) )
+		BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, "", mp_game->getPlayerTwoShotsGridObject());
 }
 
 
