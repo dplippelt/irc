@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 13:11:08 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 12:19:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,16 +58,16 @@ class Bot
 
 		int																getSocket() const;
 		const std::map<std::string, Game*>&								getGames() const;
-		void															removeGame( std::string username );
-		void															addGame( std::string username, Game* game );
+		void															removeGame( const std::string& username );
+		void															addGame( const std::string& username, Game* game );
 
 		const std::map<std::pair<std::string, std::string>, MPGame*>&		getMPGames() const;
 		std::map<std::pair<std::string, std::string>, MPGame *>::iterator	getMPGame( const std::string& player_one, const std::string& player_two );
-		void																addMPGame( std::pair<std::string, std::string> usernames, MPGame* mp_game );
+		void																addMPGame( const std::pair<std::string, std::string>& usernames, MPGame* mp_game );
 		void																removeMPGame( const std::string& player_one, const std::string& player_two );
 		const std::vector<std::pair<std::string, std::string>>&				getChallenges() const;
-		void																addChallenge( std::string player_one, std::string player_two );
-		void																removeChallenge( std::string player_one, std::string player_two );
+		void																addChallenge( const std::string& player_one, const std::string& player_two );
+		void																removeChallenge( const std::string& player_one, const std::string& player_two );
 		bool																memberInChannel( const std::string& username ) const;
 
 	private:
