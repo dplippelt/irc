@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 17:49:14 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 11:02:36 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,10 @@ class BotCommands
 			CMD_HELP,
 			CMD_CHALLENGE,
 			CMD_ACCEPT,
-			CMD_MP_FIRE,
+			CMD_SHOOT,
+			CMD_SURRENDER,
+			CMD_FLEET,
+			CMD_SHOTS,
 			CMD_UNKNOWN,
 			CMD_NOTACMD
 		};
@@ -52,15 +55,12 @@ class BotCommands
 			{"!help", CMD_HELP},
 			{"!challenge", CMD_CHALLENGE},
 			{"!accept", CMD_ACCEPT},
-			{"!mpfire", CMD_MP_FIRE},
+			{"!shoot", CMD_SHOOT},
+			{"!surrender", CMD_SURRENDER},
+			{"!fleet", CMD_FLEET},
+			{"!shots", CMD_SHOTS},
 		};
 
-
-		// TODO multiplayer commands:
-		// !endgame <opponent username>
-		// !fleet <opponent username>
-		// !mpboard <opponent username>
-		
 		static inline const std::vector<std::pair<std::string, std::string>> k_help_content
 		{
 			{COLOR YELLOW "!help" RESET, "Show the current help menu."},
@@ -71,23 +71,30 @@ class BotCommands
 			{COLOR YELLOW "!solution" RESET, "Show the single player board with all ships visible (i.e. cheat sheet)."},
 			{COLOR YELLOW "!challenge <username>" RESET, "Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!"},
 			{COLOR YELLOW "!accept <username>" RESET, "Accept another user's challenge to a game of battleships (e.g. '!accept alice)."},
-			{COLOR YELLOW "!mpfire <username> <target>" RESET, "Accept a shot at another user's board (e.g. '!mpfire bob H4')"},
+			{COLOR YELLOW "!shoot <username> <target>" RESET, "Take a shot at another user's board (e.g. '!shoot bob H4')"},
+			{COLOR YELLOW "!surrender <username>" RESET, "Surrender to another player. This will immediately end your game with them (e.g. '!surrender bob' to surrender to bob)."},
+			{COLOR YELLOW "!fleet <username>" RESET, "Show your current fleet against another player (e.g. '!fleet bob'). Will be visible to only you."},
+			{COLOR YELLOW "!shots <username>" RESET, "Show your current shots grid against another player (e.g. '!shots bob'). Will be visible to only you."},
 		};
 
 		static void	executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot );
 
 	private:
-		static void	startGame( const std::string& username, const std::string& channel, Bot& bot );
-		static void	fireShot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
-		static void	showSolution( const std::string& username, const std::string& channel, const Bot& bot );
-		static void	showBoard( const std::string& username, const std::string& channel, const Bot& bot );
+		static void	start( const std::string& username, const std::string& channel, Bot& bot );
+		static void	fire( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		static void	solution( const std::string& username, const std::string& channel, const Bot& bot );
+		static void	board( const std::string& username, const std::string& channel, const Bot& bot );
 		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
 		static void help( const std::string& username, const std::string& channel, const Bot& bot );
 
 		// MP specific Game commands
 		static void	challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot );
 		static void	acceptChallenge( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot );
-		static void fireShotMP( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		static void shoot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		static void surrender( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		static void fleet( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		static void shots( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+
 
 		static BotCommandType	getCmdType( const std::string& command );
 		static void				startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot );

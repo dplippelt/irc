@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 13:11:31 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 10:32:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@ Bot::~Bot()
 		freeaddrinfo(m_server_addr);
 	for (auto game : m_games)
 		delete game.second;
+	for (auto mp_game : m_mp_games)
+		delete mp_game.second;
 }
 
 Bot::Bot( const std::string& server_port, std::string_view pw )

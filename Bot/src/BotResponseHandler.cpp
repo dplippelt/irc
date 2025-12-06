@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 17:38:48 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 11:32:20 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,41 +14,61 @@
 
 /* ===================== Bot Response ===================== */
 
-void	BotResponseHandler::sendPlayerGrid( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid, const std::string& opponent, GridType type )
+void	BotResponseHandler::sendPlayerGrid( int bot_socket_fd, const std::string& username, const Grid& grid, GridType type, const std::string& opponent )
 {
 	std::string 		gridMsg { grid.getGridMsg() };
 	std::istringstream	iss { gridMsg };
 	std::string			line {};
 
-	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, "", "");
 	if ( type == GridType::TRACKING )
 		sendResponse(bot_socket_fd, username, "", "Your " COLOR RED "shots" RESET " vs " COLOR RED + opponent + RESET "." );
 	else if ( type == GridType::REFERENCE )
 		sendResponse(bot_socket_fd, username, "", "Your " COLOR GREEN "fleet" RESET " vs " COLOR RED + opponent + RESET "." );
+	else if ( type == GridType::SOLUTION )
+		sendResponse(bot_socket_fd, username, "", "Battleships game solution for " COLOR RED + username + "'s " RESET "game");
 	else
 		sendResponse(bot_socket_fd, username, "", "Your single player Battleships grid");
-	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, "", "");
 
 	while ( std::getline(iss, line) )
-		sendResponse(bot_socket_fd, username, channel, line);
-	sendResponse(bot_socket_fd, username, channel, "");
+		sendResponse(bot_socket_fd, username, "", line);
+	sendResponse(bot_socket_fd, username, "", "");
+}
+
+void	BotResponseHandler::sendStart( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "Your single player game has begun, " COLOR RED + username + RESET ". Your grid was sent to your DMs.");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid);
+}
+
+void	BotResponseHandler::sendFire( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "The result of your shot was sent to your DMs, " COLOR RED + username + RESET ".");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid);
+}
+
+void	BotResponseHandler::sendBoard( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "Your game board was sent to your DMs, " COLOR RED + username + RESET ".");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid);
 }
 
 void	BotResponseHandler::sendSolution( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
 {
-	std::string 		gridMsg { grid.getGridMsg() };
-	std::istringstream	iss { gridMsg };
-	std::string			line {};
-
 	if ( !channel.empty() )
-		sendResponse(bot_socket_fd, username, channel, "A grid with all ships visible for your single player game was sent to your DMs " COLOR RED + username + RESET ".");
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "The solution to your single player game was sent to your DMs, " COLOR RED + username + RESET ".");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid, GridType::SOLUTION);
+}
 
-	sendResponse(bot_socket_fd, username, "", "");
-	sendResponse(bot_socket_fd, username, "", "Battleships game solution for " COLOR RED + username + "'s " RESET "game");
-	sendResponse(bot_socket_fd, username, "", "");
-	while ( std::getline(iss, line) )
-		sendResponse(bot_socket_fd, username, "", line);
-	sendResponse(bot_socket_fd, username, "", "");
+void	BotResponseHandler::sendNewGame( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "Your single player game was reset, " COLOR RED + username + RESET ". A new grid was sent to your DMs.");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid);
 }
 
 void BotResponseHandler::sendUnknownCmdFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& cmd )
@@ -166,7 +186,8 @@ void BotResponseHandler::sendWelcome( int bot_socket_fd, const std::string& user
 {
 	sendResponse(bot_socket_fd, username, channel, "");
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Hello, I am the BattleshipsBot, " + username + "!" RESET);
-	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "Type " COLOR YELLOW "!start" COLOR LIGHT_CYAN " to start a game of battleships and " COLOR YELLOW "!fire <target>" COLOR LIGHT_CYAN " (e.g., !fire B3) to shoot at a target on the grid." RESET);
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "To start a single player game type " COLOR YELLOW "!start" COLOR LIGHT_CYAN " and " COLOR YELLOW "!fire <target>" COLOR LIGHT_CYAN " (e.g., !fire B3) to shoot at a target on the grid." RESET);
+	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "To challenge another user to a multiplayer match type " COLOR YELLOW "!challenge <username>" COLOR LIGHT_CYAN " (e.g., !challenge bob). To accept another users challenge type " COLOR YELLOW "!accept <username>" COLOR LIGHT_CYAN ". In multiplayer use the command " COLOR YELLOW "!shoot <username> <target>" COLOR LIGHT_CYAN " to take a shot at another player's fleet (e.g., !shoot bob A3)." RESET);
 	sendResponse(bot_socket_fd, username, channel, BOLD COLOR LIGHT_CYAN "For a full list of commands type " COLOR YELLOW "!help" COLOR LIGHT_CYAN "." RESET);
 	sendResponse(bot_socket_fd, username, channel, "");
 }
@@ -297,7 +318,7 @@ void	BotResponseHandler::sendMPGameAlreadyRunningFeedback( const Bot& bot, const
 	{
 		sendResponse(bot_socket_fd, "", channel, "");
 		sendResponse(bot_socket_fd, "", channel, "There is already a Battleships game in progress between " COLOR RED + username + RESET " and " COLOR RED + opponent + RESET ".");
-		sendResponse(bot_socket_fd, "", channel, COLOR RED + username + RESET ": to see your current game board type " COLOR YELLOW "!board " + opponent + RESET ".");
+		sendResponse(bot_socket_fd, "", channel, COLOR RED + username + RESET ": to see your current game board type " COLOR YELLOW "!shots " + opponent + RESET ".");
 		sendResponse(bot_socket_fd, "", channel, "");
 
 		return;
@@ -305,7 +326,7 @@ void	BotResponseHandler::sendMPGameAlreadyRunningFeedback( const Bot& bot, const
 
 	sendResponse(bot_socket_fd, username, "", "");
 	sendResponse(bot_socket_fd, username, "", "There is already a Battleships game in progress between you and " COLOR RED + opponent + RESET ".");
-	sendResponse(bot_socket_fd, username, "", "Type " COLOR YELLOW "!board " + opponent + RESET " to see your current game board.");
+	sendResponse(bot_socket_fd, username, "", "Type " COLOR YELLOW "!shots " + opponent + RESET " to see your current game board.");
 	sendResponse(bot_socket_fd, username, "", "");
 }
 
@@ -349,8 +370,88 @@ void	BotResponseHandler::sendTurnInfo( const Bot& bot, const std::string& player
 		sendResponse(bot_socket_fd, player_one, "", "It is " COLOR RED + player_two + "'s" RESET " turn.");
 		sendResponse(bot_socket_fd, player_one, "", "");
 	}
-
 }
+
+void	BotResponseHandler::sendCannotSurrenderToSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "You cannot surrender to yourself...");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendSurrender( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	if ( !channel.empty() )
+	{
+		sendResponse(bot_socket_fd, "", channel, "");
+		sendResponse(bot_socket_fd, "", channel, COLOR RED + username + RESET " publicly surrenders to " COLOR RED + opponent + RESET ".");
+		sendResponse(bot_socket_fd, "", channel, COLOR GREEN + opponent + " has won the match!" RESET);
+		sendResponse(bot_socket_fd, "", channel, "");
+	}
+
+	if ( !bot.memberInChannel(username) || channel.empty() )
+	{
+		sendResponse(bot_socket_fd, username, "", "");
+		sendResponse(bot_socket_fd, username, "", COLOR RED "You have surrendered your fleet to " + opponent + ". You lost the battle." RESET);
+		sendResponse(bot_socket_fd, username, "", "");
+	}
+
+	if ( !bot.memberInChannel(opponent) || channel.empty() )
+	{
+		sendResponse(bot_socket_fd, opponent, "", "");
+		sendResponse(bot_socket_fd, opponent, "", COLOR GREEN + username + " has surrendered! You have won the game!" RESET);
+		sendResponse(bot_socket_fd, opponent, "", "");
+	}
+}
+
+void	BotResponseHandler::sendCannotShootSelf( const Bot& bot, const std::string& username, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "Hey, watch where you point that thing, the enemy is over there!");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf( const Bot& bot, const std::string& username, const std::string& channel )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	sendResponse(bot_socket_fd, username, channel, "");
+	sendResponse(bot_socket_fd, username, channel, "Please specify the name of the user your fleet is fighting, not yourself.");
+	sendResponse(bot_socket_fd, username, channel, "");
+}
+
+void	BotResponseHandler::sendShot( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& playerShots, const Grid& opponentFleet )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot.getSocket(), "", channel, "You fired a shot at " + opponent + "'s fleet, " COLOR RED + username + RESET ". Check your DMs for the shot result.");
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, playerShots, BotResponseHandler::GridType::TRACKING, opponent);
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), opponent, opponentFleet, BotResponseHandler::GridType::REFERENCE, username);
+}
+
+void	BotResponseHandler::sendFleet( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& grid )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "A grid with your fleet was sent to your DMs, " COLOR RED + username + RESET ".");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid, BotResponseHandler::GridType::REFERENCE, opponent);
+}
+
+void	BotResponseHandler::sendShots( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& grid )
+{
+	int	bot_socket_fd { bot.getSocket() };
+
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot_socket_fd, username, channel, "Your shots grid was sent to your DMs, " COLOR RED + username + RESET ".");
+	BotResponseHandler::sendPlayerGrid(bot_socket_fd, username, grid, BotResponseHandler::GridType::TRACKING, opponent);
+}
+
 
 
 

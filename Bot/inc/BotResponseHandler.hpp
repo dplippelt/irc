@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:27:31 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 17:41:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 11:21:27 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,16 @@ class BotResponseHandler
 		{
 			REFERENCE,
 			TRACKING,
+			SOLUTION,
 			NONE,
 		};
 
-		static void	sendPlayerGrid( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid, const std::string& opponent = "", GridType type = NONE);
+		static void	sendPlayerGrid( int bot_socket_fd, const std::string& username, const Grid& grid, GridType type = NONE, const std::string& opponent = "");
+		static void	sendStart( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid );
+		static void	sendFire( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid );
+		static void	sendBoard( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid );
 		static void	sendSolution( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid );
+		static void	sendNewGame( int bot_socket_fd, const std::string& username, const std::string& channel, const Grid& grid );
 		static void sendUnknownCmdFeedback( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& cmd );
 		static void sendGameAlreadyRunningFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
 		static void sendNoGameFeedback( int bot_socket_fd, const std::string& username, const std::string& channel );
@@ -61,6 +66,14 @@ class BotResponseHandler
 		static void	sendNoMPGameFeedback( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel );
 		static void	sendNotYourTurnFeedback( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel );
 		static void	sendTurnInfo( const Bot& bot, const std::string& player_one, const std::string& player_two, const MPGame* mp_game );
+		static void sendCannotSurrenderToSelfFeedback( const Bot& bot, const std::string& username, const std::string& channel );
+		static void sendSurrender( const Bot& bot, const std::string& username, const std::string& opponent, const std::string& channel );
+		static void sendCannotShowFleetOrShotsAgainstSelf( const Bot& bot, const std::string& username, const std::string& channel );
+		static void sendCannotShootSelf( const Bot& bot, const std::string& username, const std::string& channel );
+		static void	sendShot( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& playerShots, const Grid& opponentFleet );
+		static void	sendFleet( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& grid );
+		static void	sendShots( const Bot& bot, const std::string& username, const std::string& channel, const std::string& opponent, const Grid& grid );
+
 
 		// Helpers
 		static void	sendResponse( int bot_socket_fd, const std::string& username, const std::string& channel, const std::string& msg );

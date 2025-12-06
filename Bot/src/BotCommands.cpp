@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/05 17:21:06 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 11:24:52 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,16 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 	switch ( getCmdType(cmd) )
 	{
 	case CMD_START:
-		startGame(username, channel, bot);
+		start(username, channel, bot);
 		break;
 	case CMD_FIRE:
-		fireShot(username, channel, message, bot);
+		fire(username, channel, message, bot);
 		break;
 	case CMD_BOARD:
-		showBoard(username, channel, bot);
+		board(username, channel, bot);
 		break;
 	case CMD_SOLUTION:
-		showSolution(username, channel, bot);
+		solution(username, channel, bot);
 		break;
 	case CMD_NEWGAME:
 		newGame(username, channel, bot);
@@ -44,8 +44,17 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 	case CMD_ACCEPT:
 		acceptChallenge(username, channel, message, bot);
 		break;
-	case CMD_MP_FIRE:
-		fireShotMP(username, channel, message, bot);
+	case CMD_SHOOT:
+		shoot(username, channel, message, bot);
+		break;
+	case CMD_SURRENDER:
+		surrender(username, channel, message, bot);
+		break;
+	case CMD_FLEET:
+		fleet(username, channel, message, bot);
+		break;
+	case CMD_SHOTS:
+		shots(username, channel, message, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
@@ -55,7 +64,7 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 	}
 }
 
-void	BotCommands::startGame( const std::string& username, const std::string& channel, Bot& bot )
+void	BotCommands::start( const std::string& username, const std::string& channel, Bot& bot )
 {
 	Game*	game;
 
@@ -82,10 +91,10 @@ void	BotCommands::startGame( const std::string& username, const std::string& cha
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendStart(bot.getSocket(), username, channel, game->getPlayerGridObject());
 }
 
-void	BotCommands::fireShot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::fire( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
 {
 	const std::map<std::string, Game*>& games { bot.getGames() };
 
@@ -116,7 +125,7 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 
 	ShotResult sr { game->processShot(target) };
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendFire(bot.getSocket(), username, channel, game->getPlayerGridObject());
 
 	switch (sr)
 	{
@@ -138,7 +147,7 @@ void	BotCommands::fireShot( const std::string& username, const std::string& chan
 	}
 }
 
-void	BotCommands::showBoard( const std::string& username, const std::string& channel, const Bot& bot )
+void	BotCommands::board( const std::string& username, const std::string& channel, const Bot& bot )
 {
 	const std::map<std::string, Game*>& games { bot.getGames() };
 
@@ -151,10 +160,10 @@ void	BotCommands::showBoard( const std::string& username, const std::string& cha
 
 	Game* game { it->second };
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendBoard(bot.getSocket(), username, channel, game->getPlayerGridObject());
 }
 
-void	BotCommands::showSolution( const std::string& username, const std::string& channel, const Bot& bot )
+void	BotCommands::solution( const std::string& username, const std::string& channel, const Bot& bot )
 {
 	const std::map<std::string, Game*>& games { bot.getGames() };
 
@@ -198,7 +207,7 @@ void	BotCommands::newGame( const std::string& username, const std::string& chann
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendNewGame(bot.getSocket(), username, channel, game->getPlayerGridObject());
 }
 
 void BotCommands::help( const std::string& username, const std::string& channel, const Bot& bot )
@@ -226,7 +235,6 @@ void	BotCommands::challenge( const std::string& challenger, const std::string& c
 	}
 
 	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
-
 	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if ( challenger == challenged )
@@ -287,11 +295,17 @@ void	BotCommands::acceptChallenge( const std::string& challenged, const std::str
 	startMPGame(challenger, challenged, channel, bot);
 }
 
-void	BotCommands::fireShotMP( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::shoot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
 {
 	const auto&			mp_games { bot.getMPGames() };
 	const std::string	opponent { getOpponentName(msg) };
 	const std::string	target { getMPTarget(msg) };
+
+	if ( username == opponent )
+	{
+		BotResponseHandler::sendCannotShootSelf(bot, username, channel);
+		return;
+	}
 
 	auto it	{ bot.getMPGame(username, opponent) };
 	if ( it == mp_games.end() )
@@ -316,11 +330,7 @@ void	BotCommands::fireShotMP( const std::string& username, const std::string& ch
 
 	ShotResult sr { mp_game->processShot(target, username) };
 
-	if ( !channel.empty() )
-		BotResponseHandler::sendResponse(bot.getSocket(), "", channel, "Your shot has been fired, " COLOR RED + username + RESET ". Check your DMs for the grid.");
-
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), username, "", *mp_game->getPlayerShotsGridObject(username), opponent, BotResponseHandler::GridType::TRACKING);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), opponent, "", *mp_game->getPlayerGridObject(opponent), username, BotResponseHandler::GridType::REFERENCE);
+	BotResponseHandler::sendShot(bot, username, channel, opponent, *mp_game->getPlayerShotsGridObject(username), *mp_game->getPlayerGridObject(opponent));
 
 	switch (sr)
 	{
@@ -336,13 +346,82 @@ void	BotCommands::fireShotMP( const std::string& username, const std::string& ch
 	case ShotResult::WON:
 		BotResponseHandler::sendWonFeedback(bot.getSocket(), username, opponent);
 		bot.removeMPGame(username, opponent);
-		bot.removeChallenge(username, opponent); //add an end game command and also remove challenge and game in there
+		bot.removeChallenge(username, opponent);
 		return;
 	default:
 		break;
 	}
 
 	BotResponseHandler::sendTurnInfo(bot, username, opponent, mp_game);
+}
+
+void	BotCommands::surrender( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	const auto&			mp_games { bot.getMPGames() };
+	const std::string	opponent { getOpponentName(msg) };
+
+	if ( username == opponent )
+	{
+		BotResponseHandler::sendCannotSurrenderToSelfFeedback(bot, opponent, channel);
+		return;
+	}
+
+	auto it	{ bot.getMPGame(username, opponent) };
+	if ( it == mp_games.end() )
+	{
+		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		return;
+	}
+
+	BotResponseHandler::sendSurrender(bot, username, opponent, channel);
+	bot.removeMPGame(username, opponent);
+	bot.removeChallenge(username, opponent);
+}
+
+void	BotCommands::fleet( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	const auto&			mp_games { bot.getMPGames() };
+	const std::string	opponent { getOpponentName(msg) };
+
+	if ( username == opponent )
+	{
+		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(bot, opponent, channel);
+		return;
+	}
+
+	auto it	{ bot.getMPGame(username, opponent) };
+	if ( it == mp_games.end() )
+	{
+		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		return;
+	}
+
+	MPGame* mp_game { it->second };
+
+	BotResponseHandler::sendFleet(bot, username, channel, opponent, *mp_game->getPlayerGridObject(username));
+}
+
+void	BotCommands::shots( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	const auto&			mp_games { bot.getMPGames() };
+	const std::string	opponent { getOpponentName(msg) };
+
+	if ( username == opponent )
+	{
+		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(bot, opponent, channel);
+		return;
+	}
+
+	auto it	{ bot.getMPGame(username, opponent) };
+	if ( it == mp_games.end() )
+	{
+		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		return;
+	}
+
+	MPGame* mp_game { it->second };
+
+	BotResponseHandler::sendShots(bot, username, channel, opponent, *mp_game->getPlayerShotsGridObject(username));
 }
 
 
@@ -371,10 +450,10 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, "", *mp_game->getPlayerGridObject(challenger), challenged, BotResponseHandler::GridType::REFERENCE);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, "", *mp_game->getPlayerShotsGridObject(challenger), challenged, BotResponseHandler::GridType::TRACKING);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, "", *mp_game->getPlayerGridObject(challenged), challenger, BotResponseHandler::GridType::REFERENCE);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, "", *mp_game->getPlayerShotsGridObject(challenged), challenger, BotResponseHandler::GridType::TRACKING);
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, *mp_game->getPlayerGridObject(challenger), BotResponseHandler::GridType::REFERENCE, challenged);
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, *mp_game->getPlayerShotsGridObject(challenger), BotResponseHandler::GridType::TRACKING, challenged);
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, *mp_game->getPlayerGridObject(challenged), BotResponseHandler::GridType::REFERENCE, challenger);
+	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, *mp_game->getPlayerShotsGridObject(challenged), BotResponseHandler::GridType::TRACKING, challenger);
 
 	BotResponseHandler::sendTurnInfo(bot, challenger, challenged, mp_game);
 
