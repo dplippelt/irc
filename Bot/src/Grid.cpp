@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:48:32 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/29 09:29:53 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 12:31:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ Grid::Grid()
 
 /* ====================== Getters & Setters ====================== */
 
-std::vector<std::vector<char>> Grid::getGrid() const
+const std::vector<std::vector<char>>& Grid::getGrid() const
 {
 	return (m_grid);
 }

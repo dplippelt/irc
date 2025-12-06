@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 14:43:37 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 12:31:34 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,12 @@ class Grid
 		Grid( const Grid& ) = delete;
 		Grid& operator=( const Grid& ) = delete;
 
-		std::vector<std::vector<char>>	getGrid() const;
-		int								getSize() const;
-		char							getEmptySymbol() const;
-		char							getMissSymbol() const;
-		char							getHitSymbol() const;
-		void							updateGrid(int x, int y, char symbol);
+		const std::vector<std::vector<char>>&	getGrid() const;
+		int										getSize() const;
+		char									getEmptySymbol() const;
+		char									getMissSymbol() const;
+		char									getHitSymbol() const;
+		void									updateGrid(int x, int y, char symbol);
 
 		void	addShip( Battleship& ship );
 		void	clearGrid();
