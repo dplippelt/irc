@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:32:25 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/06 11:32:20 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/06 12:37:06 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 void	BotResponseHandler::sendPlayerGrid( int bot_socket_fd, const std::string& username, const Grid& grid, GridType type, const std::string& opponent )
 {
-	std::string 		gridMsg { grid.getGridMsg() };
+	const std::string	gridMsg { grid.getGridMsg() };
 	std::istringstream	iss { gridMsg };
 	std::string			line {};
 
@@ -131,7 +131,7 @@ void BotResponseHandler::sendHitFeedback( int bot_socket_fd, const std::string& 
 {
 	if (opponent.length())
 	{
-		sendResponse(bot_socket_fd, opponent, "", COLOR RED + username + "'s" RESET " shot at " COLOR YELLOW + capitalize(target) + " was a " COLOR RED "hit" RESET "!");
+		sendResponse(bot_socket_fd, opponent, "", COLOR RED + username + "'s" RESET " shot at " COLOR YELLOW + capitalize(target) + RESET " was a " COLOR RED "hit" RESET "!");
 		sendResponse(bot_socket_fd, username, "", "You " COLOR RED "hit" RESET " one of " COLOR RED + opponent + "'s" RESET " ships at " COLOR YELLOW + capitalize(target) + RESET "!");
 		sendResponse(bot_socket_fd, opponent, "", "");
 		sendResponse(bot_socket_fd, username, "", "");
