@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/06 12:23:10 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/08 10:24:00 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,27 +31,37 @@ Bot::Bot( const std::string& server_port, std::string_view pw )
 
 	validatePort(server_port);
 
-	if (getaddrinfo("localhost", server_port.data(), &hints, &m_server_addr))
-		throw std::runtime_error("Error: failed to get required address info");
-	if ( m_server_addr->ai_next != NULL )
-		std::cerr << "Warning: found more than one matching set of address info";
+	try
+	{
+		if ( getaddrinfo("localhost", server_port.data(), &hints, &m_server_addr) )
+			throw std::runtime_error("Error: failed to get required address info");
+		if ( m_server_addr->ai_next != NULL )
+			std::cerr << "Warning: found more than one matching set of address info";
 
-	m_bot_socket_fd = socket(m_server_addr->ai_family, m_server_addr->ai_socktype, m_server_addr->ai_protocol);
+		m_bot_socket_fd = socket(m_server_addr->ai_family, m_server_addr->ai_socktype, m_server_addr->ai_protocol);
 
-	if ( m_bot_socket_fd == - 1)
-		throw std::runtime_error("Error: failed to create socket");
+		if ( m_bot_socket_fd == - 1)
+			throw std::runtime_error("Error: failed to create socket");
 
-	if ( connect(m_bot_socket_fd, m_server_addr->ai_addr, m_server_addr->ai_addrlen) )
-		throw std::runtime_error("Error: could not connect to server");
+		if ( connect(m_bot_socket_fd, m_server_addr->ai_addr, m_server_addr->ai_addrlen) )
+			throw std::runtime_error("Error: could not connect to server");
 
-	if ( fcntl(m_bot_socket_fd, F_SETFL, O_NONBLOCK) == -1 )
-		throw std::runtime_error("Error: failed to set bot socket to non-blocking");
+		if ( fcntl(m_bot_socket_fd, F_SETFL, O_NONBLOCK) == -1 )
+			throw std::runtime_error("Error: failed to set bot socket to non-blocking");
 
-	m_pollfd.fd = m_bot_socket_fd;
-	m_pollfd.events = POLLIN;
+		m_pollfd.fd = m_bot_socket_fd;
+		m_pollfd.events = POLLIN;
 
-	freeaddrinfo(m_server_addr);
-	m_server_addr = nullptr;
+		freeaddrinfo(m_server_addr);
+		m_server_addr = nullptr;
+	}
+	catch (...)
+	{
+		if ( m_server_addr != nullptr )
+			freeaddrinfo(m_server_addr);
+		throw;
+	}
+
 
 	authenticateAndJoin();
 }
