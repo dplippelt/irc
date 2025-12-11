@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:17:23 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:10:02 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:08:04 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@
 
 // ==================== Registration Check ====================
 
-void Authentication::checkRegistration(User* user)
+void Authentication::checkRegistration(User* user, ResponseHandler& responseHandler)
 {
 	if (user->hasProvidedPassword() && user->hasNickname() && user->hasUsername() && !user->isRegistered())
 	{
 		user->setRegistered(true);
-		ResponseHandler::sendWelcome(user);
+		responseHandler.sendWelcome(user);
 	}
 }
 
@@ -55,12 +55,12 @@ bool Authentication::isRegistered(User* user)
 
 // ==================== Error Handling ====================
 
-void Authentication::sendAuthenticationError(int fd, const std::string& command)
+void Authentication::sendAuthenticationError(int fd, const std::string& command, ResponseHandler& responseHandler)
 {
 	if (command == "NICK" || command == "USER")
-		ResponseHandler::sendNumericReply(fd, ERR_NOTREGISTERED, ":You must provide a password first (PASS command)");
+		responseHandler.sendNumericReply(fd, ERR_NOTREGISTERED, ":You must provide a password first (PASS command)");
 	else
-		ResponseHandler::sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(fd, ERR_NOTREGISTERED, ":You have not registered");
 }
 
 // ==================== Password Validation ====================

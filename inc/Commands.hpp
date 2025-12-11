@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/27 14:53:40 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.hpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
+/*   Updated: 2025/12/11 15:50:00 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,21 +102,22 @@ class Commands
 		static void executeCommand(User* user, const std::string& command,
 							const std::vector<std::string>& params,
 							Server& server,
+							ResponseHandler& responseHandler,
 							const std::string& serverPassword);
 
-		static void handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword);
-		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server);
+		static void handlePASS(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler, const std::string& serverPassword);
+		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
 		static void handleUSER(User* user, const std::vector<std::string>& params);
 		static void handlePING(User* user, const std::vector<std::string>& params);
-		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server);
-		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server);
-		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server);
-		static void handlePART(User* user, const std::vector<std::string>& params, Server& server);
-		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server);
-		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server);
-		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server);
-		static void handleWHOIS(User* user, const std::vector<std::string>& params, Server& server);
-		static void	handleMODE(User *user, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
+		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handlePART(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void handleWHOIS(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
+		static void	handleMODE(User *user, const std::vector<std::string>& params, Server &server, ResponseHandler& responseHandler); // [Takato]: added for mode operation
 };
 
 #endif

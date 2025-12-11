@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 14:27:01 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:05:29 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
+	, m_responseHandler(nullptr)
 {
 	struct addrinfo	hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
@@ -56,6 +57,10 @@ Server::Server( const std::string& port, std::string_view pw )
 
 		if ( bind(m_listening_socket_fd, m_addr->ai_addr, m_addr->ai_addrlen) == -1 )
 			throw std::runtime_error("Error: failed to bind address to socket");
+		if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
+			throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
+
+		m_responseHandler = new ResponseHandler(*this);
 
 		freeaddrinfo(m_addr);
 		m_addr = nullptr;
@@ -204,7 +209,7 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 				for (std::map<int, User*>::const_iterator memIt = members.begin(); memIt != members.end(); ++memIt)
 				{
 					if (memIt->first != client_fd)
-						ResponseHandler::sendResponse(memIt->first, quitMessage);
+						sendToClient(memIt->first, quitMessage);
 				}
 			}
 
@@ -278,7 +283,7 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 	std::list<Message> &messages { m_messagesList[client_fd].getMessages() };
 
 	for ( auto& msg : messages )
-		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this, m_pw);
+		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this,*m_responseHandler, m_pw);
 
 	messages.clear();
 }
