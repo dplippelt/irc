@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 16:22:39 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:32:32 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,7 +242,7 @@ bool	Validation::validateWHOIS( User* user, const std::vector<std::string>& para
 	return true;
 }
 
-Channel*	Validation::validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName, ResponseHandler& responseHandler, ResponseHandler& responseHandler )
+Channel*	Validation::validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName, ResponseHandler& responseHandler )
 {
 	if (params.empty())
 	{
@@ -446,7 +446,7 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 	return channel;
 }
 
-User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server, ResponseHandler& responseHandler, ResponseHandler& responseHandler )
+User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server, ResponseHandler& responseHandler )
 {
 	User* targetUser { nullptr };
 

@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 14:05:42 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:31:24 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ class User
 		const std::string& getUsername() const;
 		const std::string& getRealname() const;
 		const std::string& getHostname() const;
-		std::string getSendBuffer() const;
+		std::string& getSendBuffer();
 		bool hasPendingData() const;
 		void queueMessage(const std::string& message);
 		void clearSendBuffer();

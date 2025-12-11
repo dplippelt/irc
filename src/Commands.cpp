@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 16:26:01 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:33:06 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -442,7 +442,7 @@ void Commands::handlePART(User* user, const std::vector<std::string>& params, Se
 
 // ==================== TOPIC Handler ====================
 
-void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& ResponseHandler)
+void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string	channelName;
 

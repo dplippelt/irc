@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:15:28 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 14:07:48 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:30:58 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ const std::string& User::getHostname() const
 	return _hostname;
 }
 
-std::string User::getSendBuffer() const
+std::string& User::getSendBuffer()
 {
 	return _sendBuffer;
 }
