@@ -1,17 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/28 10:31:56 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/27 13:24:13 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Channel.cpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
+/*   Updated: 2025/12/11 14:45:50 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 #include "ResponseHandler.hpp"
+#include "Server.hpp"
 
 Channel::Channel(const std::string& name)
 	: _name(name)
@@ -185,12 +186,12 @@ bool Channel::isInvited(int fd) const
 	return _inviteList.find(fd) != _inviteList.end();
 }
 
-void Channel::broadcast(const std::string& message, int excludeFd)
+void Channel::broadcast(const std::string& message, Server& server, int excludeFd)
 {
 	for (std::map<int, User*>::const_iterator it = _members.begin(); it != _members.end(); ++it)
 	{
 		if (it->first != excludeFd)
-			ResponseHandler::sendResponse(it->first, message);
+			server.sendToClient(it->first, message);
 	}
 }
 
