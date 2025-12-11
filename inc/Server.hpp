@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/27 14:53:59 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/11 14:24:02 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,8 @@ class Server
 		const std::map<std::string, Channel*>&	getChannels() const;
 		const std::string& 						getPassword() const { return m_pw; }
 
+		void	sendToClient(int fd, const std::string& message);
+
 		#ifdef DEBUG
 		void	printModeStates() const;
 		#endif
@@ -75,6 +77,9 @@ class Server
 		void		acceptConn();
 		void		processClientAct( int client_fd );
 		void		processBuffer( const std::string& buffer, int client_fd );
+		void		enablePollOut(int fd);
+		void		disablePollOut(int fd);
+		void		trySendPendingData(int client_fd);
 };
 
 enum Command

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/08 10:24:10 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/11 14:27:01 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,6 +170,12 @@ void	Server::doPoll()
 			else
 				processClientAct(m_pollfds[i].fd);
 		}
+
+		if (m_pollfds[i].revents & POLLOUT)
+		{
+			trySendPendingData(m_pollfds[i].fd);
+		}
+
 	}
 }
 
@@ -297,6 +303,96 @@ std::map<int, User*>& Server::getUsers()
 std::map<std::string, Channel*>& Server::getChannels()
 {
 	return m_channels;
+}
+
+/* ==================== POLLOUT Management ==================== */
+
+void	Server::enablePollOut(int fd)
+{
+	for ( size_t i {0}; i < m_pollfds.size(); ++i )
+	{
+		if ( m_pollfds[i].fd == fd )
+		{
+			m_pollfds[i].events |= POLLOUT;
+			break;
+		}
+	}
+}
+
+void	Server::disablePollOut(int fd)
+{
+	for ( size_t i {0}; i < m_pollfds.size(); ++i )
+	{
+		if ( m_pollfds[i].fd == fd )
+		{
+			m_pollfds[i].events &= ~POLLOUT;
+			break;
+		}
+	}
+}
+
+void	Server::trySendPendingData(int client_fd)
+{
+	std::map<int, User*>::iterator it = m_users.find(client_fd);
+	if ( it == m_users.end() )
+		return;
+
+	User* user = it->second;
+	if ( !user->hasPendingData() )
+	{
+		disablePollOut(client_fd);
+		return;
+	}
+
+	std::string& buffer = user->getSendBuffer();
+
+	ssize_t sent = send(client_fd, buffer.c_str(), buffer.length(), 0);
+
+	if ( sent < 0)
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			return;
+		std::cerr << "Error sending to fd" << client_fd << ": " << strerror(errno) << std::endl;
+		return;
+ 	}
+
+	buffer.erase(0, sent);
+
+	if ( buffer.empty() )
+		disablePollOut(client_fd);
+}
+
+void	Server::sendToClient(int fd, const std::string& message)
+{
+	std::map<int, User*>::iterator it = m_users.find(fd);
+	if ( it == m_users.end() )
+		return;
+
+	User* user = it->second;
+	if ( user->hasPendingData() )
+	{
+		user->queueMessage(message);
+		return;
+	}
+	ssize_t sent = send(fd, message.c_str(), message.length(), 0);
+	if ( sent < 0)
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+		{
+			user->queueMessage(message);
+			enablePollOut(fd);
+			return;
+		}
+		std::cerr << "Error sending to fd" << fd << ": " << strerror(errno) << std::endl;
+		removeClient(fd);
+		return;
+	}
+	if ( sent < static_cast<ssize_t>(message.length()) )
+	{
+		std::string remainder = message.substr(sent);
+		user->queueMessage(remainder);
+		enablePollOut(fd);
+	}
 }
 
 #ifdef DEBUG
