@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:55:58 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:31:24 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class User
 		std::vector<std::string> _channels;
 
 		std::string _recvBuffer;
+		std::string _sendBuffer;
 
 	public:
 		User(int fd);
@@ -46,6 +47,10 @@ class User
 		const std::string& getUsername() const;
 		const std::string& getRealname() const;
 		const std::string& getHostname() const;
+		std::string& getSendBuffer();
+		bool hasPendingData() const;
+		void queueMessage(const std::string& message);
+		void clearSendBuffer();
 		bool hasProvidedPassword() const;
 		bool hasNickname() const;
 		bool hasUsername() const;

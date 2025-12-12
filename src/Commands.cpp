@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/28 10:56:01 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Commands.cpp                                       :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
+/*   Updated: 2025/12/12 09:57:16 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,84 +37,85 @@ Channel* Commands::getOrCreateChannel(const std::string& channelName, std::map<s
 void Commands::executeCommand(User* user, const std::string& command,
 								const std::vector<std::string>& params,
 								Server& server,
+								ResponseHandler& responseHandler,
 								const std::string& serverPassword)
 {
 	if (!Authentication::canExecuteCommand(user, command))
 	{
-		Authentication::sendAuthenticationError(user->getFd(), command);
+		Authentication::sendAuthenticationError(user->getFd(), command, responseHandler);
 		return;
 	}
 
 	switch ( getCmdType(command) )
 	{
 	case CMD_PASS:
-		handlePASS(user, params, serverPassword);
+		handlePASS(user, params, responseHandler, serverPassword);
 		break;
 	case CMD_NICK:
-		handleNICK(user, params, server);
+		handleNICK(user, params, server, responseHandler);
 		break;
 	case CMD_USER:
-		handleUSER(user, params);
+		handleUSER(user, params, responseHandler);
 		break;
 	case CMD_PING:
 		handlePING(user, params);
 		break;
 	case CMD_JOIN:
-		handleJOIN(user, params, server);
+		handleJOIN(user, params, server, responseHandler);
 		break;
 	case CMD_PRIVMSG:
-		handlePRIVMSG(user, params, server);
+		handlePRIVMSG(user, params, server, responseHandler);
 		break;
 	case CMD_KICK:
-		handleKICK(user, params, server);
+		handleKICK(user, params, server, responseHandler);
 		break;
 	case CMD_PART:
-		handlePART(user, params, server);
+		handlePART(user, params, server, responseHandler);
 		break;
 	case CMD_TOPIC:
-		handleTOPIC(user, params, server);
+		handleTOPIC(user, params, server, responseHandler);
 		break;
 	case CMD_INVITE:
-		handleINVITE(user, params, server);
+		handleINVITE(user, params, server, responseHandler);
 		break;
 	case CMD_QUIT:
-		handleQUIT(user, params, server);
+		handleQUIT(user, params, server, responseHandler);
 		break;
 	case CMD_WHOIS:
-		handleWHOIS(user, params, server);
+		handleWHOIS(user, params, server, responseHandler);
 		break;
 	case CMD_MODE:
-		handleMODE(user, params, server);
+		handleMODE(user, params, server, responseHandler);
 		break;
 	default:
-		ResponseHandler::sendNumericReply(user->getFd(), 421, command + " :Unknown command");
+		responseHandler.sendNumericReply(user->getFd(), 421, command + " :Unknown command");
 		break;
 	}
 }
 
 // ==================== PASS Command ====================
 
-void Commands::handlePASS(User* user, const std::vector<std::string>& params, const std::string& serverPassword)
+void Commands::handlePASS(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler, const std::string& serverPassword)
 {
-	if (!Validation::validatePASS(user, params))
+	if (!Validation::validatePASS(user, params, responseHandler))
 		return;
 
 	std::string providedPassword = ValidationHelper::removeLeadingColon(params.front());
 	if (!ValidationHelper::isValidPassword(providedPassword))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH, ":Password contains invalid characters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH, ":Password contains invalid characters");
 		return;
 	}
 	if (!Authentication::validatePassword(providedPassword, serverPassword))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,  ":Password incorrect");
+		responseHandler.sendNumericReply(user->getFd(), ERR_PASSWDMISMATCH,  ":Password incorrect");
 		return;
 	}
 
 	user->setPasswordProvided(true);
 	user->setAuthenticated(true);
 
-	Authentication::checkRegistration(user);
+	Authentication::checkRegistration(user, responseHandler);
 
 	#ifdef DEBUG
 	std::cout << "User fd " << user->getFd() << " provided correct password." << std::endl;
@@ -123,11 +124,11 @@ void Commands::handlePASS(User* user, const std::vector<std::string>& params, co
 
 // ==================== NICK Command ====================
 
-void Commands::handleNICK(User* user, const std::vector<std::string>& params,  Server& server)
+void Commands::handleNICK(User* user, const std::vector<std::string>& params,  Server& server, ResponseHandler& responseHandler)
 {
 	std::string newNick {};
 
-	if (!Validation::validateNICK(user, params, server, newNick))
+	if (!Validation::validateNICK(user, params, server, newNick, responseHandler))
 		return;
 
 	std::string oldNick = user->getNickname();
@@ -137,10 +138,10 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params,  S
 	if (Authentication::isRegistered(user))
 	{
 		std::string nickChangeMsg = user->getPrefix() + " NICK :" + newNick;
-		ResponseHandler::sendResponse(user->getFd(), nickChangeMsg);
+		responseHandler.sendResponse(user->getFd(), nickChangeMsg);
 	}
 
-	Authentication::checkRegistration(user);
+	Authentication::checkRegistration(user, responseHandler);
 
 	#ifdef DEBUG
 	std::cout << "User fd " << user->getFd()
@@ -150,9 +151,9 @@ void Commands::handleNICK(User* user, const std::vector<std::string>& params,  S
 
 // ==================== USER Command ====================
 
-void Commands::handleUSER(User* user, const std::vector<std::string>& params)
+void Commands::handleUSER(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler)
 {
-	if (!Validation::validateUSER(user, params))
+	if (!Validation::validateUSER(user, params, responseHandler))
 		return;
 
 	std::vector<std::string>::const_iterator it = params.begin();
@@ -165,7 +166,7 @@ void Commands::handleUSER(User* user, const std::vector<std::string>& params)
 	user->setHostname("localhost");
 	user->setHasUsername(true);
 
-	Authentication::checkRegistration(user);
+	Authentication::checkRegistration(user, responseHandler);
 
 	#ifdef DEBUG
 	std::cout << "User fd " << user->getFd()
@@ -197,9 +198,9 @@ void Commands::handlePING(User* user, const std::vector<std::string>& params)
 
 // ==================== JOIN Command ====================
 
-void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
-	if (!Validation::validateJOIN(user, params))
+	if (!Validation::validateJOIN(user, params, responseHandler))
 		return;
 
 	std::string channelList = ValidationHelper::removeLeadingColon(params.front());
@@ -240,13 +241,13 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Se
 
 		if (!ValidationHelper::isValidChannelName(currentChannel))
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
+			responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
 			continue;
 		}
 
 		Channel* channel = getOrCreateChannel(currentChannel, channels);
 
-		if (!Validation::validateCanJoin(user, channel, channelKey))
+		if (!Validation::validateCanJoin(user, channel, channelKey, responseHandler))
 			continue;
 
 		channel->addMember(user);
@@ -255,7 +256,7 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Se
 		if (channel->isInvited(user->getFd()))
 			channel->removeInvite(user->getFd());
 
-		ResponseHandler::sendJoinMessages(user, channel);
+		responseHandler.sendJoinMessages(user, channel);
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname()
@@ -266,9 +267,9 @@ void Commands::handleJOIN(User* user, const std::vector<std::string>& params, Se
 
 // ==================== PRIVMSG Handler ====================
 
-void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
-	if (!Validation::validatePRIVMSG(user, params))
+	if (!Validation::validatePRIVMSG(user, params, responseHandler))
 		return;
 
 	std::vector<std::string>::const_iterator it = params.begin();
@@ -280,19 +281,13 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 
 	if (target[0] == '#' || target[0] == '&')
 	{
-		Channel* channel = Validation::validateCanSendMsg(user, target, server);
+		Channel* channel = Validation::validateCanSendMsg(user, target, server, responseHandler);
 
 		if (!channel)
 			return;
 
 		std::string privmsgToChannel = user->getPrefix() + " PRIVMSG " + target + " :" + message;
-
-		const std::map<int, User*>& members = channel->getMembers();
-		for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
-		{
-			if (it->first != user->getFd())
-				ResponseHandler::sendResponse(it->second->getFd(), privmsgToChannel);
-		}
+		channel->broadcast(privmsgToChannel, server, user->getFd());
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname()
@@ -316,12 +311,12 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 
 		if (targetUser == nullptr)
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
+			responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
 			return;
 		}
 
 		std::string privmsgToUser = user->getPrefix() + " PRIVMSG " + target + " :" + message;
-		ResponseHandler::sendResponse(targetUser->getFd(), privmsgToUser);
+		server.sendToClient(targetUser->getFd(), privmsgToUser);
 
 		#ifdef DEBUG
 		std::cout << "User " << user->getNickname()
@@ -332,27 +327,27 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 
 // ==================== KICK Handler ====================
 
-void Commands::handleKICK(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleKICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string	targetNick {};
 	std::string	channelName {};
 	std::string	reason {};
 
-	if (!Validation::validateKICK(user, params, targetNick, channelName, reason))
+	if (!Validation::validateKICK(user, params, targetNick, channelName, reason, responseHandler))
 		return;
 
-	Channel* channel = Validation::validateCanKick(user, channelName, server);
+	Channel* channel = Validation::validateCanKick(user, channelName, server, responseHandler);
 	if(!channel)
 		return;
 
-	User* targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server);
+	User* targetUser = Validation::validateCanKickTarget(user, channel, targetNick, server, responseHandler);
 	if(!targetUser)
 		return;
 
 	std::string kickMsg = user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 	const std::map<int, User*>& members = channel->getMembers();
 	for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
-		ResponseHandler::sendResponse(it->second->getFd(), kickMsg);
+		responseHandler.sendResponse(it->second->getFd(), kickMsg);
 
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
@@ -374,9 +369,9 @@ void Commands::handleKICK(User* user, const std::vector<std::string>& params, Se
 
 // ==================== PART Handler ====================
 
-void Commands::handlePART(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handlePART(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
-	if (!Validation::validatePART(user, params))
+	if (!Validation::validatePART(user, params, responseHandler))
 		return;
 
 	std::string channelList = params.front();
@@ -408,7 +403,7 @@ void Commands::handlePART(User* user, const std::vector<std::string>& params, Se
 	{
 		std::string currentChannel = channelVec[i];
 
-		Channel* channel = Validation::validateCanPart(user, currentChannel, server);
+		Channel* channel = Validation::validateCanPart(user, currentChannel, server, responseHandler);
 		if (!channel)
 			continue;
 
@@ -420,7 +415,7 @@ void Commands::handlePART(User* user, const std::vector<std::string>& params, Se
 		for (std::map<int, User*>::const_iterator it = members.begin();
 			it != members.end(); ++it)
 		{
-			ResponseHandler::sendResponse(it->second->getFd(), partMsg);
+			responseHandler.sendResponse(it->second->getFd(), partMsg);
 		}
 
 		channel->removeMember(user->getFd());
@@ -447,14 +442,14 @@ void Commands::handlePART(User* user, const std::vector<std::string>& params, Se
 
 // ==================== TOPIC Handler ====================
 
-void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string	channelName;
 
-	if (!Validation::validateTOPIC(user, params, channelName))
+	if (!Validation::validateTOPIC(user, params, channelName, responseHandler))
 		return;
 
-	Channel* channel = Validation::validateCanChangeTopic(user, channelName, server);
+	Channel* channel = Validation::validateCanChangeTopic(user, channelName, server, responseHandler);
 	if(!channel)
 		return;
 
@@ -464,7 +459,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 
 		if (currentTopic.empty())
 		{
-			ResponseHandler::sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
+			responseHandler.sendNumericReply(user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
 		}
 		else
 		{
@@ -472,7 +467,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
 					 << " " << user->getNickname() << " "
 					 << channelName << " :" << currentTopic;
-			ResponseHandler::sendResponse(user->getFd(), topicMsg.str());
+			responseHandler.sendResponse(user->getFd(), topicMsg.str());
 		}
 
 		#ifdef DEBUG
@@ -484,7 +479,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 
 	if (channel->isTopicRestricted() && !channel->isOperator(user->getFd()))
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -505,7 +500,7 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 	for (std::map<int, User*>::const_iterator memIt = members.begin();
 		 memIt != members.end(); ++memIt)
 	{
-		ResponseHandler::sendResponse(memIt->second->getFd(), topicChangeMsg);
+		responseHandler.sendResponse(memIt->second->getFd(), topicChangeMsg);
 	}
 
 	#ifdef DEBUG
@@ -517,17 +512,17 @@ void Commands::handleTOPIC(User* user, const std::vector<std::string>& params, S
 
 // ==================== INVITE Handler ====================
 
-void Commands::handleINVITE(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleINVITE(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string	targetNick;
 	std::string	channelName;
 
-	if (!Validation::validateINVITE(user, params, targetNick, channelName))
+	if (!Validation::validateINVITE(user, params, targetNick, channelName, responseHandler))
 		return;
-	Channel* channel = Validation::validateCanInvite(user, channelName, server);
+	Channel* channel = Validation::validateCanInvite(user, channelName, server, responseHandler);
 	if(!channel)
 		return;
-	User* targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server);
+	User* targetUser = Validation::validateCanInviteTarget(user, channel, channelName, targetNick, server, responseHandler);
 	if(!targetUser)
 		return;
 
@@ -536,10 +531,10 @@ void Commands::handleINVITE(User* user, const std::vector<std::string>& params, 
 	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
 				<< " " << user->getNickname() << " "
 				<< targetNick << " " << channelName;
-	ResponseHandler::sendResponse(user->getFd(), invitingMsg.str());
+	responseHandler.sendResponse(user->getFd(), invitingMsg.str());
 
 	std::string inviteMsg = user->getPrefix() + " INVITE " + targetNick + " :" + channelName;
-	ResponseHandler::sendResponse(targetUser->getFd(), inviteMsg);
+	responseHandler.sendResponse(targetUser->getFd(), inviteMsg);
 
 	#ifdef DEBUG
 	std::cout << "User " << user->getNickname()
@@ -550,11 +545,11 @@ void Commands::handleINVITE(User* user, const std::vector<std::string>& params, 
 
 // ==================== WHOIS Handler ====================
 
-void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string targetNick;
 
-	if (!Validation::validateWHOIS(user, params, targetNick))
+	if (!Validation::validateWHOIS(user, params, targetNick, responseHandler))
 		return;
 
 	User* targetUser = nullptr;
@@ -570,7 +565,7 @@ void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, S
 
 	if (targetUser == nullptr)
 	{
-		ResponseHandler::sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
 		return;
 	}
 
@@ -581,7 +576,7 @@ void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, S
 				 << targetUser->getUsername() << " "
 				 << targetUser->getHostname() << " * :"
 				 << targetUser->getRealname();
-	ResponseHandler::sendResponse(user->getFd(), whoisUserMsg.str());
+	responseHandler.sendResponse(user->getFd(), whoisUserMsg.str());
 
 	const std::vector<std::string>& channels = targetUser->getChannels();
 	if (!channels.empty())
@@ -597,20 +592,20 @@ void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, S
 				whoisChannelsMsg << " ";
 			whoisChannelsMsg << channels[i];
 		}
-		ResponseHandler::sendResponse(user->getFd(), whoisChannelsMsg.str());
+		responseHandler.sendResponse(user->getFd(), whoisChannelsMsg.str());
 	}
 
 	std::ostringstream whoisServerMsg;
 	whoisServerMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISSERVER
 				   << " " << user->getNickname() << " "
 				   << targetUser->getNickname() << " ft_irc :ft_irc server";
-	ResponseHandler::sendResponse(user->getFd(), whoisServerMsg.str());
+	responseHandler.sendResponse(user->getFd(), whoisServerMsg.str());
 
 	std::ostringstream endOfWhoisMsg;
 	endOfWhoisMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFWHOIS
 				  << " " << user->getNickname() << " "
 				  << targetUser->getNickname() << " :End of /WHOIS list";
-	ResponseHandler::sendResponse(user->getFd(), endOfWhoisMsg.str());
+	responseHandler.sendResponse(user->getFd(), endOfWhoisMsg.str());
 
 	#ifdef DEBUG
 	std::cout << "User " << user->getNickname() << " requested WHOIS for " << targetNick << std::endl;
@@ -619,7 +614,7 @@ void Commands::handleWHOIS(User* user, const std::vector<std::string>& params, S
 
 // ==================== QUIT Handler ====================
 
-void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Server& server)
+void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler)
 {
 	std::string quitMessage;
 
@@ -628,7 +623,7 @@ void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Se
 
 	std::string quitMsg = user->getPrefix() + " QUIT :Quit: " + quitMessage;
 
-	ResponseHandler::sendResponse(user->getFd(), "ERROR :Closing connection");
+	responseHandler.sendResponse(user->getFd(), "ERROR :Closing connection");
 
 	#ifdef DEBUG
 	std::cout << "User " << user->getNickname() << " quit: " << quitMessage << std::endl;
@@ -639,12 +634,12 @@ void Commands::handleQUIT(User* user, const std::vector<std::string>& params, Se
 
 // [Takato]: added from here
 // Edited by Dominique
-void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Server &server)
+void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Server &server, ResponseHandler &responseHandler)
 {
 	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
 
 	std::string		channelName {};
-	Channel* 		channel { Validation::validateMODE(user, params, server, channelName) };
+	Channel* 		channel { Validation::validateMODE(user, params, server, channelName, responseHandler) };
 
 	if (!channel)
 		return;
@@ -656,24 +651,24 @@ void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Se
 		// Irssi still auto-appends the current channel and sends "MODE #currentchannel".
 		// However, Irssi then rejects/doesn't display the (correctly formatted) server response.
 		// Unless you can find a solution this seems to be an irssi quirk we should just accept.
-		ResponseHandler::sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, user->getNickname(), channelName + " " + channel->getModeString());
+		responseHandler.sendNumericReply(user->getFd(), RPL_CHANNELMODEIS, user->getNickname(), channelName + " " + channel->getModeString());
 		return;
 	}
 
-	if (!Validation::validateCanChangeModes(user, channel, channelName))
+	if (!Validation::validateCanChangeModes(user, channel, channelName, responseHandler))
 		return;
 
 	const std::string	&modes{ params[1] };
 	const char 			sign{ modes.front() };
 
-	if (!Validation::validateModes(user, modes))
+	if (!Validation::validateModes(user, modes, responseHandler))
 		return;
 
 	int	modeSettingIdxOffset {};
 
 	for (int i{ 1 }; i < static_cast<int>(std::min(modes.size(), k_max_mode_num + 1)); ++i)
 	{
-		if (!Validation::validateModeCharacter(user, modes[i], k_mode_set_param + k_mode_set_toggle))
+		if (!Validation::validateModeCharacter(user, modes[i], k_mode_set_param + k_mode_set_toggle, responseHandler))
 			return;
 
 		if (k_mode_set_toggle.find(modes[i]) != std::string::npos)
@@ -682,7 +677,7 @@ void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Se
 		{
 			if (params.size() < MINIMUM_PARAMS_MODE + 1 + static_cast<std::size_t>(modeSettingIdxOffset))
 			{
-				ResponseHandler::sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+				responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
 				return;
 			}
 			try
@@ -693,7 +688,7 @@ void	Commands::handleMODE(User *user, const std::vector<std::string>& params, Se
 			}
 			catch ( IrcNumericCodes error_code )
 			{
-				Validation::handleModeOperationError(user, channelName, error_code);
+				Validation::handleModeOperationError(user, channelName, error_code, responseHandler);
 				if (!(sign == '-' && modes[i] == 'l'))
 					modeSettingIdxOffset++;
 				continue;

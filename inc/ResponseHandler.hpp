@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:25:09 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 14:41:02 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,25 +24,29 @@
 #include "Channel.hpp"
 #include "IrcNumericCodes.hpp"
 
+class Server;
+
 class ResponseHandler
 {
 	private:
-		ResponseHandler() = delete;
-		ResponseHandler(const ResponseHandler&) = delete;
-		ResponseHandler& operator=(const ResponseHandler&) = delete;
-		~ResponseHandler() = delete;
+		Server& _server;
 
-		static void sendTopicMessage(User* user, Channel* channel);
-		static void sendNameMessage(User* user, Channel* channel);
+		void sendTopicMessage(User* user, Channel* channel);
+		void sendNameMessage(User* user, Channel* channel);
 
 	public:
-		static void sendResponse(int fd, const std::string& message);
-		static void sendNumericReply(int fd, int code, const std::string& message);
-		static void sendNumericReply(int fd, int code, const std::string& nickname, const std::string& message);
-		static void sendError(int fd, const std::string& command, const std::string& message);
-		static void sendAuthenticationError(int fd, const std::string& command);
-		static void sendWelcome(User* user);
-		static void sendJoinMessages(User* user, Channel* channel);
+		ResponseHandler(Server& server);
+		ResponseHandler(const ResponseHandler&) = delete;
+		ResponseHandler& operator=(const ResponseHandler&) = delete;
+		~ResponseHandler();
+
+		void sendResponse(int fd, const std::string& message);
+		void sendNumericReply(int fd, int code, const std::string& message);
+		void sendNumericReply(int fd, int code, const std::string& nickname, const std::string& message);
+		void sendError(int fd, const std::string& command, const std::string& message);
+		void sendAuthenticationError(int fd, const std::string& command);
+		void sendWelcome(User* user);
+		void sendJoinMessages(User* user, Channel* channel);
 };
 
 #endif

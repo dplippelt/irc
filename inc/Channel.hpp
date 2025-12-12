@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/28 10:31:59 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/27 11:33:49 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Channel.hpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/28 10:31:59 by spyun         #+#    #+#                 */
+/*   Updated: 2025/12/11 14:45:06 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <vector>
 #include <ctime>
 #include "User.hpp"
+
+class Server;
 
 class Channel
 {
@@ -77,7 +79,7 @@ class Channel
 		void removeInvite(int fd);
 		bool isInvited(int fd) const;
 
-		void broadcast(const std::string& message, int excludeFd = -1);
+		void broadcast(const std::string& message, Server& server, int excludeFd = -1);
 		std::string getMemberList() const;
 		bool isEmpty() const;
 

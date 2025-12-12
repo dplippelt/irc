@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 16:15:28 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 10:57:31 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:30:58 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,26 @@ const std::string& User::getRealname() const
 const std::string& User::getHostname() const
 {
 	return _hostname;
+}
+
+std::string& User::getSendBuffer()
+{
+	return _sendBuffer;
+}
+
+bool User::hasPendingData() const
+{
+	return !_sendBuffer.empty();
+}
+
+void User::queueMessage(const std::string& message)
+{
+	_sendBuffer += message;
+}
+
+void User::clearSendBuffer()
+{
+	_sendBuffer.clear();
 }
 
 bool User::hasProvidedPassword() const

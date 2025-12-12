@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/08 10:24:10 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/11 16:05:29 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
+	, m_responseHandler(nullptr)
 {
 	struct addrinfo	hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
@@ -56,6 +57,10 @@ Server::Server( const std::string& port, std::string_view pw )
 
 		if ( bind(m_listening_socket_fd, m_addr->ai_addr, m_addr->ai_addrlen) == -1 )
 			throw std::runtime_error("Error: failed to bind address to socket");
+		if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
+			throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
+
+		m_responseHandler = new ResponseHandler(*this);
 
 		freeaddrinfo(m_addr);
 		m_addr = nullptr;
@@ -170,6 +175,12 @@ void	Server::doPoll()
 			else
 				processClientAct(m_pollfds[i].fd);
 		}
+
+		if (m_pollfds[i].revents & POLLOUT)
+		{
+			trySendPendingData(m_pollfds[i].fd);
+		}
+
 	}
 }
 
@@ -198,7 +209,7 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 				for (std::map<int, User*>::const_iterator memIt = members.begin(); memIt != members.end(); ++memIt)
 				{
 					if (memIt->first != client_fd)
-						ResponseHandler::sendResponse(memIt->first, quitMessage);
+						sendToClient(memIt->first, quitMessage);
 				}
 			}
 
@@ -272,7 +283,7 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 	std::list<Message> &messages { m_messagesList[client_fd].getMessages() };
 
 	for ( auto& msg : messages )
-		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this, m_pw);
+		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this,*m_responseHandler, m_pw);
 
 	messages.clear();
 }
@@ -297,6 +308,96 @@ std::map<int, User*>& Server::getUsers()
 std::map<std::string, Channel*>& Server::getChannels()
 {
 	return m_channels;
+}
+
+/* ==================== POLLOUT Management ==================== */
+
+void	Server::enablePollOut(int fd)
+{
+	for ( size_t i {0}; i < m_pollfds.size(); ++i )
+	{
+		if ( m_pollfds[i].fd == fd )
+		{
+			m_pollfds[i].events |= POLLOUT;
+			break;
+		}
+	}
+}
+
+void	Server::disablePollOut(int fd)
+{
+	for ( size_t i {0}; i < m_pollfds.size(); ++i )
+	{
+		if ( m_pollfds[i].fd == fd )
+		{
+			m_pollfds[i].events &= ~POLLOUT;
+			break;
+		}
+	}
+}
+
+void	Server::trySendPendingData(int client_fd)
+{
+	std::map<int, User*>::iterator it = m_users.find(client_fd);
+	if ( it == m_users.end() )
+		return;
+
+	User* user = it->second;
+	if ( !user->hasPendingData() )
+	{
+		disablePollOut(client_fd);
+		return;
+	}
+
+	std::string& buffer = user->getSendBuffer();
+
+	ssize_t sent = send(client_fd, buffer.c_str(), buffer.length(), 0);
+
+	if ( sent < 0)
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			return;
+		std::cerr << "Error sending to fd" << client_fd << ": " << strerror(errno) << std::endl;
+		return;
+ 	}
+
+	buffer.erase(0, sent);
+
+	if ( buffer.empty() )
+		disablePollOut(client_fd);
+}
+
+void	Server::sendToClient(int fd, const std::string& message)
+{
+	std::map<int, User*>::iterator it = m_users.find(fd);
+	if ( it == m_users.end() )
+		return;
+
+	User* user = it->second;
+	if ( user->hasPendingData() )
+	{
+		user->queueMessage(message);
+		return;
+	}
+	ssize_t sent = send(fd, message.c_str(), message.length(), 0);
+	if ( sent < 0)
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+		{
+			user->queueMessage(message);
+			enablePollOut(fd);
+			return;
+		}
+		std::cerr << "Error sending to fd" << fd << ": " << strerror(errno) << std::endl;
+		removeClient(fd);
+		return;
+	}
+	if ( sent < static_cast<ssize_t>(message.length()) )
+	{
+		std::string remainder = message.substr(sent);
+		user->queueMessage(remainder);
+		enablePollOut(fd);
+	}
 }
 
 #ifdef DEBUG

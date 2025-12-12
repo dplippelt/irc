@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/27 14:53:59 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/11 15:57:03 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 #include "Channel.hpp"
 #include "Commands.hpp"
 #include "Parser.hpp"
+#include "ResponseHandler.hpp"
 
 class Channel;
 
@@ -51,6 +52,8 @@ class Server
 		const std::map<std::string, Channel*>&	getChannels() const;
 		const std::string& 						getPassword() const { return m_pw; }
 
+		void	sendToClient(int fd, const std::string& message);
+
 		#ifdef DEBUG
 		void	printModeStates() const;
 		#endif
@@ -70,11 +73,15 @@ class Server
 		std::map<std::string, Channel*>		m_channels {};
 		std::vector<struct pollfd>			m_pollfds {};
 		std::map<int, Parser>				m_messagesList{};
+		ResponseHandler*					m_responseHandler;
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
 		void		processClientAct( int client_fd );
 		void		processBuffer( const std::string& buffer, int client_fd );
+		void		enablePollOut(int fd);
+		void		disablePollOut(int fd);
+		void		trySendPendingData(int client_fd);
 };
 
 enum Command

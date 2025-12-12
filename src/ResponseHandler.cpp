@@ -6,11 +6,19 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:47:35 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:25:29 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 14:43:19 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ResponseHandler.hpp"
+#include "Server.hpp"
+
+// =================== Constructor & Destructor ==================
+
+ResponseHandler::ResponseHandler(Server& server)
+	: _server(server) {}
+
+ResponseHandler::~ResponseHandler() {}
 
 // ==================== Basic Message Sending ====================
 
@@ -23,13 +31,7 @@ void ResponseHandler::sendResponse(int fd, const std::string& message)
 	#ifdef DEBUG
 	std::cout << "Sent to fd " << fd << ": " << fullMessage;
 	#endif
-
-	ssize_t sent = send(fd, fullMessage.c_str(), fullMessage.length(), 0);
-	if (sent == -1)
-	{
-		std::cerr << "Error: Failed to send message to fd " << fd << ": "
-				  << strerror(errno) << std::endl;
-	}
+	_server.sendToClient(fd, fullMessage);
 }
 
 // ==================== Numeric Reply Messages ====================

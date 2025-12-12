@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 15:17:25 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:09:52 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/11 16:07:32 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include "ResponseHandler.hpp"
 #include "IrcNumericCodes.hpp"
 
+class ResponseHandler;
+
 class Authentication
 {
 	private:
@@ -27,11 +29,11 @@ class Authentication
 		~Authentication() = delete;
 
 	public:
-		static void checkRegistration(User* user);
+		static void checkRegistration(User* user, ResponseHandler& responseHandler);
 		static bool canExecuteCommand(User* user, const std::string& command);
 		static bool isAuthenticated(User* user);
 		static bool isRegistered(User* user);
-		static void sendAuthenticationError(int fd, const std::string& command);
+		static void sendAuthenticationError(int fd, const std::string& command, ResponseHandler& responseHandler);
 		static bool validatePassword(const std::string& providedPassword, const std::string& serverPassword);
 };
 

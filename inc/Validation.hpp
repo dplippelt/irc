@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Validation.hpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/27 14:54:24 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Validation.hpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/11/13 15:41:29 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/11 16:21:04 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,35 +23,36 @@
 class User;
 class Commands;
 class Server;
+class ResponseHandler;
 
 class Validation
 {
 	public:
-		static bool			validatePASS( User* user, const std::vector<std::string>& params );
-		static bool			validateNICK( User* user, const std::vector<std::string>& params, const Server& server, std::string& outNick );
-		static bool			validateUSER( User* user, const std::vector<std::string>& params );
-		static bool			validateJOIN( User* user, const std::vector<std::string>& params );
-		static bool			validatePRIVMSG( User* user, const std::vector<std::string>& params );
-		static bool			validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason );
-		static bool			validatePART( User* user, const std::vector<std::string>& params );
-		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName );
-		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName );
+		static bool			validatePASS( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
+		static bool			validateNICK( User* user, const std::vector<std::string>& params, const Server& server, std::string& outNick, ResponseHandler& responseHandler );
+		static bool			validateUSER( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
+		static bool			validateJOIN( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
+		static bool			validatePRIVMSG( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
+		static bool			validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason, ResponseHandler& responseHandler );
+		static bool			validatePART( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
+		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName, ResponseHandler& responseHandler );
+		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, ResponseHandler& responseHandler );
 		static bool			validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage );
-		static bool			validateWHOIS( User* user, const std::vector<std::string>& params, std::string& targetNick );
-		static Channel*		validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName );
+		static bool			validateWHOIS( User* user, const std::vector<std::string>& params, std::string& targetNick, ResponseHandler& responseHandler );
+		static Channel*		validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName, ResponseHandler& responseHandler );
 
-		static bool			validateCanJoin( User* user, Channel* channel, std::string& channelKey );
-		static Channel*		validateCanSendMsg( User* user, const std::string& target, const Server& server );
-		static Channel*		validateCanKick( User* user, const std::string& channelName, const Server& server );
-		static User*		validateCanKickTarget( User* user, Channel* channel, const std::string& targetNick, const Server& server );
-		static Channel*		validateCanPart( User* user, const std::string& currentChannel, const Server& server );
-		static Channel*		validateCanChangeTopic( User* user, const std::string& channelName, const Server& server );
-		static Channel*		validateCanInvite( User* user, const std::string& channelName, const Server& server );
-		static User*		validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server );
-		static bool			validateCanChangeModes( User* user, Channel* channel, const std::string& channelName );
-		static bool			validateModes( User *user, const std::string &modes );
-		static bool			validateModeCharacter( User* user, char mode, const std::string& availableModes );
-		static void			handleModeOperationError( User* user, const std::string& channelName, IrcNumericCodes error_code );
+		static bool			validateCanJoin( User* user, Channel* channel, std::string& channelKey, ResponseHandler& responseHandler );
+		static Channel*		validateCanSendMsg( User* user, const std::string& target, const Server& server, ResponseHandler& responseHandler );
+		static Channel*		validateCanKick( User* user, const std::string& channelName, const Server& server, ResponseHandler& responseHandler );
+		static User*		validateCanKickTarget( User* user, Channel* channel, const std::string& targetNick, const Server& server, ResponseHandler& responseHandler );
+		static Channel*		validateCanPart( User* user, const std::string& currentChannel, const Server& server, ResponseHandler& responseHandler );
+		static Channel*		validateCanChangeTopic( User* user, const std::string& channelName, const Server& server, ResponseHandler& responseHandler );
+		static Channel*		validateCanInvite( User* user, const std::string& channelName, const Server& server, ResponseHandler& responseHandler );
+		static User*		validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server, ResponseHandler& responseHandler );
+		static bool			validateCanChangeModes( User* user, Channel* channel, const std::string& channelName, ResponseHandler& responseHandler );
+		static bool			validateModes( User *user, const std::string &modes, ResponseHandler& responseHandler );
+		static bool			validateModeCharacter( User* user, char mode, const std::string& availableModes, ResponseHandler& responseHandler );
+		static void			handleModeOperationError( User* user, const std::string& channelName, IrcNumericCodes error_code, ResponseHandler& responseHandler );
 
 	private:
 		Validation() = delete;
