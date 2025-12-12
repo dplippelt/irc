@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/12/12 11:35:32 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 13:55:14 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/12 15:27:22 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ std::string CTCPHandler::extractCTCPCommand(const std::string& message)
 	return message.substr(1, message.size() - 2);
 }
 
-bool CPTCPHandler::isDCCCommand(const std::string& ctcpCommand)
+bool CTCPHandler::isDCCCommand(const std::string& ctcpCommand)
 {
 	return (ctcpCommand.length() >= 4 && ctcpCommand.substr(0, 4) == "DCC ");
 }

@@ -6,13 +6,14 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 09:57:16 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/12 15:33:13 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Commands.hpp"
 #include "Server.hpp"
 #include "Message.hpp"
+#include "CTCPHandler.hpp"
 
 // ==================== Channel Helper ====================
 
@@ -278,6 +279,31 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 
 	if (!message.empty() && message[0] == ':')
 		message = message.substr(1);
+
+	if (CTCPHandler::isCTCPMessage(message))
+	{
+		std::string ctcpCommand = CTCPHandler::extractCTCPCommand(message);
+		if (CTCPHandler::isDCCCommand(ctcpCommand))
+		{
+			std::string filename;
+			unsigned long ip;
+			unsigned int port;
+			unsigned long filesize;
+
+			if (CTCPHandler::parseDCCSend(ctcpCommand, filename, ip, port, filesize))
+            {
+				#ifdef DEBUG
+				std::string ipStr = CTCPHandler::ipIntToString(ip);
+				std::cout << "DCC SEND detected: " << user->getNickname()
+							<< " → " << target << std::endl;
+				std::cout << "  File: " << filename << std::endl;
+				std::cout << "  IP: " << ipStr << " (" << ip << ")" << std::endl;
+				std::cout << "  Port: " << port << std::endl;
+				std::cout << "  Size: " << filesize << " bytes" << std::endl;
+				#endif
+			}
+		}
+	}
 
 	if (target[0] == '#' || target[0] == '&')
 	{
