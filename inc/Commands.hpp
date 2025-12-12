@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 15:50:00 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/12 09:51:55 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ class Commands
 
 		static void handlePASS(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler, const std::string& serverPassword);
 		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleUSER(User* user, const std::vector<std::string>& params);
+		static void handleUSER(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler);
 		static void handlePING(User* user, const std::vector<std::string>& params);
 		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
 		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
