@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   BotCommands.cpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/06 11:24:52 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   BotCommands.cpp                                    :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/11/25 17:08:37 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/15 15:31:23 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BotCommands.hpp"
+#include <fstream>
 
 /* ===================== Bot Commands ===================== */
 
@@ -55,6 +56,12 @@ void	BotCommands::executeCommand( const std::string& username, const std::string
 		break;
 	case CMD_SHOTS:
 		shots(username, channel, message, bot);
+		break;
+	case CMD_FILES:
+		files(username, channel, bot);
+		break;
+	case CMD_FILE:
+		file(username, channel, message, bot);
 		break;
 	case CMD_UNKNOWN:
 		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
@@ -523,4 +530,95 @@ std::string	BotCommands::getMPTarget( const std::string& msg )
 	std::size_t	end_idx { msg.find_first_of(" \r\n", start_idx) };
 
 	return ( msg.substr(start_idx, end_idx - start_idx) );
+}
+
+/* ===================== File Service Bot Commands ===================== */
+
+void BotCommands::files( const std::string& username, const std::string& channel, const Bot& bot )
+{
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"Available files list sent to your DMs, " COLOR RED + username + RESET ".");
+
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR LIGHT_CYAN "=== Available Files ===" RESET);
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR YELLOW "welcome.txt" RESET " - Welcome message and file list");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR YELLOW "rules.txt" RESET " - Complete game rules and commands");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR YELLOW "tips.txt" RESET " - Strategy tips and tactics");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR YELLOW "commands.txt" RESET " - Full command reference");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR YELLOW "history.txt" RESET " - History of Battleships game");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		"Use " COLOR YELLOW "!file <filename>" RESET " to download.");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		"Example: " COLOR YELLOW "!file rules.txt" RESET);
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+}
+
+void BotCommands::file( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+{
+	std::size_t space_idx = msg.find_first_of(" ");
+	if ( space_idx == std::string::npos )
+	{
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"Please specify a filename (e.g. " COLOR YELLOW "!file rules.txt" RESET ").");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"Type " COLOR YELLOW "!files" RESET " to see available files.");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		return;
+	}
+
+	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
+	std::string filename { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+
+	if ( filename.find("..") != std::string::npos || filename.find("/") != std::string::npos )
+	{
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			COLOR RED "Invalid filename." RESET);
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		return;
+	}
+
+	std::string filepath { "Bot/bot_files/" + filename };
+	std::ifstream file(filepath);
+
+	if ( !file.is_open() )
+	{
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"File " COLOR RED "'" + filename + "'" RESET " not found.");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"Type " COLOR YELLOW "!files" RESET " to see available files.");
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		return;
+	}
+
+	if ( !channel.empty() )
+		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+			"File " COLOR GREEN "'" + filename + "'" RESET " sent to your DMs, " COLOR RED + username + RESET ".");
+
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR LIGHT_CYAN "=== " + filename + " ===" RESET);
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+
+	std::string line;
+	while ( std::getline(file, line) )
+		BotResponseHandler::sendResponse(bot.getSocket(), username, "", line);
+
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+		COLOR LIGHT_CYAN "=== End of " + filename + " ===" RESET);
+	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+
+	file.close();
 }
