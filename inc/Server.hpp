@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 12:56:43 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 13:33:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,8 @@ class Server
 		Server( const Server& );
 		Server& operator=( const Server& );
 
-		static void sigHandler(int signum);
+		static void sigHandler( int signum );
+		static void setupSigHandler();
 
 		void	doPoll();
 		void	removeClient( int client_fd, const std::string& quitMessage = "" );

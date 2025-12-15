@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/08 10:24:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 13:34:50 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,30 @@ Bot::Bot( const std::string& server_port, std::string_view pw )
 
 
 	authenticateAndJoin();
+}
+
+
+
+
+
+/* ==================== Signal Handler ==================== */
+
+void	Bot::sigHandler(int signum)
+{
+	(void)signum;
+	g_quit = 1;
+}
+
+void	Bot::setupSigHandler()
+{
+	struct sigaction sa {};
+	sigset_t mask {};
+
+	sa.sa_handler = Bot::sigHandler;
+	sa.sa_mask = mask;
+
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 }
 
 

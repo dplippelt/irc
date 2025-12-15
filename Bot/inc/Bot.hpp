@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:37:54 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/06 12:19:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 13:19:17 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,13 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
 
 #include "Game.hpp"
 #include "MPGame.hpp"
 #include "BotCommands.hpp"
+
+extern volatile sig_atomic_t g_quit;
 
 class Bot
 {
@@ -36,6 +39,9 @@ class Bot
 		Bot( const std::string& server_port, std::string_view pw );
 		Bot( const Bot& ) = delete;
 		Bot& operator=( const Bot& ) = delete;
+
+		static void sigHandler(int signum);
+		static void setupSigHandler();
 
 		enum BotIRCCommandType
 		{

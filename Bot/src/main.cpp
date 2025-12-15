@@ -6,11 +6,13 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:42:43 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/11/26 11:37:15 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 13:22:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Bot.hpp"
+
+volatile sig_atomic_t g_quit = 0;
 
 int	main( int ac, char *av[] )
 {
@@ -21,10 +23,12 @@ int	main( int ac, char *av[] )
 		return (EXIT_FAILURE);
 	}
 
+	Bot::setupSigHandler();
+
 	try
 	{
 		Bot bot { av[1], av[2] };
-		while (true)
+		while (!g_quit)
 			bot.doPoll();
 	}
 	catch(const std::exception& e)
