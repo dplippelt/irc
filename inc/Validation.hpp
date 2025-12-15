@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Validation.hpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:41:29 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 16:21:04 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Validation.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include "IrcNumericCodes.hpp"
 
 class User;
-class Commands;
+class Command;
 class Server;
 class ResponseHandler;
 

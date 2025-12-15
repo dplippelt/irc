@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 13:33:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 16:41:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,6 @@ class Server
 		std::map<std::string, Channel*>		m_channels {};
 		std::vector<struct pollfd>			m_pollfds {};
 		std::map<int, Parser>				m_messagesList{};
-		ResponseHandler*					m_responseHandler;
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
@@ -88,18 +87,4 @@ class Server
 		void		enablePollOut(int fd);
 		void		disablePollOut(int fd);
 		void		trySendPendingData(int client_fd);
-};
-
-enum Command
-{
-	PING,
-	NICK,
-	USER,
-	PASS,
-	MODE,
-	WHOIS,
-	JOIN,
-	PART,
-	KICK,
-	NO_CMD
 };

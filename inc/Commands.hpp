@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.hpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 11:10:22 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 09:51:55 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.hpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,13 +35,14 @@ class Server;
 class Validation;
 class Message;
 
-class Commands
+class Command
 {
 	private:
-		Commands() = delete;
-		Commands(const Commands&) = delete;
-		Commands& operator=(const Commands&) = delete;
-		~Commands() = delete;
+		Server&							m_server;
+		ResponseHandler					m_responseHandler;
+		User*							m_user;
+		const std::string&				m_command;
+		const std::vector<std::string>&	m_params;
 
 		enum CommandType
 		{
@@ -78,46 +79,49 @@ class Commands
 			{"MODE", CMD_MODE}
 		};
 
-		static CommandType getCmdType( const std::string& command )
+		CommandType getCmdType()
 		{
-			auto it { k_commands.find(command) };
+			auto it { k_commands.find(m_command) };
 
 			return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
 		}
 
-		static Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
+		Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 
 		static inline const size_t		k_max_mode_num{ 3 }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_toggle{ "it" }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_param{ "kol" }; // [Takato]: added for mode operation
-		static void	modeOperateToggle(char mode, char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggleInvite(char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateToggleTopic(char sign, const std::vector<std::string>& params, Server &server); // [Takato]: added for mode operation
-		static void	modeOperateParam(char mode, char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
-		static void	modeOperateParamPrivilege(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
-		static void	modeOperateParamKey(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
-		static void	modeOperateParamLimit(char sign, const std::vector<std::string>& params, Server &server, int idxOffset); // [Takato]: added for mode operation
+
+		void	modeOperateToggle(char mode, char sign); // [Takato]: added for mode operation
+		void	modeOperateToggleInvite(char sign); // [Takato]: added for mode operation
+		void	modeOperateToggleTopic(char sign); // [Takato]: added for mode operation
+		void	modeOperateParam(char mode, char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamPrivilege(char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
+
+		void handlePASS();
+		void handleNICK();
+		void handleUSER();
+		void handlePING();
+		void handleJOIN();
+		void handlePRIVMSG();
+		void handleKICK();
+		void handlePART();
+		void handleTOPIC();
+		void handleINVITE();
+		void handleQUIT();
+		void handleWHOIS();
+		void handleMODE(); // [Takato]: added for mode operation
 
 	public:
-		static void executeCommand(User* user, const std::string& command,
-							const std::vector<std::string>& params,
-							Server& server,
-							ResponseHandler& responseHandler,
-							const std::string& serverPassword);
+		Command() = delete;
+		Command(Server& server, User* user, Message& msg);
+		Command(const Command&) = delete;
+		Command& operator=(const Command&) = delete;
+		~Command();
 
-		static void handlePASS(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler, const std::string& serverPassword);
-		static void handleNICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleUSER(User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler);
-		static void handlePING(User* user, const std::vector<std::string>& params);
-		static void handleJOIN(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handlePRIVMSG(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleKICK(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handlePART(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleTOPIC(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleINVITE(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleQUIT(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void handleWHOIS(User* user, const std::vector<std::string>& params, Server& server, ResponseHandler& responseHandler);
-		static void	handleMODE(User *user, const std::vector<std::string>& params, Server &server, ResponseHandler& responseHandler); // [Takato]: added for mode operation
+		void executeCommand();
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 13:33:44 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 16:42:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
-	, m_responseHandler(nullptr)
 {
 	struct addrinfo	hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
@@ -59,8 +58,6 @@ Server::Server( const std::string& port, std::string_view pw )
 			throw std::runtime_error("Error: failed to bind address to socket");
 		if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 			throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
-
-		m_responseHandler = new ResponseHandler(*this);
 
 		freeaddrinfo(m_addr);
 		m_addr = nullptr;
@@ -302,8 +299,13 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 
 	std::list<Message> &messages { m_messagesList[client_fd].getMessages() };
 
+	User* user {m_users[client_fd]};
+
 	for ( auto& msg : messages )
-		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this,*m_responseHandler, m_pw);
+	{
+		Command command { *this, user, msg };
+		command.executeCommand();
+	}
 
 	messages.clear();
 }
