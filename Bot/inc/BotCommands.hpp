@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   BotCommands.hpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/06 11:02:36 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   BotCommands.hpp                                    :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/11/25 17:06:14 by dlippelt      #+#    #+#                 */
+/*   Updated: 2025/12/15 15:32:53 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ class BotCommands
 			CMD_SURRENDER,
 			CMD_FLEET,
 			CMD_SHOTS,
+			CMD_FILES,
+			CMD_FILE,
 			CMD_UNKNOWN,
 			CMD_NOTACMD
 		};
@@ -59,6 +61,8 @@ class BotCommands
 			{"!surrender", CMD_SURRENDER},
 			{"!fleet", CMD_FLEET},
 			{"!shots", CMD_SHOTS},
+			{"!files", CMD_FILES},
+			{"!file", CMD_FILE},
 		};
 
 		static inline const std::vector<std::pair<std::string, std::string>> k_help_content
@@ -75,6 +79,8 @@ class BotCommands
 			{COLOR YELLOW "!surrender <username>" RESET, "Surrender to another player. This will immediately end your game with them (e.g. '!surrender bob' to surrender to bob)."},
 			{COLOR YELLOW "!fleet <username>" RESET, "Show your current fleet against another player (e.g. '!fleet bob'). Will be visible to only you."},
 			{COLOR YELLOW "!shots <username>" RESET, "Show your current shots grid against another player (e.g. '!shots bob'). Will be visible to only you."},
+			{COLOR YELLOW "!files" RESET, "List available files for download."},
+			{COLOR YELLOW "!file <filename>" RESET, "Download a specific file (e.g. '!file rules.txt')."},
 		};
 
 		static void	executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot );
@@ -95,6 +101,9 @@ class BotCommands
 		static void fleet( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
 		static void shots( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
 
+		// File transfer commands
+		static void	files( const std::string& username, const std::string& channel, const Bot& bot );
+		static void file( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
 
 		static BotCommandType	getCmdType( const std::string& command );
 		static void				startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot );

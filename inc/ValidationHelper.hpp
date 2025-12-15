@@ -6,7 +6,7 @@
 /*   By: spyun <spyun@student.codam.nl>               +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/11/24 14:20:58 by spyun         ########   odam.nl         */
+/*   Updated: 2025/12/12 14:00:33 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,11 @@ class ValidationHelper
 		~ValidationHelper() = delete;
 
 	public:
-		static bool isValidNickname(const std::string& nick);
-		static bool isNicknameInUse(const std::string& nick, const std::map<int, User*>& users);
-		static bool isValidChannelName(const std::string& channelName);
-		static bool isValidPassword(const std::string& password);
-		static std::string removeLeadingColon(const std::string& str);
+		static bool			isValidNickname(const std::string& nick);
+		static bool			isNicknameInUse(const std::string& nick, const std::map<int, User*>& users);
+		static bool			isValidChannelName(const std::string& channelName);
+		static bool			isValidPassword(const std::string& password);
+		static std::string	removeLeadingColon(const std::string& str);
 };
 
 #endif
