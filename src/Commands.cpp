@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Commands.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/30 17:16:17 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 15:33:13 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/15 12:30:35 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,7 +278,7 @@ void Commands::handlePRIVMSG(User* user, const std::vector<std::string>& params,
 	std::string message = *it;
 
 	if (!message.empty() && message[0] == ':')
-		message = message.substr(1);
+		message = message.substr(1) + "\r\n";
 
 	if (CTCPHandler::isCTCPMessage(message))
 	{
