@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 16:05:29 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 12:56:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,14 @@ Server::Server( const std::string& port, std::string_view pw )
 
 	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
+}
+
+/* ==================== Signal Handler ==================== */
+
+void Server::sigHandler(int signum)
+{
+	(void)signum;
+	g_quit = 1;
 }
 
 /* ==================== Initial Server Setup ==================== */
