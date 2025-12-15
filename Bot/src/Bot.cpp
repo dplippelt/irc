@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 17:19:40 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 18:06:13 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,10 @@ void	Bot::processBuffer( const std::string& buffer )
 	#endif
 
 	if ( needWelcome(irc_cmd, username) )
-		BotResponseHandler::sendWelcome(m_bot_socket_fd, username, channel);
+	{
+		BotResponseHandler rh { *this };
+		rh.sendWelcome(username, channel);
+	}
 
 	trackChannelMembers(username, irc_cmd);
 

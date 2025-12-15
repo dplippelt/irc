@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 17:23:10 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 18:14:34 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,14 @@
 
 #include <string>
 #include <map>
-
+#include <memory>
 #include "Game.hpp"
 #include "MPGame.hpp"
 #include "Bot.hpp"
 #include "BotResponseHandler.hpp"
 
 class Bot;
+class BotResponseHandler;
 
 class BotCommands
 {
@@ -31,10 +32,11 @@ class BotCommands
 		BotCommands( const BotCommands& ) = delete;
 		BotCommands& operator=( const BotCommands& ) = delete;
 
-		Bot&				m_bot;
-		const std::string&	m_username;
-		const std::string&	m_channel;
-		const std::string&	m_message;
+		Bot&								m_bot;
+		std::unique_ptr<BotResponseHandler>	m_responseHandler;
+		const std::string&					m_username;
+		const std::string&					m_channel;
+		const std::string&					m_message;
 
 		enum BotCommandType
 		{
