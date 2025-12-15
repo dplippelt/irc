@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   BotCommands.hpp                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/25 17:06:14 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/15 15:32:53 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   BotCommands.hpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 17:23:10 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,16 @@ class Bot;
 class BotCommands
 {
 	public:
+		~BotCommands();
 		BotCommands() = delete;
+		BotCommands( Bot& bot, const std::string& username, const std::string& channel, const std::string& message );
+		BotCommands( const BotCommands& ) = delete;
+		BotCommands& operator=( const BotCommands& ) = delete;
+
+		Bot&				m_bot;
+		const std::string&	m_username;
+		const std::string&	m_channel;
+		const std::string&	m_message;
 
 		enum BotCommandType
 		{
@@ -83,32 +92,32 @@ class BotCommands
 			{COLOR YELLOW "!file <filename>" RESET, "Download a specific file (e.g. '!file rules.txt')."},
 		};
 
-		static void	executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot );
+		void	executeCommand();
 
 	private:
-		static void	start( const std::string& username, const std::string& channel, Bot& bot );
-		static void	fire( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
-		static void	solution( const std::string& username, const std::string& channel, const Bot& bot );
-		static void	board( const std::string& username, const std::string& channel, const Bot& bot );
-		static void	newGame( const std::string& username, const std::string& channel, Bot& bot );
-		static void help( const std::string& username, const std::string& channel, const Bot& bot );
+		void	start();
+		void	fire();
+		void	solution();
+		void	board();
+		void	newGame();
+		void	help();
 
 		// MP specific Game commands
-		static void	challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot );
-		static void	acceptChallenge( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot );
-		static void shoot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
-		static void surrender( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
-		static void fleet( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
-		static void shots( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		void	challenge( const std::string& challenger );
+		void	acceptChallenge( const std::string& challenged );
+		void	shoot();
+		void	surrender();
+		void	fleet();
+		void	shots();
 
 		// File transfer commands
-		static void	files( const std::string& username, const std::string& channel, const Bot& bot );
-		static void file( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot );
+		void	files();
+		void	file();
 
-		static BotCommandType	getCmdType( const std::string& command );
-		static void				startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot );
-		static bool				challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
-		static bool				gameAlreadyExists( const std::string& challenger, const std::string& challenged, const Bot& bot );
-		static std::string		getOpponentName( const std::string& msg );
-		static std::string		getMPTarget( const std::string& msg );
+		BotCommandType	getCmdType( const std::string& command );
+		void			startMPGame( const std::string& challenger, const std::string& challenged );
+		bool			challengeExists( const std::string& challenger, const std::string& challenged );
+		bool			gameAlreadyExists( const std::string& challenger, const std::string& challenged );
+		std::string		getOpponentName();
+		std::string		getMPTarget();
 };

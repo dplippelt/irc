@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/20 10:39:01 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 13:34:50 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 17:19:40 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,7 +219,8 @@ void	Bot::processBuffer( const std::string& buffer )
 
 	trackChannelMembers(username, irc_cmd);
 
-	BotCommands::executeCommand(username, channel, message, *this);
+	BotCommands command { *this, username, channel, message };
+	command.executeCommand();
 }
 
 bool	Bot::needWelcome( const std::string& irc_cmd, const std::string& username )

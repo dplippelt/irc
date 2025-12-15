@@ -1,229 +1,241 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   BotCommands.cpp                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/25 17:08:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/15 15:31:23 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   BotCommands.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 17:35:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BotCommands.hpp"
 #include <fstream>
 
+/* ==================== Constructors & Destructors ==================== */
+
+BotCommands::~BotCommands() = default;
+
+BotCommands::BotCommands( Bot& bot, const std::string& username, const std::string& channel, const std::string& message )
+	: m_bot { bot }
+	, m_username { username }
+	, m_channel { channel }
+	, m_message { message }
+{
+}
+
 /* ===================== Bot Commands ===================== */
 
-void	BotCommands::executeCommand( const std::string& username, const std::string& channel, const std::string& message, Bot& bot )
+void	BotCommands::executeCommand()
 {
-	std::string cmd { message.substr(0, message.find_first_of(" ")) };
+	std::string cmd { m_message.substr(0, m_message.find_first_of(" ")) };
 
 	switch ( getCmdType(cmd) )
 	{
 	case CMD_START:
-		start(username, channel, bot);
+		start();
 		break;
 	case CMD_FIRE:
-		fire(username, channel, message, bot);
+		fire();
 		break;
 	case CMD_BOARD:
-		board(username, channel, bot);
+		board();
 		break;
 	case CMD_SOLUTION:
-		solution(username, channel, bot);
+		solution();
 		break;
 	case CMD_NEWGAME:
-		newGame(username, channel, bot);
+		newGame();
 		break;
 	case CMD_HELP:
-		help(username, channel, bot);
+		help();
 		break;
 	case CMD_CHALLENGE:
-		challenge(username, channel, message, bot);
+		challenge(m_username);
 		break;
 	case CMD_ACCEPT:
-		acceptChallenge(username, channel, message, bot);
+		acceptChallenge(m_username);
 		break;
 	case CMD_SHOOT:
-		shoot(username, channel, message, bot);
+		shoot();
 		break;
 	case CMD_SURRENDER:
-		surrender(username, channel, message, bot);
+		surrender();
 		break;
 	case CMD_FLEET:
-		fleet(username, channel, message, bot);
+		fleet();
 		break;
 	case CMD_SHOTS:
-		shots(username, channel, message, bot);
+		shots();
 		break;
 	case CMD_FILES:
-		files(username, channel, bot);
+		files();
 		break;
 	case CMD_FILE:
-		file(username, channel, message, bot);
+		file();
 		break;
 	case CMD_UNKNOWN:
-		BotResponseHandler::sendUnknownCmdFeedback(bot.getSocket(), username, channel, cmd);
+		BotResponseHandler::sendUnknownCmdFeedback(m_bot.getSocket(), m_username, m_channel, cmd);
 		break;
 	default:
 		break;
 	}
 }
 
-void	BotCommands::start( const std::string& username, const std::string& channel, Bot& bot )
+void	BotCommands::start()
 {
 	Game*	game;
 
 	try
 	{
-		const std::map<std::string, Game*>& games { bot.getGames() };
+		const std::map<std::string, Game*>& games { m_bot.getGames() };
 
-		auto it = games.find(username);
+		auto it = games.find(m_username);
 
 		if ( it == games.end() )
 		{
 			game = new Game {};
-			bot.addGame(username, game);
+			m_bot.addGame(m_username, game);
 		}
 		else
 		{
-			BotResponseHandler::sendGameAlreadyRunningFeedback(bot.getSocket(), username, channel);
+			BotResponseHandler::sendGameAlreadyRunningFeedback(m_bot.getSocket(), m_username, m_channel);
 			return;
 		}
 	}
 	catch ( const std::exception& e )
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, e.what());
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, e.what());
 		return;
 	}
 
-	BotResponseHandler::sendStart(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendStart(m_bot.getSocket(), m_username, m_channel, game->getPlayerGridObject());
 }
 
-void	BotCommands::fire( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::fire()
 {
-	const std::map<std::string, Game*>& games { bot.getGames() };
+	const std::map<std::string, Game*>& games { m_bot.getGames() };
 
-	auto it = games.find(username);
+	auto it = games.find(m_username);
 	if (it == games.end())
 	{
-		BotResponseHandler::sendNoGameFeedback(bot.getSocket(), username, channel);
+		BotResponseHandler::sendNoGameFeedback(m_bot.getSocket(), m_username, m_channel);
 		return;
 	}
 
-	std::size_t space_idx = msg.find_first_of(" ");
+	std::size_t space_idx = m_message.find_first_of(" ");
 	if (space_idx == std::string::npos)
 	{
-		BotResponseHandler::sendNoTargetFeedback(bot.getSocket(), username, channel);
+		BotResponseHandler::sendNoTargetFeedback(m_bot.getSocket(), m_username, m_channel);
 		return;
 	}
 
-	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
+	std::size_t end_idx = m_message.find_first_of(" \r\n", space_idx + 1);
 
 	Game* game { it->second };
-	std::string target { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+	std::string target { m_message.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if (!game->validInput(target))
 	{
-		BotResponseHandler::sendInvalidTargetFeedback(bot.getSocket(), username, channel, target);
+		BotResponseHandler::sendInvalidTargetFeedback(m_bot.getSocket(), m_username, m_channel, target);
 		return;
 	}
 
 	ShotResult sr { game->processShot(target) };
 
-	BotResponseHandler::sendFire(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendFire(m_bot.getSocket(), m_username, m_channel, game->getPlayerGridObject());
 
 	switch (sr)
 	{
 	case ShotResult::MISS:
-		BotResponseHandler::sendMissFeedback(bot.getSocket(), username, target);
+		BotResponseHandler::sendMissFeedback(m_bot.getSocket(), m_username, target);
 		break;
 	case ShotResult::HIT:
-		BotResponseHandler::sendHitFeedback(bot.getSocket(), username, target);
+		BotResponseHandler::sendHitFeedback(m_bot.getSocket(), m_username, target);
 		break;
 	case ShotResult::SUNK:
-		BotResponseHandler::sendSunkFeedback(bot.getSocket(), username, game->getSunkName());
+		BotResponseHandler::sendSunkFeedback(m_bot.getSocket(), m_username, game->getSunkName());
 		break;
 	case ShotResult::WON:
-		BotResponseHandler::sendWonFeedback(bot.getSocket(), username);
-		bot.removeGame(username);
+		BotResponseHandler::sendWonFeedback(m_bot.getSocket(), m_username);
+		m_bot.removeGame(m_username);
 		break;
 	default:
 		break;
 	}
 }
 
-void	BotCommands::board( const std::string& username, const std::string& channel, const Bot& bot )
+void	BotCommands::board()
 {
-	const std::map<std::string, Game*>& games { bot.getGames() };
+	const std::map<std::string, Game*>& games { m_bot.getGames() };
 
-	auto it = games.find(username);
+	auto it = games.find(m_username);
 	if (it == games.end())
 	{
-		BotResponseHandler::sendNoGameFeedback(bot.getSocket(), username, channel);
+		BotResponseHandler::sendNoGameFeedback(m_bot.getSocket(), m_username, m_channel);
 		return;
 	}
 
 	Game* game { it->second };
 
-	BotResponseHandler::sendBoard(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendBoard(m_bot.getSocket(), m_username, m_channel, game->getPlayerGridObject());
 }
 
-void	BotCommands::solution( const std::string& username, const std::string& channel, const Bot& bot )
+void	BotCommands::solution()
 {
-	const std::map<std::string, Game*>& games { bot.getGames() };
+	const std::map<std::string, Game*>& games { m_bot.getGames() };
 
-	auto it = games.find(username);
+	auto it = games.find(m_username);
 	if (it == games.end())
 	{
-		BotResponseHandler::sendNoGameFeedback(bot.getSocket(), username, channel);
+		BotResponseHandler::sendNoGameFeedback(m_bot.getSocket(), m_username, m_channel);
 		return;
 	}
 
 	Game* game { it->second };
 
-	BotResponseHandler::sendSolution(bot.getSocket(), username, channel, game->getGridObject());
+	BotResponseHandler::sendSolution(m_bot.getSocket(), m_username, m_channel, game->getGridObject());
 }
 
-void	BotCommands::newGame( const std::string& username, const std::string& channel, Bot& bot )
+void	BotCommands::newGame()
 {
 	Game*	game;
 
 	try
 	{
-		const std::map<std::string, Game*>& games { bot.getGames() };
+		const std::map<std::string, Game*>& games { m_bot.getGames() };
 
-		auto it = games.find(username);
+		auto it = games.find(m_username);
 
 		if ( it == games.end() )
 		{
 			game = new Game {};
-			bot.addGame(username, game);
+			m_bot.addGame(m_username, game);
 		}
 		else
 		{
-			bot.removeGame(username);
+			m_bot.removeGame(m_username);
 			game = new Game {};
-			bot.addGame(username, game);
+			m_bot.addGame(m_username, game);
 		}
 	}
 	catch ( const std::exception& e )
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, e.what());
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, e.what());
 		return;
 	}
 
-	BotResponseHandler::sendNewGame(bot.getSocket(), username, channel, game->getPlayerGridObject());
+	BotResponseHandler::sendNewGame(m_bot.getSocket(), m_username, m_channel, game->getPlayerGridObject());
 }
 
-void BotCommands::help( const std::string& username, const std::string& channel, const Bot& bot )
+void BotCommands::help()
 {
-	if ( !channel.empty() )
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "An overview of available commands was sent to your DMs, " COLOR RED + username + RESET ".");
+	if ( !m_channel.empty() )
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "An overview of available commands was sent to your DMs, " COLOR RED + m_username + RESET ".");
 
 	for ( const auto& cmd : k_help_content )
-		BotResponseHandler::sendHelp(bot.getSocket(), username, cmd);
+		BotResponseHandler::sendHelp(m_bot.getSocket(), m_username, cmd);
 }
 
 
@@ -232,203 +244,203 @@ void BotCommands::help( const std::string& username, const std::string& channel,
 
 /* ===================== Multiplayer Bot Commands ===================== */
 
-void	BotCommands::challenge( const std::string& challenger, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::challenge( const std::string& challenger )
 {
-	std::size_t space_idx = msg.find_first_of(" ");
+	std::size_t space_idx = m_message.find_first_of(" ");
 	if ( space_idx == std::string::npos )
 	{
-		BotResponseHandler::sendNoChallengedFeedback(bot, challenger, channel);
+		BotResponseHandler::sendNoChallengedFeedback(m_bot, challenger, m_channel);
 		return;
 	}
 
-	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
-	std::string challenged { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+	std::size_t end_idx = m_message.find_first_of(" \r\n", space_idx + 1);
+	std::string challenged { m_message.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if ( challenger == challenged )
 	{
-		BotResponseHandler::sendCannotChallengeSelfFeedback(bot, challenger, channel);
+		BotResponseHandler::sendCannotChallengeSelfFeedback(m_bot, challenger, m_channel);
 		return;
 	}
 
-	if ( gameAlreadyExists(challenger, challenged, bot) )
+	if ( gameAlreadyExists(challenger, challenged) )
 	{
-		BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenger, challenged, channel );
+		BotResponseHandler::sendMPGameAlreadyRunningFeedback(m_bot, challenger, challenged, m_channel );
 		return;
 	}
 
-	if ( challengeExists(challenger, challenged, bot) )
+	if ( challengeExists(challenger, challenged) )
 	{
-		BotResponseHandler::sendAlreadyChallengedFeedback(bot, challenger, channel, challenged);
+		BotResponseHandler::sendAlreadyChallengedFeedback(m_bot, challenger, m_channel, challenged);
 		return;
 	}
 
-	BotResponseHandler::sendChallenge(bot, challenger, challenged, channel);
+	BotResponseHandler::sendChallenge(m_bot, challenger, challenged, m_channel);
 
-	bot.addChallenge(challenger, challenged);
+	m_bot.addChallenge(challenger, challenged);
 }
 
-void	BotCommands::acceptChallenge( const std::string& challenged, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::acceptChallenge( const std::string& challenged )
 {
-	std::size_t space_idx = msg.find_first_of(" ");
+	std::size_t space_idx = m_message.find_first_of(" ");
 	if ( space_idx == std::string::npos )
 	{
-		BotResponseHandler::sendNoChallengerFeedback(bot, challenged, channel);
+		BotResponseHandler::sendNoChallengerFeedback(m_bot, challenged, m_channel);
 		return;
 	}
 
-	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
-	std::string challenger { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+	std::size_t end_idx = m_message.find_first_of(" \r\n", space_idx + 1);
+	std::string challenger { m_message.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if ( challenger == challenged )
 	{
-		BotResponseHandler::sendCannotAcceptSelfFeedback(bot, challenged, channel);
+		BotResponseHandler::sendCannotAcceptSelfFeedback(m_bot, challenged, m_channel);
 		return;
 	}
 
-	if ( gameAlreadyExists(challenger, challenged, bot) )
+	if ( gameAlreadyExists(challenger, challenged) )
 	{
-		BotResponseHandler::sendMPGameAlreadyRunningFeedback(bot, challenged, challenger, channel );
+		BotResponseHandler::sendMPGameAlreadyRunningFeedback(m_bot, challenged, challenger, m_channel );
 		return;
 	}
 
-	if ( !challengeExists(challenger, challenged, bot) )
+	if ( !challengeExists(challenger, challenged) )
 	{
-		BotResponseHandler::sendNoChallengeToAcceptFeedback(bot, challenged, channel, challenger);
+		BotResponseHandler::sendNoChallengeToAcceptFeedback(m_bot, challenged, m_channel, challenger);
 		return;
 	}
 
-	BotResponseHandler::sendAccept(bot, challenger, challenged, channel);
+	BotResponseHandler::sendAccept(m_bot, challenger, challenged, m_channel);
 
-	startMPGame(challenger, challenged, channel, bot);
+	startMPGame(challenger, challenged);
 }
 
-void	BotCommands::shoot( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::shoot()
 {
-	const auto&			mp_games { bot.getMPGames() };
-	const std::string	opponent { getOpponentName(msg) };
-	const std::string	target { getMPTarget(msg) };
+	const auto&			mp_games { m_bot.getMPGames() };
+	const std::string	opponent { getOpponentName() };
+	const std::string	target { getMPTarget() };
 
-	if ( username == opponent )
+	if ( m_username == opponent )
 	{
-		BotResponseHandler::sendCannotShootSelf(bot, username, channel);
+		BotResponseHandler::sendCannotShootSelf(m_bot, m_username, m_channel);
 		return;
 	}
 
-	auto it	{ bot.getMPGame(username, opponent) };
+	auto it	{ m_bot.getMPGame(m_username, opponent) };
 	if ( it == mp_games.end() )
 	{
-		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		BotResponseHandler::sendNoMPGameFeedback(m_bot, m_username, opponent, m_channel);
 		return;
 	}
 
 	MPGame* mp_game { it->second };
 
-	if ( username != mp_game->getCurrentPlayer() )
+	if ( m_username != mp_game->getCurrentPlayer() )
 	{
-		BotResponseHandler::sendNotYourTurnFeedback(bot, username, opponent, channel);
+		BotResponseHandler::sendNotYourTurnFeedback(m_bot, m_username, opponent, m_channel);
 		return;
 	}
 
-	if ( !mp_game->validInput(target, username) )
+	if ( !mp_game->validInput(target, m_username) )
 	{
-		BotResponseHandler::sendInvalidTargetFeedback(bot.getSocket(), username, channel, target);
+		BotResponseHandler::sendInvalidTargetFeedback(m_bot.getSocket(), m_username, m_channel, target);
 		return;
 	}
 
-	ShotResult sr { mp_game->processShot(target, username) };
+	ShotResult sr { mp_game->processShot(target, m_username) };
 
-	BotResponseHandler::sendShot(bot, username, channel, opponent, *mp_game->getPlayerShotsGridObject(username), *mp_game->getPlayerGridObject(opponent));
+	BotResponseHandler::sendShot(m_bot, m_username, m_channel, opponent, *mp_game->getPlayerShotsGridObject(m_username), *mp_game->getPlayerGridObject(opponent));
 
 	switch (sr)
 	{
 	case ShotResult::MISS:
-		BotResponseHandler::sendMissFeedback(bot.getSocket(), username, target, opponent);
+		BotResponseHandler::sendMissFeedback(m_bot.getSocket(), m_username, target, opponent);
 		break;
 	case ShotResult::HIT:
-		BotResponseHandler::sendHitFeedback(bot.getSocket(), username, target, opponent);
+		BotResponseHandler::sendHitFeedback(m_bot.getSocket(), m_username, target, opponent);
 		break;
 	case ShotResult::SUNK:
-		BotResponseHandler::sendSunkFeedback(bot.getSocket(), username, mp_game->getSunkName(), opponent);
+		BotResponseHandler::sendSunkFeedback(m_bot.getSocket(), m_username, mp_game->getSunkName(), opponent);
 		break;
 	case ShotResult::WON:
-		BotResponseHandler::sendWonFeedback(bot.getSocket(), username, opponent);
-		bot.removeMPGame(username, opponent);
-		bot.removeChallenge(username, opponent);
+		BotResponseHandler::sendWonFeedback(m_bot.getSocket(), m_username, opponent);
+		m_bot.removeMPGame(m_username, opponent);
+		m_bot.removeChallenge(m_username, opponent);
 		return;
 	default:
 		break;
 	}
 
-	BotResponseHandler::sendTurnInfo(bot, username, opponent, mp_game);
+	BotResponseHandler::sendTurnInfo(m_bot, m_username, opponent, mp_game);
 }
 
-void	BotCommands::surrender( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::surrender()
 {
-	const auto&			mp_games { bot.getMPGames() };
-	const std::string	opponent { getOpponentName(msg) };
+	const auto&			mp_games { m_bot.getMPGames() };
+	const std::string	opponent { getOpponentName() };
 
-	if ( username == opponent )
+	if ( m_username == opponent )
 	{
-		BotResponseHandler::sendCannotSurrenderToSelfFeedback(bot, opponent, channel);
+		BotResponseHandler::sendCannotSurrenderToSelfFeedback(m_bot, opponent, m_channel);
 		return;
 	}
 
-	auto it	{ bot.getMPGame(username, opponent) };
+	auto it	{ m_bot.getMPGame(m_username, opponent) };
 	if ( it == mp_games.end() )
 	{
-		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		BotResponseHandler::sendNoMPGameFeedback(m_bot, m_username, opponent, m_channel);
 		return;
 	}
 
-	BotResponseHandler::sendSurrender(bot, username, opponent, channel);
-	bot.removeMPGame(username, opponent);
-	bot.removeChallenge(username, opponent);
+	BotResponseHandler::sendSurrender(m_bot, m_username, opponent, m_channel);
+	m_bot.removeMPGame(m_username, opponent);
+	m_bot.removeChallenge(m_username, opponent);
 }
 
-void	BotCommands::fleet( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::fleet()
 {
-	const auto&			mp_games { bot.getMPGames() };
-	const std::string	opponent { getOpponentName(msg) };
+	const auto&			mp_games { m_bot.getMPGames() };
+	const std::string	opponent { getOpponentName() };
 
-	if ( username == opponent )
+	if ( m_username == opponent )
 	{
-		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(bot, opponent, channel);
+		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(m_bot, opponent, m_channel);
 		return;
 	}
 
-	auto it	{ bot.getMPGame(username, opponent) };
+	auto it	{ m_bot.getMPGame(m_username, opponent) };
 	if ( it == mp_games.end() )
 	{
-		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		BotResponseHandler::sendNoMPGameFeedback(m_bot, m_username, opponent, m_channel);
 		return;
 	}
 
 	MPGame* mp_game { it->second };
 
-	BotResponseHandler::sendFleet(bot, username, channel, opponent, *mp_game->getPlayerGridObject(username));
+	BotResponseHandler::sendFleet(m_bot, m_username, m_channel, opponent, *mp_game->getPlayerGridObject(m_username));
 }
 
-void	BotCommands::shots( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void	BotCommands::shots()
 {
-	const auto&			mp_games { bot.getMPGames() };
-	const std::string	opponent { getOpponentName(msg) };
+	const auto&			mp_games { m_bot.getMPGames() };
+	const std::string	opponent { getOpponentName() };
 
-	if ( username == opponent )
+	if ( m_username == opponent )
 	{
-		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(bot, opponent, channel);
+		BotResponseHandler::sendCannotShowFleetOrShotsAgainstSelf(m_bot, opponent, m_channel);
 		return;
 	}
 
-	auto it	{ bot.getMPGame(username, opponent) };
+	auto it	{ m_bot.getMPGame(m_username, opponent) };
 	if ( it == mp_games.end() )
 	{
-		BotResponseHandler::sendNoMPGameFeedback(bot, username, opponent, channel);
+		BotResponseHandler::sendNoMPGameFeedback(m_bot, m_username, opponent, m_channel);
 		return;
 	}
 
 	MPGame* mp_game { it->second };
 
-	BotResponseHandler::sendShots(bot, username, channel, opponent, *mp_game->getPlayerShotsGridObject(username));
+	BotResponseHandler::sendShots(m_bot, m_username, m_channel, opponent, *mp_game->getPlayerShotsGridObject(m_username));
 }
 
 
@@ -437,32 +449,32 @@ void	BotCommands::shots( const std::string& username, const std::string& channel
 
 /* ===================== Helper ===================== */
 
-void BotCommands::startMPGame( const std::string& challenger, const std::string& challenged, const std::string& channel, Bot& bot )
+void BotCommands::startMPGame( const std::string& challenger, const std::string& challenged )
 {
 	MPGame*	mp_game;
 
 	try
 	{
 		mp_game = new MPGame {challenger, challenged};
-		bot.addMPGame({challenger, challenged}, mp_game);
+		m_bot.addMPGame({challenger, challenged}, mp_game);
 	}
 	catch ( const std::exception& e )
 	{
-		if ( !channel.empty() )
-			BotResponseHandler::sendResponse(bot.getSocket(), "", channel, e.what());
-		if ( !bot.memberInChannel(challenger) || channel.empty() )
-			BotResponseHandler::sendResponse(bot.getSocket(), challenger, "", e.what());
-		if ( !bot.memberInChannel(challenged) || channel.empty() )
-			BotResponseHandler::sendResponse(bot.getSocket(), challenged, "", e.what());
+		if ( !m_channel.empty() )
+			BotResponseHandler::sendResponse(m_bot.getSocket(), "", m_channel, e.what());
+		if ( !m_bot.memberInChannel(challenger) || m_channel.empty() )
+			BotResponseHandler::sendResponse(m_bot.getSocket(), challenger, "", e.what());
+		if ( !m_bot.memberInChannel(challenged) || m_channel.empty() )
+			BotResponseHandler::sendResponse(m_bot.getSocket(), challenged, "", e.what());
 		return;
 	}
 
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, *mp_game->getPlayerGridObject(challenger), BotResponseHandler::GridType::REFERENCE, challenged);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenger, *mp_game->getPlayerShotsGridObject(challenger), BotResponseHandler::GridType::TRACKING, challenged);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, *mp_game->getPlayerGridObject(challenged), BotResponseHandler::GridType::REFERENCE, challenger);
-	BotResponseHandler::sendPlayerGrid(bot.getSocket(), challenged, *mp_game->getPlayerShotsGridObject(challenged), BotResponseHandler::GridType::TRACKING, challenger);
+	BotResponseHandler::sendPlayerGrid(m_bot.getSocket(), challenger, *mp_game->getPlayerGridObject(challenger), BotResponseHandler::GridType::REFERENCE, challenged);
+	BotResponseHandler::sendPlayerGrid(m_bot.getSocket(), challenger, *mp_game->getPlayerShotsGridObject(challenger), BotResponseHandler::GridType::TRACKING, challenged);
+	BotResponseHandler::sendPlayerGrid(m_bot.getSocket(), challenged, *mp_game->getPlayerGridObject(challenged), BotResponseHandler::GridType::REFERENCE, challenger);
+	BotResponseHandler::sendPlayerGrid(m_bot.getSocket(), challenged, *mp_game->getPlayerShotsGridObject(challenged), BotResponseHandler::GridType::TRACKING, challenger);
 
-	BotResponseHandler::sendTurnInfo(bot, challenger, challenged, mp_game);
+	BotResponseHandler::sendTurnInfo(m_bot, challenger, challenged, mp_game);
 
 }
 
@@ -483,9 +495,9 @@ BotCommands::BotCommandType BotCommands::getCmdType( const std::string& command 
 	return CMD_NOTACMD;
 }
 
-bool	BotCommands::challengeExists( const std::string& challenger, const std::string& challenged, const Bot& bot )
+bool	BotCommands::challengeExists( const std::string& challenger, const std::string& challenged )
 {
-	const auto challenges { bot.getChallenges() };
+	const auto challenges { m_bot.getChallenges() };
 
 	for ( auto it {challenges.begin()}; it != challenges.end(); ++it )
 		if ( (it->first == challenger && it-> second == challenged) || (it->first == challenged && it-> second == challenger) )
@@ -494,9 +506,9 @@ bool	BotCommands::challengeExists( const std::string& challenger, const std::str
 	return false;
 }
 
-bool	BotCommands::gameAlreadyExists( const std::string& challenger, const std::string& challenged, const Bot& bot )
+bool	BotCommands::gameAlreadyExists( const std::string& challenger, const std::string& challenged )
 {
-	const auto& mp_games { bot.getMPGames() };
+	const auto& mp_games { m_bot.getMPGames() };
 
 	if ( mp_games.find({challenger, challenged}) != mp_games.end() )
 		return true;
@@ -505,86 +517,86 @@ bool	BotCommands::gameAlreadyExists( const std::string& challenger, const std::s
 	return false;
 }
 
-std::string	BotCommands::getOpponentName( const std::string& msg )
+std::string	BotCommands::getOpponentName()
 {
-	std::size_t	start_idx { msg.find_first_of(" \r\n") };
+	std::size_t	start_idx { m_message.find_first_of(" \r\n") };
 	if ( start_idx == std::string::npos )
 		return ("");
 
 	start_idx++;
 
-	std::size_t	end_idx { msg.find_first_of(" \r\n", start_idx) };
+	std::size_t	end_idx { m_message.find_first_of(" \r\n", start_idx) };
 
-	return ( msg.substr(start_idx, end_idx - start_idx) );
+	return ( m_message.substr(start_idx, end_idx - start_idx) );
 }
 
-std::string	BotCommands::getMPTarget( const std::string& msg )
+std::string	BotCommands::getMPTarget()
 {
-	std::size_t	start_idx { msg.find_first_of(" \r\n") + 1 };
-	start_idx = msg.find_first_of(" \r\n", start_idx);
+	std::size_t	start_idx { m_message.find_first_of(" \r\n") + 1 };
+	start_idx = m_message.find_first_of(" \r\n", start_idx);
 	if ( start_idx == std::string::npos )
 		return ("");
 
 	start_idx++;
 
-	std::size_t	end_idx { msg.find_first_of(" \r\n", start_idx) };
+	std::size_t	end_idx { m_message.find_first_of(" \r\n", start_idx) };
 
-	return ( msg.substr(start_idx, end_idx - start_idx) );
+	return ( m_message.substr(start_idx, end_idx - start_idx) );
 }
 
 /* ===================== File Service Bot Commands ===================== */
 
-void BotCommands::files( const std::string& username, const std::string& channel, const Bot& bot )
+void BotCommands::files()
 {
-	if ( !channel.empty() )
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
-			"Available files list sent to your DMs, " COLOR RED + username + RESET ".");
+	if ( !m_channel.empty() )
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
+			"Available files list sent to your DMs, " COLOR RED + m_username + RESET ".");
 
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR LIGHT_CYAN "=== Available Files ===" RESET);
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR YELLOW "welcome.txt" RESET " - Welcome message and file list");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR YELLOW "rules.txt" RESET " - Complete game rules and commands");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR YELLOW "tips.txt" RESET " - Strategy tips and tactics");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR YELLOW "commands.txt" RESET " - Full command reference");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR YELLOW "history.txt" RESET " - History of Battleships game");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		"Use " COLOR YELLOW "!file <filename>" RESET " to download.");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		"Example: " COLOR YELLOW "!file rules.txt" RESET);
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
 }
 
-void BotCommands::file( const std::string& username, const std::string& channel, const std::string& msg, Bot& bot )
+void BotCommands::file()
 {
-	std::size_t space_idx = msg.find_first_of(" ");
+	std::size_t space_idx = m_message.find_first_of(" ");
 	if ( space_idx == std::string::npos )
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
 			"Please specify a filename (e.g. " COLOR YELLOW "!file rules.txt" RESET ").");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
 			"Type " COLOR YELLOW "!files" RESET " to see available files.");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
 		return;
 	}
 
-	std::size_t end_idx = msg.find_first_of(" \r\n", space_idx + 1);
-	std::string filename { msg.substr(space_idx + 1, end_idx - space_idx - 1) };
+	std::size_t end_idx = m_message.find_first_of(" \r\n", space_idx + 1);
+	std::string filename { m_message.substr(space_idx + 1, end_idx - space_idx - 1) };
 
 	if ( filename.find("..") != std::string::npos || filename.find("/") != std::string::npos )
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
 			COLOR RED "Invalid filename." RESET);
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
 		return;
 	}
 
@@ -593,32 +605,32 @@ void BotCommands::file( const std::string& username, const std::string& channel,
 
 	if ( !file.is_open() )
 	{
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
 			"File " COLOR RED "'" + filename + "'" RESET " not found.");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
 			"Type " COLOR YELLOW "!files" RESET " to see available files.");
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel, "");
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel, "");
 		return;
 	}
 
-	if ( !channel.empty() )
-		BotResponseHandler::sendResponse(bot.getSocket(), username, channel,
-			"File " COLOR GREEN "'" + filename + "'" RESET " sent to your DMs, " COLOR RED + username + RESET ".");
+	if ( !m_channel.empty() )
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, m_channel,
+			"File " COLOR GREEN "'" + filename + "'" RESET " sent to your DMs, " COLOR RED + m_username + RESET ".");
 
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR LIGHT_CYAN "=== " + filename + " ===" RESET);
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
 
 	std::string line;
 	while ( std::getline(file, line) )
-		BotResponseHandler::sendResponse(bot.getSocket(), username, "", line);
+		BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", line);
 
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "",
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "",
 		COLOR LIGHT_CYAN "=== End of " + filename + " ===" RESET);
-	BotResponseHandler::sendResponse(bot.getSocket(), username, "", "");
+	BotResponseHandler::sendResponse(m_bot.getSocket(), m_username, "", "");
 
 	file.close();
 }

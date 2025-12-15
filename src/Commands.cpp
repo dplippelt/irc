@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/15 17:36:55 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,7 +303,7 @@ void Command::handlePRIVMSG()
             {
 				#ifdef DEBUG
 				std::string ipStr = CTCPHandler::ipIntToString(ip);
-				std::cout << "DCC SEND detected: " << user->getNickname()
+				std::cout << "DCC SEND detected: " << m_user->getNickname()
 							<< " → " << target << std::endl;
 				std::cout << "  File: " << filename << std::endl;
 				std::cout << "  IP: " << ipStr << " (" << ip << ")" << std::endl;
