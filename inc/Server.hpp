@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:04:53 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 15:57:03 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 16:41:09 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,14 @@
 #include <poll.h>
 #include <errno.h>
 #include <netdb.h>
+#include <signal.h>
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
 #include "Parser.hpp"
 #include "ResponseHandler.hpp"
+
+extern volatile sig_atomic_t g_quit;
 
 class Channel;
 
@@ -42,6 +45,9 @@ class Server
 		Server( const std::string& port, std::string_view pw );
 		Server( const Server& );
 		Server& operator=( const Server& );
+
+		static void sigHandler( int signum );
+		static void setupSigHandler();
 
 		void	doPoll();
 		void	removeClient( int client_fd, const std::string& quitMessage = "" );
@@ -73,7 +79,6 @@ class Server
 		std::map<std::string, Channel*>		m_channels {};
 		std::vector<struct pollfd>			m_pollfds {};
 		std::map<int, Parser>				m_messagesList{};
-		ResponseHandler*					m_responseHandler;
 
 		void		validatePort( const std::string& port );
 		void		acceptConn();
@@ -82,18 +87,4 @@ class Server
 		void		enablePollOut(int fd);
 		void		disablePollOut(int fd);
 		void		trySendPendingData(int client_fd);
-};
-
-enum Command
-{
-	PING,
-	NICK,
-	USER,
-	PASS,
-	MODE,
-	WHOIS,
-	JOIN,
-	PART,
-	KICK,
-	NO_CMD
 };

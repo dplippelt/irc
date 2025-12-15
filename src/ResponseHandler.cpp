@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ResponseHandler.cpp                                :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:47:35 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 14:43:19 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ResponseHandler.cpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/15 16:41:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,10 @@
 // =================== Constructor & Destructor ==================
 
 ResponseHandler::ResponseHandler(Server& server)
-	: _server(server) {}
+	: m_server(server) {}
 
 ResponseHandler::~ResponseHandler() {}
+
 
 // ==================== Basic Message Sending ====================
 
@@ -31,7 +32,7 @@ void ResponseHandler::sendResponse(int fd, const std::string& message)
 	#ifdef DEBUG
 	std::cout << "Sent to fd " << fd << ": " << fullMessage;
 	#endif
-	_server.sendToClient(fd, fullMessage);
+	m_server.sendToClient(fd, fullMessage);
 }
 
 // ==================== Numeric Reply Messages ====================

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   ResponseHandler.hpp                                :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 13:47:33 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 14:41:02 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   ResponseHandler.hpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 13:47:33 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/15 16:41:38 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Server;
 class ResponseHandler
 {
 	private:
-		Server& _server;
+		Server& m_server;
 
 		void sendTopicMessage(User* user, Channel* channel);
 		void sendNameMessage(User* user, Channel* channel);

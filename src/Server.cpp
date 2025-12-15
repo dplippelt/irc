@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 16:05:29 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/15 16:42:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ Server::~Server()
 
 Server::Server( const std::string& port, std::string_view pw )
 	: m_pw { pw }
-	, m_responseHandler(nullptr)
 {
 	struct addrinfo	hints { AI_PASSIVE, AF_INET, SOCK_STREAM, 0, 0, NULL, NULL, NULL };
 
@@ -60,8 +59,6 @@ Server::Server( const std::string& port, std::string_view pw )
 		if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 			throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
 
-		m_responseHandler = new ResponseHandler(*this);
-
 		freeaddrinfo(m_addr);
 		m_addr = nullptr;
 	}
@@ -74,6 +71,26 @@ Server::Server( const std::string& port, std::string_view pw )
 
 	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
 		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
+}
+
+/* ==================== Signal Handler ==================== */
+
+void	Server::sigHandler( int signum )
+{
+	(void)signum;
+	g_quit = 1;
+}
+
+void	Server::setupSigHandler()
+{
+	struct sigaction sa {};
+	sigset_t mask {};
+
+	sa.sa_handler = Server::sigHandler;
+	sa.sa_mask = mask;
+
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 }
 
 /* ==================== Initial Server Setup ==================== */
@@ -282,8 +299,13 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 
 	std::list<Message> &messages { m_messagesList[client_fd].getMessages() };
 
+	User* user {m_users[client_fd]};
+
 	for ( auto& msg : messages )
-		Commands::executeCommand(m_users[client_fd], msg.getCommandName(), msg.getParamsList(), *this,*m_responseHandler, m_pw);
+	{
+		Command command { *this, user, msg };
+		command.executeCommand();
+	}
 
 	messages.clear();
 }
