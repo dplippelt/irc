@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 13:55:19 by spyun             #+#    #+#             */
-/*   Updated: 2025/11/27 15:01:27 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 11:17:12 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ enum IrcNumericCodes
 	ERR_TOOMANYCHANNELS = 405,
 	ERR_NORECIPIENT = 411,
 	ERR_NOTEXTTOSEND = 412,
+	ERR_UNKNOWNCMD = 421,
 	ERR_NONICKNAMEGIVEN = 431,
 	ERR_ERRONEUSNICKNAME = 432,
 	ERR_NICKNAMEINUSE = 433,
