@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 13:17:52 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ class Validation
 		static Channel*		validateCanInvite( User* user, const std::string& channelName, const Server& server, ResponseHandler& responseHandler );
 		static User*		validateCanInviteTarget( User* user, Channel* channel, const std::string& channelName, const std::string& targetNick, const Server& server, ResponseHandler& responseHandler );
 		static bool			validateCanChangeModes( User* user, Channel* channel, const std::string& channelName, ResponseHandler& responseHandler );
-		static bool			validateModes( User *user, const std::string &modes, ResponseHandler& responseHandler );
-		static bool			validateModeCharacter( User* user, char mode, const std::string& availableModes, ResponseHandler& responseHandler );
+		static bool			validateModes( User *user, const std::string& channelName, const std::string &modes, ResponseHandler& responseHandler );
+		static bool			validateModeCharacter( User* user, const std::string& channelName, char mode, const std::string& availableModes, ResponseHandler& responseHandler );
 		static void			handleModeOperationError( User* user, const std::string& channelName, IrcNumericCodes error_code, ResponseHandler& responseHandler );
 
 	private:
