@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/15 16:41:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 12:06:49 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ void ResponseHandler::sendResponse(int fd, const std::string& message)
 
 // ==================== Numeric Reply Messages ====================
 
+/* Send to status window */
 void ResponseHandler::sendNumericReply(int fd, int code, const std::string& message)
 {
 	std::ostringstream oss;
@@ -48,12 +49,17 @@ void ResponseHandler::sendNumericReply(int fd, int code, const std::string& mess
 	#endif
 }
 
+/* Send to user if user is registered or status window if not registered */
 void ResponseHandler::sendNumericReply(int fd, int code, const std::string& nickname,
 										const std::string& message)
 {
+	std::string nick { nickname };
+	if (nick.empty())
+		nick = "*";
+
 	std::ostringstream oss;
 	oss << ":ft_irc " << std::setw(3) << std::setfill('0') << code
-		<< " " << nickname << " " << message;
+		<< " " << nick << " " << message;
 	sendResponse(fd, oss.str());
 
 	#ifdef DEBUG
