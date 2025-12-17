@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 11:40:04 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 15:24:30 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,14 +142,12 @@ void Command::handleNICK()
 		return;
 
 	std::string oldNick = m_user->getNickname();
+	std::string oldPrefix = m_user->getPrefix();
 	m_user->setNickname(newNick);
 	m_user->setHasNickname(true);
 
 	if (Authentication::isRegistered(m_user))
-	{
-		std::string nickChangeMsg = m_user->getPrefix() + " NICK :" + newNick;
-		m_responseHandler.sendResponse(m_user->getFd(), nickChangeMsg);
-	}
+		informUsersOfNickChange(oldPrefix, newNick);
 
 	Authentication::checkRegistration(m_user, m_responseHandler);
 
@@ -157,6 +155,40 @@ void Command::handleNICK()
 	std::cout << "User fd " << m_user->getFd()
 			  << " changed nickname from '" << oldNick << "' to '" << newNick << "'" << std::endl;
 	#endif
+}
+
+void Command::informUsersOfNickChange( const std::string& oldPrefix, const std::string& newNick )
+{
+	std::string nickChangeMsg { oldPrefix + " NICK :" + newNick };
+	int			userFd { m_user->getFd() };
+
+	// send to the user changing their nick separately in case they are not in a channel
+	m_responseHandler.sendResponse(userFd, nickChangeMsg);
+
+	// inform all other users that share a channel with the user that is changing ther nick
+	std::set<int>	informedFds { userFd };
+	auto			channelList { m_server.getChannels() };
+
+	for ( auto it { channelList.begin() }; it != channelList.end(); ++it )
+	{
+		const Channel* channel { it->second };
+
+		if ( !channel->isMember(userFd) )
+			continue;
+
+		auto chanMembers { channel->getMembers() };
+
+		for ( auto itt { chanMembers.begin() }; itt != chanMembers.end(); ++itt )
+		{
+			int	otherUserFd { itt->second->getFd() };
+
+			if (informedFds.find(otherUserFd) == informedFds.end())
+			{
+				m_responseHandler.sendResponse(otherUserFd, nickChangeMsg);
+				informedFds.insert(otherUserFd);
+			}
+		}
+	}
 }
 
 // ==================== USER Command ====================
@@ -446,11 +478,11 @@ void Command::handlePART()
 		if (!reason.empty())
 			partMsg += " :" + reason;
 
-		const std::map<int, User*>& members = channel->getMembers();
-		for (std::map<int, User*>::const_iterator it = members.begin();
-			it != members.end(); ++it)
+		auto members = channel->getMembers();
+		for (auto it = members.begin(); it != members.end(); ++it)
 		{
-			m_responseHandler.sendResponse(it->second->getFd(), partMsg);
+			if (it->second->getFd() != m_user->getFd())
+				m_responseHandler.sendResponse(it->second->getFd(), partMsg);
 		}
 
 		channel->removeMember(m_user->getFd());

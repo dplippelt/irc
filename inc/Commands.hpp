@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 15:08:05 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,8 @@ class Command
 		void	modeOperateParamPrivilege(char sign, int idxOffset); // [Takato]: added for mode operation
 		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
 		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
+
+		void	informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
 
 		void handlePASS();
 		void handleNICK();
