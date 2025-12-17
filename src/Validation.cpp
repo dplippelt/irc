@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/17 13:19:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 11:56:12 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -490,30 +490,30 @@ bool	Validation::validateCanChangeModes( User* user, Channel* channel, const std
 	return true;
 }
 
-bool	Validation::validateModes(User *user, const std::string& channelName, const std::string &modes, ResponseHandler& responseHandler)
+bool	Validation::validateModes(User *user, const std::string &modes, ResponseHandler& responseHandler)
 {
 	// Dominique
 	// NOTE: This might reject "MODE #channel +" which some servers actually allow apparently (and just doesn't do anything)
 	if (modes.size() < 2)
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), channelName + " " + modes + " :is unknown mode char to me");
+		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), modes + " :is unknown mode char to me");
 		return false;
 	}
 
 	if (!(modes.front() == '+' || modes.front() == '-'))
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), channelName + " " + std::string(1, modes.front())  + " :is unknown mode char to me");
+		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), std::string(1, modes.front())  + " :is unknown mode char to me");
 		return false;
 	}
 
 	return true;
 }
 
-bool	Validation::validateModeCharacter( User* user, const std::string& channelName, char mode, const std::string& availableModes, ResponseHandler& responseHandler )
+bool	Validation::validateModeCharacter( User* user, char mode, const std::string& availableModes, ResponseHandler& responseHandler )
 {
 	if (availableModes.find(mode) == std::string::npos)
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), channelName + " " + std::string(1, mode) + " :is unknown mode char to me");
+		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), std::string(1, mode) + " :is unknown mode char to me");
 		return false;
 	}
 	return true;

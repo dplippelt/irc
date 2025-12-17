@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 13:19:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 11:40:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -696,14 +696,14 @@ void	Command::handleMODE()
 	const std::string	&modes{ m_params[1] };
 	const char 			sign{ modes.front() };
 
-	if (!Validation::validateModes(m_user, channelName, modes, m_responseHandler))
+	if (!Validation::validateModes(m_user, modes, m_responseHandler))
 		return;
 
 	int	modeSettingIdxOffset {};
 
 	for (int i{ 1 }; i < static_cast<int>(std::min(modes.size(), k_max_mode_num + 1)); ++i)
 	{
-		if (!Validation::validateModeCharacter(m_user, channelName, modes[i], k_mode_set_param + k_mode_set_toggle, m_responseHandler))
+		if (!Validation::validateModeCharacter(m_user, modes[i], k_mode_set_param + k_mode_set_toggle, m_responseHandler))
 			return;
 
 		if (k_mode_set_toggle.find(modes[i]) != std::string::npos)
