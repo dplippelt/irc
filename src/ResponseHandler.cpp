@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 12:06:49 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 14:36:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,24 +88,15 @@ void ResponseHandler::sendAuthenticationError(int fd, const std::string& command
 
 void ResponseHandler::sendWelcome(User* user)
 {
-	std::string nick = user->getNickname();
-	std::string prefix = user->getPrefix();
+	int fd { user->getFd() };
+	std::string nick { user->getNickname() };
+	std::string prefix { user->getPrefix() };
 
-	std::ostringstream msg1;
-	msg1 << ":ft_irc 001 " << nick << " :Welcome to the Internet Relay Network " << prefix;
-	sendResponse(user->getFd(), msg1.str());
-
-	std::ostringstream msg2;
-	msg2 << ":ft_irc 002 " << nick << " :Your host is ft_irc, running version 1.0";
-	sendResponse(user->getFd(), msg2.str());
-
-	std::ostringstream msg3;
-	msg3 << ":ft_irc 003 " << nick << " :This server was created sometime";
-	sendResponse(user->getFd(), msg3.str());
-
-	std::ostringstream msg4;
-	msg4 << ":ft_irc 004 " << nick << " ft_irc 1.0 o itkol";
-	sendResponse(user->getFd(), msg4.str());
+	sendNumericReply(fd, RPL_WELCOME, nick, ":Welcome to the Internet Relay Network " + prefix);
+	sendNumericReply(fd, RPL_YOURHOST, nick, ":Your host is ft_irc, running version 1.0");
+	sendNumericReply(fd, RPL_CREATED, nick, ":This server was created sometime");
+	sendNumericReply(fd, RPL_MYINFO, nick, "ft_irc 1.0 o itkol");
+	sendNumericReply(fd, RPL_ISUPPORT, nick, "CHANTYPES=# PREFIX=(o)@ CHANMODES=,k,l,it MODES NETWORK=ft_irc :are supported by this server");
 
 	#ifdef DEBUG
 	std::cout << "Welcome sequence sent to " << nick

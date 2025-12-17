@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 13:55:19 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 11:17:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 14:00:43 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ enum IrcNumericCodes
 	RPL_YOURHOST = 002,
 	RPL_CREATED = 003,
 	RPL_MYINFO = 004,
+	RPL_ISUPPORT = 005,
 
 	RPL_WHOISUSER = 311,
 	RPL_WHOISSERVER = 312,
