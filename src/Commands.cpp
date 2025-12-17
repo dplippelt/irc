@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/15 17:36:55 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/17 11:40:04 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void Command::executeCommand()
 		handleMODE();
 		break;
 	default:
-		m_responseHandler.sendNumericReply(m_user->getFd(), 421, m_command + " :Unknown command");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_UNKNOWNCMD, m_user->getNickname(),  m_command + " :Unknown command");
 		break;
 	}
 }
@@ -113,12 +113,12 @@ void Command::handlePASS()
 	std::string providedPassword = ValidationHelper::removeLeadingColon(m_params.front());
 	if (!ValidationHelper::isValidPassword(providedPassword))
 	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, ":Password contains invalid characters");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password contains invalid characters");
 		return;
 	}
 	if (!Authentication::validatePassword(providedPassword, m_server.getPassword()))
 	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH,  ":Password incorrect");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(),  ":Password incorrect");
 		return;
 	}
 
@@ -251,7 +251,7 @@ void Command::handleJOIN()
 
 		if (!ValidationHelper::isValidChannelName(currentChannel))
 		{
-			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
+			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHCHANNEL, m_user->getNickname(), currentChannel + " :No such channel");
 			continue;
 		}
 
@@ -346,7 +346,7 @@ void Command::handlePRIVMSG()
 
 		if (targetUser == nullptr)
 		{
-			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, target + " :No such nick/channel");
+			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), target + " :No such nick/channel");
 			return;
 		}
 
@@ -494,7 +494,7 @@ void Command::handleTOPIC()
 
 		if (currentTopic.empty())
 		{
-			m_responseHandler.sendNumericReply(m_user->getFd(), RPL_NOTOPIC, channelName + " :No topic is set");
+			m_responseHandler.sendNumericReply(m_user->getFd(), RPL_NOTOPIC, m_user->getNickname(), channelName + " :No topic is set");
 		}
 		else
 		{
@@ -514,7 +514,7 @@ void Command::handleTOPIC()
 
 	if (channel->isTopicRestricted() && !channel->isOperator(m_user->getFd()))
 	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, m_user->getNickname(), channelName + " :You're not channel operator");
 		return;
 	}
 
@@ -600,7 +600,7 @@ void Command::handleWHOIS()
 
 	if (targetUser == nullptr)
 	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick/channel");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), targetNick + " :No such nick/channel");
 		return;
 	}
 
@@ -712,7 +712,7 @@ void	Command::handleMODE()
 		{
 			if (m_params.size() < MINIMUM_PARAMS_MODE + 1 + static_cast<std::size_t>(modeSettingIdxOffset))
 			{
-				m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+				m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NEEDMOREPARAMS, m_user->getNickname(), "MODE :Not enough parameters");
 				return;
 			}
 			try

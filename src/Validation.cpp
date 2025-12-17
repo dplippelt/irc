@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Validation.cpp                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:41:37 by dlippelt      #+#    #+#                 */
-/*   Updated: 2025/12/11 16:32:32 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Validation.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
+/*   Updated: 2025/12/17 11:56:12 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,17 @@ bool Validation::validatePASS( User* user, const std::vector<std::string>& param
 {
 	if ( user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, user->getNickname(), ":You may not reregister");
 		return false;
 	}
 	if ( user->hasProvidedPassword() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already provided a password");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, user->getNickname(), ":You have already provided a password");
 		return false;
 	}
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "PASS :Not enough parameters");
 		return false;
 	}
 	return true;
@@ -38,7 +38,7 @@ bool	Validation::validateNICK( User* user, const std::vector<std::string>& param
 {
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, ":No nickname given");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, user->getNickname(), ":No nickname given");
 		return false;
 	}
 
@@ -49,12 +49,12 @@ bool	Validation::validateNICK( User* user, const std::vector<std::string>& param
 
 	if ( !ValidationHelper::isValidNickname(newNick) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, newNick + " :Erroneous nickname");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, user->getNickname(), newNick + " :Erroneous nickname");
 		return false;
 	}
 	if ( ValidationHelper::isNicknameInUse(newNick, server.getUsers()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, newNick + " :Nickname is already in use");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NICKNAMEINUSE, user->getNickname(), newNick + " :Nickname is already in use");
 		return false;
 	}
 
@@ -66,17 +66,17 @@ bool	Validation::validateUSER( User* user, const std::vector<std::string>& param
 {
 	if ( user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You may not reregister");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, user->getNickname(), ":You may not reregister");
 		return false;
 	}
 	if ( user->hasUsername() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, ":You have already set a username");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, user->getNickname(), ":You have already set a username");
 		return false;
 	}
 	if ( params.size() < 4 )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "USER :Not enough parameters");
 		return false;
 	}
 	return true;
@@ -86,12 +86,12 @@ bool	Validation::validateJOIN( User* user, const std::vector<std::string>& param
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "JOIN :Not enough parameters");
 		return false;
 	}
 	return true;
@@ -101,17 +101,17 @@ bool	Validation::validatePRIVMSG( User* user, const std::vector<std::string>& pa
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NORECIPIENT, "PRIVMSG :No recipient given");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NORECIPIENT, user->getNickname(), "PRIVMSG :No recipient given");
 		return false;
 	}
 	if ( params.size() < 2 )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "PRIVMSG :Not enough parameters");
 		return false;
 	}
 	return true;
@@ -121,12 +121,12 @@ bool	Validation::validateKICK( User* user, const std::vector<std::string>& param
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.size() < 2 )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "KICK :Not enough parameters");
 		return false;
 	}
 
@@ -149,12 +149,12 @@ bool	Validation::validatePART( User* user, const std::vector<std::string>& param
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "PART :Not enough parameters");
 		return false;
 	}
 	return true;
@@ -164,12 +164,12 @@ bool	Validation::validateTOPIC( User* user, const std::vector<std::string>& para
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "TOPIC :Not enough parameters");
 		return false;
 	}
 
@@ -186,12 +186,12 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 {
 	if ( !user->isRegistered() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, ":You have not registered");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTREGISTERED, user->getNickname(), ":You have not registered");
 		return false;
 	}
 	if ( params.size() < 2 )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "INVITE :Not enough parameters");
 		return false;
 	}
 
@@ -231,7 +231,7 @@ bool	Validation::validateWHOIS( User* user, const std::vector<std::string>& para
 {
 	if ( params.empty() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, ":No nickname given");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NONICKNAMEGIVEN, user->getNickname(), ":No nickname given");
 		return false;
 	}
 
@@ -281,14 +281,14 @@ bool	Validation::validateCanJoin( User* user, Channel* channel, std::string& cha
 
 	if ( channel->isInviteOnly() && !channel->isInvited(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN, channel->getName() + " :Cannot join channel (+i)");
+		responseHandler.sendNumericReply(user->getFd(), ERR_INVITEONLYCHAN, user->getNickname(), channel->getName() + " :Cannot join channel (+i)");
 		return false;
 	}
 	if ( channel->hasKey() )
 	{
 		if ( channelKey.empty() || channelKey != channel->getKey() )
 		{
-			responseHandler.sendNumericReply(user->getFd(), ERR_BADCHANNELKEY, channel->getName() + " :Cannot join channel (+k)");
+			responseHandler.sendNumericReply(user->getFd(), ERR_BADCHANNELKEY, user->getNickname(), channel->getName() + " :Cannot join channel (+k)");
 			return false;
 		}
 	}
@@ -296,7 +296,7 @@ bool	Validation::validateCanJoin( User* user, Channel* channel, std::string& cha
 	{
 		if ( static_cast<int>(channel->getMemberCount()) >= channel->getUserLimit() )
 		{
-			responseHandler.sendNumericReply(user->getFd(), ERR_CHANNELISFULL, channel->getName() + " :Cannot join channel (+l)");
+			responseHandler.sendNumericReply(user->getFd(), ERR_CHANNELISFULL, user->getNickname(), channel->getName() + " :Cannot join channel (+l)");
 			return false;
 		}
 	}
@@ -309,7 +309,7 @@ Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, 
 
 	if ( it == server.getChannels().end() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, target + " :No such channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), target + " :No such channel");
 		return nullptr;
 	}
 
@@ -317,7 +317,7 @@ Channel*	Validation::validateCanSendMsg( User* user, const std::string& target, 
 
 	if ( !channel->isMember(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_CANNOTSENDTOCHAN, target + " :Cannot send to channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_CANNOTSENDTOCHAN, user->getNickname(), target + " :Cannot send to channel");
 		return nullptr;
 	}
 
@@ -330,7 +330,7 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 
 	if ( chanIt == server.getChannels().end() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), channelName + " :No such channel");
 		return nullptr;
 	}
 
@@ -338,12 +338,12 @@ Channel*	Validation::validateCanKick( User* user, const std::string& channelName
 
 	if ( !channel->isMember(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), channelName + " :You're not on that channel");
 		return nullptr;
 	}
 	if ( !channel->isOperator(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, user->getNickname(), channelName + " :You're not channel operator");
 		return nullptr;
 	}
 
@@ -365,13 +365,13 @@ User*	Validation::validateCanKickTarget( User* user, Channel* channel, const std
 
 	if ( !targetUser )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, user->getNickname(), targetNick + " :No such nick");
 		return nullptr;
 	}
 
 	if ( !channel->isMember(targetUser->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_USERNOTINCHANNEL, targetNick + " " + channel->getName() + " :They aren't on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_USERNOTINCHANNEL, user->getNickname(), targetNick + " " + channel->getName() + " :They aren't on that channel");
 		return nullptr;
 	}
 
@@ -384,7 +384,7 @@ Channel*	Validation::validateCanPart( User* user, const std::string& currentChan
 
 	if ( chanIt == server.getChannels().end() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, currentChannel + " :No such channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), currentChannel + " :No such channel");
 		return nullptr;
 	}
 
@@ -392,7 +392,7 @@ Channel*	Validation::validateCanPart( User* user, const std::string& currentChan
 
 	if ( !channel->isMember(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, currentChannel + " :You're not on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), currentChannel + " :You're not on that channel");
 		return nullptr;
 	}
 
@@ -405,7 +405,7 @@ Channel*	Validation::validateCanChangeTopic( User* user, const std::string& chan
 
 	if ( chanIt == server.getChannels().end() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), channelName + " :No such channel");
 		return nullptr;
 	}
 
@@ -413,7 +413,7 @@ Channel*	Validation::validateCanChangeTopic( User* user, const std::string& chan
 
 	if ( !channel->isMember(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), channelName + " :You're not on that channel");
 		return nullptr;
 	}
 
@@ -426,7 +426,7 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 
 	if ( chanIt == server.getChannels().end() )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHCHANNEL, user->getNickname(), channelName + " :No such channel");
 		return nullptr;
 	}
 
@@ -434,12 +434,12 @@ Channel*	Validation::validateCanInvite( User* user, const std::string& channelNa
 
 	if ( !channel->isMember(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), channelName + " :You're not on that channel");
 		return nullptr;
 	}
 	if ( channel->isInviteOnly() && !channel->isOperator(user->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, user->getNickname(), channelName + " :You're not channel operator");
 		return nullptr;
 	}
 
@@ -461,12 +461,12 @@ User*	Validation::validateCanInviteTarget( User* user, Channel* channel, const s
 
 	if ( !targetUser )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, targetNick + " :No such nick");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOSUCHNICK, user->getNickname(), targetNick + " :No such nick");
 		return nullptr;
 	}
 	if ( channel->isMember(targetUser->getFd()) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_USERONCHANNEL, targetNick + " " + channelName + " :is already on channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_USERONCHANNEL, user->getNickname(), targetNick + " " + channelName + " :is already on channel");
 		return nullptr;
 	}
 
@@ -513,7 +513,7 @@ bool	Validation::validateModeCharacter( User* user, char mode, const std::string
 {
 	if (availableModes.find(mode) == std::string::npos)
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, std::string(1, mode) + " :is unknown mode char to me");
+		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), std::string(1, mode) + " :is unknown mode char to me");
 		return false;
 	}
 	return true;
@@ -524,13 +524,13 @@ void	Validation::handleModeOperationError( User* user, const std::string& channe
 	switch (error_code)
 	{
 	case ERR_KEYSET:
-		responseHandler.sendNumericReply(user->getFd(), ERR_KEYSET, channelName + " :Channel key already set");
+		responseHandler.sendNumericReply(user->getFd(), ERR_KEYSET, user->getNickname(), channelName + " :Channel key already set");
 		break;
 	case ERR_NOTONCHANNEL:
-		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NOTONCHANNEL, user->getNickname(), channelName + " :You're not on that channel");
 		break;
 	case ERR_NEEDMOREPARAMS:
-		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "MODE :Not enough parameters");
 		break;
 	default:
 		responseHandler.sendError(user->getFd(), "MODE", "Unknown error occurred");
