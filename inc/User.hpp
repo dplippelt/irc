@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   User.hpp                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/27 16:14:15 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 14:00:12 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   User.hpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/27 16:14:15 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/17 11:37:55 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,21 +22,21 @@ class User
 	private:
 		int _fd;
 
-		std::string _nickname;
-		std::string _username;
-		std::string _realname;
-		std::string _hostname;
+		std::string _nickname {};
+		std::string _username {};
+		std::string _realname {};
+		std::string _hostname {};
 
-		bool _authenticated;
-		bool _registered;
-		bool _passwordProvided;
-		bool _hasNickname;
-		bool _hasUsername;
+		bool _authenticated {};
+		bool _registered {};
+		bool _passwordProvided {};
+		bool _hasNickname {};
+		bool _hasUsername {};
 
-		std::vector<std::string> _channels;
+		std::vector<std::string> _channels {};
 
-		std::string _recvBuffer;
-		std::string _sendBuffer;
+		std::string _recvBuffer {};
+		std::string _sendBuffer {};
 
 	public:
 		User(int fd);
