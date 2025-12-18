@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 15:08:05 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 17:43:46 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,8 @@ class Command
 		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
 		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
 
-		void	informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
+		void		informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
+		std::string	getKickReason();
 
 		void handlePASS();
 		void handleNICK();
@@ -125,5 +126,12 @@ class Command
 
 		void executeCommand();
 };
+
+// try to use struct to make code more readable
+typedef struct s_cmd_data
+{
+	Channel*	channel {};
+	User*		user {};
+}				t_cmd_data;
 
 #endif

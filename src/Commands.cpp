@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/18 16:45:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 18:07:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,9 +398,8 @@ void Command::handleKICK()
 {
 	std::string	targetNick {};
 	std::string	channelName {};
-	std::string	reason {};
 
-	if (!Validation::validateKICK(m_user, m_params, targetNick, channelName, reason, m_responseHandler))
+	if (!Validation::validateKICK(m_user, m_params, targetNick, channelName, m_responseHandler))
 		return;
 
 	Channel* channel = Validation::validateCanKick(m_user, channelName, m_server, m_responseHandler);
@@ -411,7 +410,7 @@ void Command::handleKICK()
 	if(!targetUser)
 		return;
 
-	std::string kickMsg = m_user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
+	std::string kickMsg = m_user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + getKickReason();
 	const std::map<int, User*>& members = channel->getMembers();
 	for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
 		m_responseHandler.sendResponse(it->second->getFd(), kickMsg);
@@ -432,6 +431,28 @@ void Command::handleKICK()
 	#ifdef DEBUG
 	std::cout << "User " << targetNick << " was kicked from channel " << channelName << " by " << m_user->getNickname() << std::endl;
 	#endif
+}
+
+// 'Kicked by operator' never gets used because irssi
+// always sends the KICK command with a ':' at the end
+// even if you provide no reason.
+// Also, does the it != m_params.end() make sense if KICK
+// is sent with less than 3 parameters? It would go beyond end()
+std::string	Command::getKickReason()
+{
+	auto it { m_params.begin() };
+
+	std::string reason { "Kicked by operator" };
+
+	it = std::next(it, 2);
+	if ( it != m_params.end() )
+	{
+		reason = *it;
+		if ( !reason.empty() && reason[0] == ':' )
+			reason = reason.substr(1);
+	}
+
+	return reason;
 }
 
 // ==================== PART Handler ====================

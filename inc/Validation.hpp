@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 16:38:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 18:02:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ class Validation
 		static bool			validateUSER( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
 		static bool			validateJOIN( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
 		static bool			validatePRIVMSG( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
-		static bool			validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason, ResponseHandler& responseHandler );
+		static bool			validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, ResponseHandler& responseHandler );
 		static bool			validatePART( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
 		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName, ResponseHandler& responseHandler );
 		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, ResponseHandler& responseHandler );

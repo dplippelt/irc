@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/18 17:22:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 18:03:16 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ bool	Validation::validatePRIVMSG( User* user, const std::vector<std::string>& pa
 	return true;
 }
 
-bool	Validation::validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, std::string& reason, ResponseHandler& responseHandler )
+bool	Validation::validateKICK( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, ResponseHandler& responseHandler )
 {
 	if ( !user->isRegistered() )
 	{
@@ -133,15 +133,8 @@ bool	Validation::validateKICK( User* user, const std::vector<std::string>& param
 	auto it { params.begin() };
 
 	channelName = *it++;
-	targetNick = *it++;
-	reason = "Kicked by operator";
+	targetNick = *it;
 
-	if ( it != params.end() )
-	{
-		reason = *it;
-		if ( !reason.empty() && reason[0] == ':' )
-			reason = reason.substr(1);
-	}
 	return true;
 }
 
