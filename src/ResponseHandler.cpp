@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 14:36:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 14:19:01 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ void ResponseHandler::sendWelcome(User* user)
 {
 	int fd { user->getFd() };
 	std::string nick { user->getNickname() };
-	std::string prefix { user->getPrefix() };
+	std::string prefix { user->getPrefix().substr(1) };
 
 	sendNumericReply(fd, RPL_WELCOME, nick, ":Welcome to the Internet Relay Network " + prefix);
 	sendNumericReply(fd, RPL_YOURHOST, nick, ":Your host is ft_irc, running version 1.0");
