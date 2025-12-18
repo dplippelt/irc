@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/17 11:56:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 12:50:20 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ bool	Validation::validateUSER( User* user, const std::vector<std::string>& param
 		responseHandler.sendNumericReply(user->getFd(), ERR_ALREADYREGISTRED, user->getNickname(), ":You have already set a username");
 		return false;
 	}
-	if ( params.size() < 4 )
+	if ( params.size() < 4 || params[3].empty() )
 	{
 		responseHandler.sendNumericReply(user->getFd(), ERR_NEEDMOREPARAMS, user->getNickname(), "USER :Not enough parameters");
 		return false;
