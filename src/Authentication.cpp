@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Authentication.cpp                                 :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/11/13 15:17:23 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 16:08:04 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Authentication.cpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/13 15:17:23 by spyun             #+#    #+#             */
+/*   Updated: 2025/12/18 17:10:38 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,12 @@ void Authentication::checkRegistration(User* user, ResponseHandler& responseHand
 	{
 		user->setRegistered(true);
 		responseHandler.sendWelcome(user);
+
+		// Send empty user mode change to client so that status bar in irssi
+		// is always updated with the latest nickname if the nickname during
+		// registration changes from the initial nickname (usually the username)
+		std::string userModeChangeMsg { user->getPrefix() + " MODE " + user->getNickname() };
+		responseHandler.sendResponse(user->getFd(), userModeChangeMsg);
 	}
 }
 

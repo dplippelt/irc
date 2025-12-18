@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/18 12:22:39 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 16:45:00 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,10 +146,10 @@ void Command::handleNICK()
 	m_user->setNickname(newNick);
 	m_user->setHasNickname(true);
 
-	if (Authentication::isRegistered(m_user))
-		informUsersOfNickChange(oldPrefix, newNick);
-
 	Authentication::checkRegistration(m_user, m_responseHandler);
+
+	if (Authentication::isRegistered(m_user) && !oldNick.empty())
+		informUsersOfNickChange(oldPrefix, newNick);
 
 	#ifdef DEBUG
 	std::cout << "User fd " << m_user->getFd()
