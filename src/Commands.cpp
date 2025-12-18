@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 15:24:30 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 12:22:39 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void Command::handlePASS()
 	}
 	if (!Authentication::validatePassword(providedPassword, m_server.getPassword()))
 	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(),  ":Password incorrect");
+		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password incorrect");
 		return;
 	}
 
