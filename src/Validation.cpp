@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/18 12:50:20 by dlippelt         ###   ########.fr       */
+/*   Updated: 2025/12/18 17:22:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ bool	Validation::validateNICK( User* user, const std::vector<std::string>& param
 
 	if ( !ValidationHelper::isValidNickname(newNick) )
 	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, user->getNickname(), newNick + " :Erroneous nickname");
+		responseHandler.sendNumericReply(user->getFd(), ERR_ERRONEUSNICKNAME, user->getNickname(), newNick + " :Erroneous Nickname");
 		return false;
 	}
 	if ( ValidationHelper::isNicknameInUse(newNick, server.getUsers()) )
