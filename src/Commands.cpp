@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/18 18:07:26 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/12 12:44:07 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,7 +235,7 @@ void Command::handlePING()
 		std::cout << "Failed to send PONG to fd " << m_user->getFd() << std::endl;
 	else
 		std::cout << "Sent PONG response to client fd " << m_user->getFd() << std::endl;
-    #endif
+	#endif
 }
 
 // ==================== JOIN Command ====================
@@ -433,26 +433,19 @@ void Command::handleKICK()
 	#endif
 }
 
-// 'Kicked by operator' never gets used because irssi
-// always sends the KICK command with a ':' at the end
-// even if you provide no reason.
-// Also, does the it != m_params.end() make sense if KICK
-// is sent with less than 3 parameters? It would go beyond end()
 std::string	Command::getKickReason()
 {
-	auto it { m_params.begin() };
+	if ( m_params.size() == 2 )
+		return m_user->getNickname();
 
-	std::string reason { "Kicked by operator" };
+	auto it { std::next(m_params.begin(), 2) };
+	std::string reason { *it };
 
-	it = std::next(it, 2);
-	if ( it != m_params.end() )
-	{
-		reason = *it;
-		if ( !reason.empty() && reason[0] == ':' )
-			reason = reason.substr(1);
-	}
+	if ( !reason.empty() && reason[0] == ':' )
+		if ( !reason.substr(1).empty() )
+			return reason.substr(1);
 
-	return reason;
+	return m_user->getNickname();
 }
 
 // ==================== PART Handler ====================
