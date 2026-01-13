@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 16:42:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:53:31 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,7 +207,7 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 	std::cout << "Client disconnected (client fd: " << client_fd << ")" << std::endl;
 	#endif
 
-	std::map<int, User*>::iterator it = m_users.find(client_fd);
+	auto it = m_users.find(client_fd);
 	if ( it == m_users.end() )
 		return;
 
@@ -216,14 +216,14 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 	const std::vector<std::string>& channels = user->getChannels();
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
-		std::map<std::string, Channel*>::iterator chanIt = m_channels.find(channels[i]);
+		auto chanIt = m_channels.find(channels[i]);
 		if (chanIt != m_channels.end())
 		{
 			Channel* channel = chanIt->second;
 			if (!quitMessage.empty())
 			{
 				const std::map<int, User*>& members = channel->getMembers();
-				for (std::map<int, User*>::const_iterator memIt = members.begin(); memIt != members.end(); ++memIt)
+				for (auto memIt = members.begin(); memIt != members.end(); ++memIt)
 				{
 					if (memIt->first != client_fd)
 						sendToClient(memIt->first, quitMessage);
