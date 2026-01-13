@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 15:57:30 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 17:58:59 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -571,69 +571,38 @@ void Command::handleINVITE()
 
 void Command::handleWHOIS()
 {
-	std::string targetNick;
+	std::string targetNick {};
 
-	if (!Validation::validateWHOIS(m_user, m_params, targetNick, m_responseHandler))
+	if ( !Validation::validateWHOIS(m_user, m_params, targetNick, m_responseHandler) )
 		return;
 
-	User* targetUser = nullptr;
-	const std::map<int, User*>& users = m_server.getUsers();
-	for (std::map<int, User*>::const_iterator it = users.begin(); it != users.end(); ++it)
-	{
-		if (it->second->getNickname() == targetNick)
-		{
-			targetUser = it->second;
-			break;
-		}
-	}
+	const User* targetUser { getTargetUser(targetNick) };
+	if ( targetUser == nullptr )
+		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), targetNick + " :No such nick/channel");
 
-	if (targetUser == nullptr)
-	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), targetNick + " :No such nick/channel");
-		return;
-	}
+	m_responseHandler.sendWhoIsUserResponse(m_user, targetUser);
 
-	std::ostringstream whoisUserMsg;
-	whoisUserMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISUSER
-				 << " " << m_user->getNickname() << " "
-				 << targetUser->getNickname() << " "
-				 << targetUser->getUsername() << " "
-				 << targetUser->getHostname() << " * :"
-				 << targetUser->getRealname();
-	m_responseHandler.sendResponse(m_user->getFd(), whoisUserMsg.str());
+	const std::vector<std::string>& channels { targetUser->getChannels() };
+	if ( !channels.empty() )
+		m_responseHandler.sendWhoIsChannelsResponse(m_user, targetUser, channels);
 
-	const std::vector<std::string>& channels = targetUser->getChannels();
-	if (!channels.empty())
-	{
-		std::ostringstream whoisChannelsMsg;
-		whoisChannelsMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISCHANNELS
-						 << " " << m_user->getNickname() << " "
-						 << targetUser->getNickname() << " :";
-
-		for (size_t i = 0; i < channels.size(); ++i)
-		{
-			if (i > 0)
-				whoisChannelsMsg << " ";
-			whoisChannelsMsg << channels[i];
-		}
-		m_responseHandler.sendResponse(m_user->getFd(), whoisChannelsMsg.str());
-	}
-
-	std::ostringstream whoisServerMsg;
-	whoisServerMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISSERVER
-				   << " " << m_user->getNickname() << " "
-				   << targetUser->getNickname() << " ft_irc :ft_irc server";
-	m_responseHandler.sendResponse(m_user->getFd(), whoisServerMsg.str());
-
-	std::ostringstream endOfWhoisMsg;
-	endOfWhoisMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFWHOIS
-				  << " " << m_user->getNickname() << " "
-				  << targetUser->getNickname() << " :End of /WHOIS list";
-	m_responseHandler.sendResponse(m_user->getFd(), endOfWhoisMsg.str());
+	m_responseHandler.sendWhoIsServerResponse(m_user, targetUser);
+	m_responseHandler.sendEndOfWhoIsResponse(m_user, targetUser);
 
 	#ifdef DEBUG
 	std::cout << "User " << m_user->getNickname() << " requested WHOIS for " << targetNick << std::endl;
 	#endif
+}
+
+const User* Command::getTargetUser(const std::string& targetNick) const
+{
+	const std::map<int, User*>& users { m_server.getUsers() };
+
+	for ( auto it = users.begin(); it != users.end(); ++it )
+		if (it->second->getNickname() == targetNick)
+			return it->second;
+
+	return nullptr;
 }
 
 // ==================== QUIT Handler ====================

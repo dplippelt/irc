@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:49:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 17:52:52 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,4 +204,52 @@ void ResponseHandler::sendInviteResponses(User* user, User* targetUser, const st
 
 	std::string inviteMsg { user->getPrefix() + " INVITE " + targetNick + " :" + channelName };
 	sendResponse(targetUser->getFd(), inviteMsg);
+}
+
+// ==================== WHOIS Command Messages ====================
+
+void ResponseHandler::sendWhoIsUserResponse(const User* user, const User* targetUser)
+{
+	std::ostringstream whoisUserMsg {};
+	whoisUserMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISUSER
+				 << " " << user->getNickname() << " "
+				 << targetUser->getNickname() << " "
+				 << targetUser->getUsername() << " "
+				 << targetUser->getHostname() << " * :"
+				 << targetUser->getRealname();
+	sendResponse(user->getFd(), whoisUserMsg.str());
+}
+
+void ResponseHandler::sendWhoIsChannelsResponse(const User* user, const User* targetUser, const std::vector<std::string>& channels)
+{
+	std::ostringstream whoisChannelsMsg {};
+		whoisChannelsMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISCHANNELS
+						 << " " << user->getNickname() << " "
+						 << targetUser->getNickname() << " :";
+
+		for ( size_t i = 0; i < channels.size(); ++i )
+		{
+			if ( i > 0 )
+				whoisChannelsMsg << " ";
+			whoisChannelsMsg << channels[i];
+		}
+		sendResponse(user->getFd(), whoisChannelsMsg.str());
+}
+
+void ResponseHandler::sendWhoIsServerResponse(const User* user, const User* targetUser)
+{
+	std::ostringstream whoisServerMsg {};
+	whoisServerMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_WHOISSERVER
+				   << " " << user->getNickname() << " "
+				   << targetUser->getNickname() << " ft_irc :ft_irc server";
+	sendResponse(user->getFd(), whoisServerMsg.str());
+}
+
+void ResponseHandler::sendEndOfWhoIsResponse(const User* user, const User* targetUser)
+{
+	std::ostringstream endOfWhoisMsg {};
+	endOfWhoisMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFWHOIS
+				  << " " << user->getNickname() << " "
+				  << targetUser->getNickname() << " :End of /WHOIS list";
+	sendResponse(user->getFd(), endOfWhoisMsg.str());
 }

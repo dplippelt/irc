@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 15:33:31 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 18:04:34 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,8 @@ class Command
 		void handlePART(); //tested
 		void handleTOPIC(); //tested
 		void handleINVITE(); //tested
-		void handleQUIT();
-		void handleWHOIS();
+		void handleQUIT(); //tested
+		void handleWHOIS(); //tested
 		void handleMODE(); // [Takato]: added for mode operation
 
 		void							informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
@@ -123,6 +123,7 @@ class Command
 		void							sendPartResponse(Channel* channel, const std::string& currentChannel);
 		const std::string				getNewTopic() const;
 		const std::string				getQuitReason( const std::vector<std::string>& params ) const;
+		const User*						getTargetUser(const std::string& targetNick) const;
 
 		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);

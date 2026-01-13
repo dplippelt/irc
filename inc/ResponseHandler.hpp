@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 13:47:33 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:49:23 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 17:52:52 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,10 @@ class ResponseHandler
 		void sendCurrentTopicResponse(User* user, Channel* channel, const std::string& channelName);
 		void sendTopicChangeResponse(User* user, Channel* channel, const std::string& channelName, const std::string& newTopic);
 		void sendInviteResponses(User* user, User* targetUser, const std::string& targetNick, const std::string& channelName);
+		void sendWhoIsUserResponse(const User* user, const User* targetUser);
+		void sendWhoIsChannelsResponse(const User* user, const User* targetUser, const std::vector<std::string>& channels);
+		void sendWhoIsServerResponse(const User* user, const User* targetUser);
+		void sendEndOfWhoIsResponse(const User* user, const User* targetUser);
 };
 
 #endif
