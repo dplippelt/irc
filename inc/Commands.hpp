@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:07:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:25:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,15 +100,15 @@ class Command
 		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
 		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
 
-		void handlePASS();
-		void handleNICK();
-		void handleUSER();
-		void handlePING();
-		void handleJOIN();
+		void handlePASS(); //tested
+		void handleNICK(); //tested
+		void handleUSER(); //tested
+		void handlePING(); //tested
+		void handleJOIN(); //tested
 		void handlePRIVMSG();
-		void handleKICK();
-		void handlePART();
-		void handleTOPIC();
+		void handleKICK(); //tested
+		void handlePART(); //tested
+		void handleTOPIC(); //tested
 		void handleINVITE();
 		void handleQUIT();
 		void handleWHOIS();

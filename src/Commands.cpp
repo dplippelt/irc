@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:07:16 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:42:47 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,20 +107,14 @@ void Command::executeCommand()
 
 void Command::handlePASS()
 {
-	if (!Validation::validatePASS(m_user, m_params, m_responseHandler))
+	if ( !Validation::validatePASS(m_user, m_params, m_responseHandler) )
 		return;
 
-	std::string providedPassword = ValidationHelper::removeLeadingColon(m_params.front());
-	if (!ValidationHelper::isValidPassword(providedPassword))
-	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password contains invalid characters");
-		return;
-	}
-	if (!Authentication::validatePassword(providedPassword, m_server.getPassword()))
-	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password incorrect");
-		return;
-	}
+	std::string providedPassword { ValidationHelper::removeLeadingColon(m_params.front()) };
+	if ( !ValidationHelper::isValidPassword(providedPassword) )
+		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password contains invalid characters");
+	if ( !Authentication::validatePassword(providedPassword, m_server.getPassword()) )
+		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password incorrect");
 
 	m_user->setPasswordProvided(true);
 	m_user->setAuthenticated(true);
@@ -138,17 +132,17 @@ void Command::handleNICK()
 {
 	std::string newNick {};
 
-	if (!Validation::validateNICK(m_user, m_params, m_server, newNick, m_responseHandler))
+	if ( !Validation::validateNICK(m_user, m_params, m_server, newNick, m_responseHandler) )
 		return;
 
-	std::string oldNick = m_user->getNickname();
-	std::string oldPrefix = m_user->getPrefix();
+	std::string oldNick { m_user->getNickname() };
+	std::string oldPrefix { m_user->getPrefix() };
 	m_user->setNickname(newNick);
 	m_user->setHasNickname(true);
 
 	Authentication::checkRegistration(m_user, m_responseHandler);
 
-	if (Authentication::isRegistered(m_user) && !oldNick.empty())
+	if ( Authentication::isRegistered(m_user) && !oldNick.empty() )
 		informUsersOfNickChange(oldPrefix, newNick);
 
 	#ifdef DEBUG
@@ -182,7 +176,7 @@ void Command::informUsersOfNickChange( const std::string& oldPrefix, const std::
 		{
 			int	otherUserFd { itt->second->getFd() };
 
-			if (informedFds.find(otherUserFd) == informedFds.end())
+			if ( informedFds.find(otherUserFd) == informedFds.end() )
 			{
 				m_responseHandler.sendResponse(otherUserFd, nickChangeMsg);
 				informedFds.insert(otherUserFd);
@@ -195,13 +189,13 @@ void Command::informUsersOfNickChange( const std::string& oldPrefix, const std::
 
 void Command::handleUSER()
 {
-	if (!Validation::validateUSER(m_user, m_params, m_responseHandler))
+	if ( !Validation::validateUSER(m_user, m_params, m_responseHandler) )
 		return;
 
-	std::vector<std::string>::const_iterator it = m_params.begin();
-	std::string username = *it++;
+	auto it { m_params.begin() };
+	std::string username { *it++ };
 	std::advance(it, 2);
-	std::string realname = ValidationHelper::removeLeadingColon(*it);
+	std::string realname { ValidationHelper::removeLeadingColon(*it) };
 
 	m_user->setUsername(username);
 	m_user->setRealname(realname);
@@ -221,9 +215,9 @@ void Command::handleUSER()
 
 void Command::handlePING()
 {
-	std::string pong_str;
+	std::string pong_str {};
 
-	if (!m_params.empty())
+	if ( !m_params.empty() )
 		pong_str = "PONG " + m_params[0] + "\r\n";
 	else
 		pong_str = "PONG :ft_irc\r\n";
@@ -242,33 +236,33 @@ void Command::handlePING()
 
 void Command::handleJOIN()
 {
-	if (!Validation::validateJOIN(m_user, m_params, m_responseHandler))
+	if ( !Validation::validateJOIN(m_user, m_params, m_responseHandler) )
 		return;
 
 	std::map<std::string, Channel*>& channels { m_server.getChannels() };
 	const std::vector<std::string> channelVec { getChannelVector() };
 	const std::vector<std::string> keys { getKeyVector() };
 
-	for (size_t i = 0; i < channelVec.size(); ++i)
+	for ( size_t i = 0; i < channelVec.size(); ++i )
 	{
-		std::string currentChannel = channelVec[i];
-		std::string channelKey = (i < keys.size()) ? keys[i] : "";
+		std::string currentChannel { channelVec[i] };
+		std::string channelKey { (i < keys.size()) ? keys[i] : "" };
 
-		if (!ValidationHelper::isValidChannelName(currentChannel))
+		if ( !ValidationHelper::isValidChannelName(currentChannel) )
 		{
 			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHCHANNEL, m_user->getNickname(), currentChannel + " :No such channel");
 			continue;
 		}
 
-		Channel* channel = getOrCreateChannel(currentChannel, channels);
+		Channel* channel { getOrCreateChannel(currentChannel, channels) };
 
-		if (!Validation::validateCanJoin(m_user, channel, channelKey, m_responseHandler))
+		if ( !Validation::validateCanJoin(m_user, channel, channelKey, m_responseHandler) )
 			continue;
 
 		channel->addMember(m_user);
 		m_user->joinChannel(currentChannel);
 
-		if (channel->isInvited(m_user->getFd()))
+		if ( channel->isInvited(m_user->getFd()) )
 			channel->removeInvite(m_user->getFd());
 
 		m_responseHandler.sendJoinMessages(m_user, channel);
@@ -283,18 +277,19 @@ void Command::handleJOIN()
 const std::vector<std::string> Command::getKeyVector() const
 {
 	std::string keyList {};
-	if (m_params.size() > 1)
+	if ( m_params.size() > 1 )
 	{
 		auto it = std::next(m_params.begin(), 1);
 		keyList = ValidationHelper::removeLeadingColon(*it);
 	}
 
 	std::vector<std::string> keys {};
-	if (!keyList.empty())
+	if ( !keyList.empty() )
 	{
 		std::istringstream keyStream(keyList);
 		std::string key;
-		while (std::getline(keyStream, key, ','))
+
+		while ( std::getline(keyStream, key, ',') )
 			keys.push_back(key);
 	}
 
@@ -393,15 +388,15 @@ void Command::handleKICK()
 	std::string	targetNick {};
 	std::string	channelName {};
 
-	if (!Validation::validateKICK(m_user, m_params, targetNick, channelName, m_responseHandler))
+	if ( !Validation::validateKICK(m_user, m_params, targetNick, channelName, m_responseHandler) )
 		return;
 
-	Channel* channel = Validation::validateCanKick(m_user, channelName, m_server, m_responseHandler);
-	if(!channel)
+	Channel* channel { Validation::validateCanKick(m_user, channelName, m_server, m_responseHandler) };
+	if( !channel )
 		return;
 
-	User* targetUser = Validation::validateCanKickTarget(m_user, channel, targetNick, m_server, m_responseHandler);
-	if(!targetUser)
+	User* targetUser { Validation::validateCanKickTarget(m_user, channel, targetNick, m_server, m_responseHandler) };
+	if( !targetUser )
 		return;
 
 	sendKickResponse(channel, channelName, targetNick);
@@ -409,7 +404,7 @@ void Command::handleKICK()
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
 
-	if (channel->isEmpty())
+	if ( channel->isEmpty() )
 		removeEmptyChannel(channel, channelName);
 
 	#ifdef DEBUG
@@ -442,12 +437,12 @@ void Command::sendKickResponse(Channel* channel, const std::string& channelName,
 
 void Command::handlePART()
 {
-	if (!Validation::validatePART(m_user, m_params, m_responseHandler))
+	if ( !Validation::validatePART(m_user, m_params, m_responseHandler) )
 		return;
 
 	for ( const auto& currentChannel : getChannelVector() )
 	{
-		Channel* channel = Validation::validateCanPart(m_user, currentChannel, m_server, m_responseHandler);
+		Channel* channel { Validation::validateCanPart(m_user, currentChannel, m_server, m_responseHandler) };
 		if (!channel)
 			continue;
 
@@ -456,7 +451,7 @@ void Command::handlePART()
 		channel->removeMember(m_user->getFd());
 		m_user->leaveChannel(currentChannel);
 
-		if (channel->isEmpty())
+		if ( channel->isEmpty() )
 			removeEmptyChannel(channel, currentChannel);
 
 		#ifdef DEBUG
@@ -470,17 +465,17 @@ void Command::handlePART()
 
 const std::string Command::getPartReason() const
 {
-	std::string reason {};
-	if (m_params.size() > 1)
-	{
-		std::vector<std::string>::const_iterator it = m_params.begin();
-		++it;
-		reason = *it;
-		if (!reason.empty() && reason[0] == ':')
-			reason = reason.substr(1);
-		for (++it; it != m_params.end(); ++it)
-			reason += " " + *it;
-	}
+	if ( m_params.size() <= 1 )
+		return "";
+
+	auto it { std::next(m_params.begin(), 1) };
+	std::string reason { *it };
+
+	if ( !reason.empty() && reason[0] == ':' )
+		reason = reason.substr(1);
+	for ( ++it; it != m_params.end(); ++it )
+		reason += " " + *it;
+
 	return reason;
 }
 
@@ -489,7 +484,7 @@ const std::string Command::getPartMessage(const std::string& currentChannel) con
 	std::string partMsg { m_user->getPrefix() + " PART " + currentChannel };
 
 	std::string reason { getPartReason() };
-	if (!reason.empty())
+	if ( !reason.empty() )
 		partMsg += " :" + reason;
 
 	return partMsg + "\r\n";
@@ -507,17 +502,17 @@ void Command::handleTOPIC()
 {
 	std::string	channelName {};
 
-	if (!Validation::validateTOPIC(m_user, m_params, channelName, m_responseHandler))
+	if ( !Validation::validateTOPIC(m_user, m_params, channelName, m_responseHandler) )
 		return;
 
 	Channel* channel { Validation::validateCanChangeTopic(m_user, channelName, m_server, m_responseHandler) };
-	if(!channel)
+	if( !channel )
 		return;
 
-	if (m_params.size() == 1)
+	if ( m_params.size() == 1 )
 		return m_responseHandler.sendCurrentTopicResponse(m_user, channel, channelName);
 
-	if (channel->isTopicRestricted() && !channel->isOperator(m_user->getFd()))
+	if ( channel->isTopicRestricted() && !channel->isOperator(m_user->getFd()) )
 		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, m_user->getNickname(), channelName + " :You're not channel operator");
 
 	std::string newTopic { getNewTopic() };
@@ -534,10 +529,10 @@ const std::string Command::getNewTopic() const
 	auto it { std::next(m_params.begin(), 1) };
 	std::string newTopic { *it };
 
-	if (!newTopic.empty() && newTopic[0] == ':')
+	if ( !newTopic.empty() && newTopic[0] == ':' )
 		newTopic = newTopic.substr(1);
 
-	for (++it; it != m_params.end(); ++it)
+	for ( ++it; it != m_params.end(); ++it )
 		newTopic += " " + *it;
 
 	return newTopic;
