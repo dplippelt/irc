@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 11:52:58 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 12:15:27 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -410,10 +410,7 @@ void Command::handleKICK()
 	if(!targetUser)
 		return;
 
-	std::string kickMsg = m_user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + getKickReason();
-	const std::map<int, User*>& members = channel->getMembers();
-	for (std::map<int, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
-		m_responseHandler.sendResponse(it->second->getFd(), kickMsg);
+	sendKickResponse(channel, channelName, targetNick);
 
 	channel->removeMember(targetUser->getFd());
 	targetUser->leaveChannel(channelName);
@@ -426,7 +423,7 @@ void Command::handleKICK()
 	#endif
 }
 
-const std::string	Command::getKickReason() const
+const std::string Command::getKickReason() const
 {
 	if ( m_params.size() == 2 )
 		return m_user->getNickname();
@@ -439,6 +436,12 @@ const std::string	Command::getKickReason() const
 			return reason.substr(1);
 
 	return m_user->getNickname();
+}
+
+void Command::sendKickResponse(Channel* channel, const std::string& channelName, const std::string& targetNick)
+{
+	std::string kickMsg { m_user->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + getKickReason() + "\r\n" };
+	channel->broadcast(kickMsg, m_server);
 }
 
 // ==================== PART Handler ====================
@@ -454,7 +457,7 @@ void Command::handlePART()
 		if (!channel)
 			continue;
 
-		sendPartResponse(channel, getPartMessage(currentChannel));
+		sendPartResponse(channel, currentChannel);
 
 		channel->removeMember(m_user->getFd());
 		m_user->leaveChannel(currentChannel);
@@ -512,14 +515,13 @@ const std::string Command::getPartMessage(const std::string& currentChannel) con
 	if (!reason.empty())
 		partMsg += " :" + reason;
 
-	return partMsg;
+	return partMsg + "\r\n";
 }
 
-void Command::sendPartResponse(Channel* channel, const std::string& partMsg)
+void Command::sendPartResponse(Channel* channel, const std::string& currentChannel)
 {
-	auto members = channel->getMembers();
-	for (auto it = members.begin(); it != members.end(); ++it)
-		m_responseHandler.sendResponse(it->second->getFd(), partMsg);
+	std::string partMsg { getPartMessage(currentChannel) };
+	channel->broadcast(partMsg, m_server);
 }
 
 // ==================== TOPIC Handler ====================
