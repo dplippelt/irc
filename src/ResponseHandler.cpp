@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:09:53 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:49:02 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,4 +190,18 @@ void ResponseHandler::sendTopicChangeResponse(User* user, Channel* channel, cons
 			  << " changed topic of " << channelName
 			  << " to: " << newTopic << std::endl;
 	#endif
+}
+
+// ==================== INVITE Command Messages ====================
+
+void ResponseHandler::sendInviteResponses(User* user, User* targetUser, const std::string& targetNick, const std::string& channelName)
+{
+	std::ostringstream invitingMsg {};
+	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
+				<< " " << user->getNickname() << " "
+				<< targetNick << " " << channelName;
+	sendResponse(user->getFd(), invitingMsg.str());
+
+	std::string inviteMsg { user->getPrefix() + " INVITE " + targetNick + " :" + channelName };
+	sendResponse(targetUser->getFd(), inviteMsg);
 }

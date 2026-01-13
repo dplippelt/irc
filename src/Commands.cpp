@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:42:47 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:57:21 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -542,27 +542,23 @@ const std::string Command::getNewTopic() const
 
 void Command::handleINVITE()
 {
-	std::string	targetNick;
-	std::string	channelName;
+	std::string	targetNick {};
+	std::string	channelName {};
 
-	if (!Validation::validateINVITE(m_user, m_params, targetNick, channelName, m_responseHandler))
+	if ( !Validation::validateINVITE(m_user, m_params, targetNick, channelName, m_responseHandler) )
 		return;
-	Channel* channel = Validation::validateCanInvite(m_user, channelName, m_server, m_responseHandler);
-	if(!channel)
+
+	Channel* channel { Validation::validateCanInvite(m_user, channelName, m_server, m_responseHandler) };
+	if( !channel )
 		return;
-	User* targetUser = Validation::validateCanInviteTarget(m_user, channel, channelName, targetNick, m_server, m_responseHandler);
-	if(!targetUser)
+
+	User* targetUser { Validation::validateCanInviteTarget(m_user, channel, channelName, targetNick, m_server, m_responseHandler) };
+	if( !targetUser )
 		return;
 
 	channel->addInvite(targetUser->getFd());
-	std::ostringstream invitingMsg;
-	invitingMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_INVITING
-				<< " " << m_user->getNickname() << " "
-				<< targetNick << " " << channelName;
-	m_responseHandler.sendResponse(m_user->getFd(), invitingMsg.str());
 
-	std::string inviteMsg = m_user->getPrefix() + " INVITE " + targetNick + " :" + channelName;
-	m_responseHandler.sendResponse(targetUser->getFd(), inviteMsg);
+	m_responseHandler.sendInviteResponses(m_user, targetUser, targetNick, channelName);
 
 	#ifdef DEBUG
 	std::cout << "User " << m_user->getNickname()
