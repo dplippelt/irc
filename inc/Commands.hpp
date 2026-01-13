@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 12:27:18 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:46:36 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,12 +117,15 @@ class Command
 		void							informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
 		const std::string				getKickReason() const;
 		void							sendKickResponse(Channel* channel, const std::string& channelName, const std::string& targetNick);
-		const std::vector<std::string>	getChannelVector() const;
 		const std::vector<std::string>	getKeyVector() const;
 		const std::string				getPartReason() const;
 		const std::string				getPartMessage(const std::string& currentChannel) const;
 		void							sendPartResponse(Channel* channel, const std::string& currentChannel);
+		const std::string				getNewTopic() const;
+		void							sendCurrentTopicResponse(Channel* channel, const std::string& channelName);
+		void							sendTopicChangeResponse(Channel* channel, const std::string& channelName, const std::string& newTopic);
 
+		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
 
 	public:

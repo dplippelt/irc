@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 12:44:45 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:53:02 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -505,48 +505,34 @@ void Command::sendPartResponse(Channel* channel, const std::string& currentChann
 
 void Command::handleTOPIC()
 {
-	std::string	channelName;
+	std::string	channelName {};
 
 	if (!Validation::validateTOPIC(m_user, m_params, channelName, m_responseHandler))
 		return;
 
-	Channel* channel = Validation::validateCanChangeTopic(m_user, channelName, m_server, m_responseHandler);
+	Channel* channel { Validation::validateCanChangeTopic(m_user, channelName, m_server, m_responseHandler) };
 	if(!channel)
 		return;
 
 	if (m_params.size() == 1)
-	{
-		const std::string& currentTopic = channel->getTopic();
-
-		if (currentTopic.empty())
-		{
-			m_responseHandler.sendNumericReply(m_user->getFd(), RPL_NOTOPIC, m_user->getNickname(), channelName + " :No topic is set");
-		}
-		else
-		{
-			std::ostringstream topicMsg;
-			topicMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPIC
-					 << " " << m_user->getNickname() << " "
-					 << channelName << " :" << currentTopic;
-			m_responseHandler.sendResponse(m_user->getFd(), topicMsg.str());
-		}
-
-		#ifdef DEBUG
-		std::cout << "User " << m_user->getNickname() << " viewed topic of " << channelName << std::endl;
-		#endif
-
-		return;
-	}
+		return sendCurrentTopicResponse(channel, channelName);
 
 	if (channel->isTopicRestricted() && !channel->isOperator(m_user->getFd()))
-	{
-		m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, m_user->getNickname(), channelName + " :You're not channel operator");
-		return;
-	}
+		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, m_user->getNickname(), channelName + " :You're not channel operator");
 
-	std::vector<std::string>::const_iterator it = m_params.begin();
-	++it;
-	std::string newTopic = *it;
+	std::string newTopic { getNewTopic() };
+
+	channel->setTopic(newTopic);
+	channel->setTopicSetBy(m_user->getPrefix().substr(1));
+	channel->setTopicSetTime();
+
+	sendTopicChangeResponse(channel, channelName, newTopic);
+}
+
+const std::string Command::getNewTopic() const
+{
+	auto it { std::next(m_params.begin(), 1) };
+	std::string newTopic { *it };
 
 	if (!newTopic.empty() && newTopic[0] == ':')
 		newTopic = newTopic.substr(1);
@@ -554,12 +540,29 @@ void Command::handleTOPIC()
 	for (++it; it != m_params.end(); ++it)
 		newTopic += " " + *it;
 
-	channel->setTopic(newTopic);
+	return newTopic;
+}
+
+void Command::sendCurrentTopicResponse(Channel* channel, const std::string& channelName)
+{
+	const std::string& currentTopic = channel->getTopic();
+
+	if (currentTopic.empty())
+		m_responseHandler.sendNumericReply(m_user->getFd(), RPL_NOTOPIC, m_user->getNickname(), channelName + " :No topic is set");
+	else
+		m_responseHandler.sendTopicMessage(m_user, channel);
+
+	#ifdef DEBUG
+	std::cout << "User " << m_user->getNickname() << " viewed topic of " << channelName << std::endl;
+	#endif
+}
+
+void Command::sendTopicChangeResponse(Channel* channel, const std::string& channelName, const std::string& newTopic)
+{
 	std::string topicChangeMsg = m_user->getPrefix() + " TOPIC " + channelName + " :" + newTopic;
 
 	const std::map<int, User*>& members = channel->getMembers();
-	for (std::map<int, User*>::const_iterator memIt = members.begin();
-		 memIt != members.end(); ++memIt)
+	for (auto memIt = members.begin(); memIt != members.end(); ++memIt)
 	{
 		m_responseHandler.sendResponse(memIt->second->getFd(), topicChangeMsg);
 	}

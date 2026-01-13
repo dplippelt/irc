@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/18 14:19:01 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:25:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,14 @@ void ResponseHandler::sendTopicMessage(User* user, Channel* channel)
 				 << " " << user->getNickname() << " "
 				 << channel->getName() << " :" << channel->getTopic();
 		sendResponse(user->getFd(), topicMsg.str());
+
+		std::ostringstream topicWhoTimeMsg;
+		topicWhoTimeMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_TOPICWHOTIME
+						<< " " << user->getNickname() << " "
+						<< channel->getName() << " "
+						<< channel->getTopicSetBy() << " "
+						<< channel->getTopicSetTime();
+		sendResponse(user->getFd(), topicWhoTimeMsg.str());
 	}
 }
 

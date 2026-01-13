@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Channel.cpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 10:31:56 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/11 14:45:50 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 10:31:56 by spyun             #+#    #+#             */
+/*   Updated: 2026/01/13 13:35:30 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,16 @@ const std::string& Channel::getName() const
 const std::string& Channel::getTopic() const
 {
 	return _topic;
+}
+
+const std::string& Channel::getTopicSetBy() const
+{
+	return _topicSetBy;
+}
+
+const time_t& Channel::getTopicSetTime() const
+{
+	return _topicSetTime;
 }
 
 const std::string& Channel::getKey() const
@@ -79,6 +89,16 @@ bool Channel::hasUserLimit() const
 void Channel::setTopic(const std::string& topic)
 {
 	_topic = topic;
+}
+
+void Channel::setTopicSetBy(const std::string& topicSetBy)
+{
+	_topicSetBy = topicSetBy;
+}
+
+void Channel::setTopicSetTime()
+{
+	_topicSetTime = std::time(NULL);
 }
 
 void Channel::setKey(const std::string& key)

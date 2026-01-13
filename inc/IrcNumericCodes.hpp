@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 13:55:19 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/17 14:00:43 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:11:14 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ enum IrcNumericCodes
 	RPL_CHANNELMODEIS = 324,
 	RPL_NOTOPIC = 331,
 	RPL_TOPIC = 332,
+	RPL_TOPICWHOTIME = 333,
 	RPL_INVITING = 341,
 	RPL_NAMREPLY = 353,
 	RPL_ENDOFNAMES = 366,

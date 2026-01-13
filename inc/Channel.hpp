@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Channel.hpp                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/28 10:31:59 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 15:26:50 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/28 10:31:59 by spyun             #+#    #+#             */
+/*   Updated: 2026/01/13 13:35:20 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ class Channel
 	private:
 		std::string					_name;
 		std::string					_topic;
+		std::string					_topicSetBy;
+		time_t						_topicSetTime;
 		std::string					_key;
 
 		std::map<int, User*>		_members;
@@ -45,6 +47,8 @@ class Channel
 
 		const std::string&			getName() const;
 		const std::string&			getTopic() const;
+		const std::string&			getTopicSetBy() const;
+		const time_t&				getTopicSetTime() const;
 		const std::string&			getKey() const;
 		size_t						getMemberCount() const;
 		int							getUserLimit() const;
@@ -55,6 +59,8 @@ class Channel
 		bool						hasUserLimit() const;
 
 		void						setTopic(const std::string& topic);
+		void						setTopicSetBy(const std::string& topicSetBy);
+		void						setTopicSetTime();
 		void						setKey(const std::string& key);
 		void						setUserLimit(int limit);
 		void						setInviteOnly(bool value);

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 13:47:33 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/15 16:41:38 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:00:23 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ class ResponseHandler
 	private:
 		Server& m_server;
 
-		void sendTopicMessage(User* user, Channel* channel);
 		void sendNameMessage(User* user, Channel* channel);
 
 	public:
@@ -47,6 +46,7 @@ class ResponseHandler
 		void sendAuthenticationError(int fd, const std::string& command);
 		void sendWelcome(User* user);
 		void sendJoinMessages(User* user, Channel* channel);
+		void sendTopicMessage(User* user, Channel* channel);
 };
 
 #endif
