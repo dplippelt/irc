@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/18 18:03:16 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 11:29:22 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,7 +245,7 @@ Channel*	Validation::validateMODE( User* user, const std::vector<std::string>& p
 
 	channelName = params[0];
 
-	if (channelName[0] != '#' && channelName[0] != '+')
+	if (channelName[0] != '#' && channelName[0] != '+' && channelName == user->getUsername())
 		return nullptr; // we do not implement user mode changes, only channel mode changes - so do nothing in this case
 
 	auto it { server.getChannels().find(channelName) };
