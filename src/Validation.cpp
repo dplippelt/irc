@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/13 11:29:22 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:38:16 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,26 +197,6 @@ bool	Validation::validateINVITE( User* user, const std::vector<std::string>& par
 		channelName = channelName.substr(1);
 	if ( !targetNick.empty() && targetNick[0] == ':' )
 		targetNick = targetNick.substr(1);
-	return true;
-}
-
-bool	Validation::validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage )
-{
-	(void)user;
-
-	if ( params.empty() )
-	{
-		quitMessage = "Client exited";
-		return true;
-	}
-
-	quitMessage = params[0];
-	if ( !quitMessage.empty() && quitMessage[0] == ':' )
-		quitMessage = quitMessage.substr(1);
-
-	for ( size_t i = 1; i < params.size(); ++i )
-		quitMessage += " " + params[i];
-
 	return true;
 }
 

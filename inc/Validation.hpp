@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:29 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/18 18:02:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:38:10 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ class Validation
 		static bool			validatePART( User* user, const std::vector<std::string>& params, ResponseHandler& responseHandler );
 		static bool			validateTOPIC( User* user, const std::vector<std::string>& params, std::string& outChannelName, ResponseHandler& responseHandler );
 		static bool			validateINVITE( User* user, const std::vector<std::string>& params, std::string& targetNick, std::string& channelName, ResponseHandler& responseHandler );
-		static bool			validateQUIT( User* user, const std::vector<std::string>& params, std::string& quitMessage );
 		static bool			validateWHOIS( User* user, const std::vector<std::string>& params, std::string& targetNick, ResponseHandler& responseHandler );
 		static Channel*		validateMODE( User* user, const std::vector<std::string>& params, const Server& server, std::string& channelName, ResponseHandler& responseHandler );
 

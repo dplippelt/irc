@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 14:57:21 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:57:30 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -640,20 +640,33 @@ void Command::handleWHOIS()
 
 void Command::handleQUIT()
 {
-	std::string quitMessage;
-
-	if (!Validation::validateQUIT(m_user, m_params, quitMessage))
-		return;
-
-	std::string quitMsg = m_user->getPrefix() + " QUIT :Quit: " + quitMessage;
+	std::string quitMsg { m_user->getPrefix() + " QUIT " + getQuitReason(m_params) };
 
 	m_responseHandler.sendResponse(m_user->getFd(), "ERROR :Closing connection");
 
 	#ifdef DEBUG
-	std::cout << "User " << m_user->getNickname() << " quit: " << quitMessage << std::endl;
+	std::cout << "User " << m_user->getNickname() << " quit: " << getQuitReason(m_params) << std::endl;
 	#endif
 
 	m_server.removeClient(m_user->getFd(), quitMsg);
+}
+
+const std::string Command::getQuitReason( const std::vector<std::string>& params ) const
+{
+	if ( params.empty() )
+		return ":Client Quit\r\n";
+
+	std::string quitMessage {};
+	if ( !quitMessage.empty() && quitMessage[0] == ':' )
+		quitMessage = quitMessage.substr(1);
+
+	if ( quitMessage.empty() )
+		return ":Client Quit\r\n";
+
+	for ( size_t i = 1; i < params.size(); ++i )
+		quitMessage += " " + params[i];
+
+	return ":Quit: " + quitMessage + "\r\n";
 }
 
 // ==================== MODE Handler ====================
