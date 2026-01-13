@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 12:15:27 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 12:44:45 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,36 +245,9 @@ void Command::handleJOIN()
 	if (!Validation::validateJOIN(m_user, m_params, m_responseHandler))
 		return;
 
-	std::string channelList = ValidationHelper::removeLeadingColon(m_params.front());
-	std::string keyList;
-	if (m_params.size() > 1)
-	{
-		std::vector<std::string>::const_iterator it = m_params.begin();
-		++it;
-		keyList = ValidationHelper::removeLeadingColon(*it);
-	}
-
-	std::vector<std::string> channelVec;
-	std::istringstream channelStream(channelList);
-	std::string channelName;
-	while (std::getline(channelStream, channelName, ','))
-	{
-		if (!channelName.empty())
-			channelVec.push_back(channelName);
-	}
-
-	std::vector<std::string> keys;
-	if (!keyList.empty())
-	{
-		std::istringstream keyStream(keyList);
-		std::string key;
-		while (std::getline(keyStream, key, ','))
-		{
-			keys.push_back(key);
-		}
-	}
-
-	std::map<std::string, Channel*>& channels = m_server.getChannels();
+	std::map<std::string, Channel*>& channels { m_server.getChannels() };
+	const std::vector<std::string> channelVec { getChannelVector() };
+	const std::vector<std::string> keys { getKeyVector() };
 
 	for (size_t i = 0; i < channelVec.size(); ++i)
 	{
@@ -305,6 +278,27 @@ void Command::handleJOIN()
 				  << " joined channel " << currentChannel << std::endl;
 		#endif
 	}
+}
+
+const std::vector<std::string> Command::getKeyVector() const
+{
+	std::string keyList {};
+	if (m_params.size() > 1)
+	{
+		auto it = std::next(m_params.begin(), 1);
+		keyList = ValidationHelper::removeLeadingColon(*it);
+	}
+
+	std::vector<std::string> keys {};
+	if (!keyList.empty())
+	{
+		std::istringstream keyStream(keyList);
+		std::string key;
+		while (std::getline(keyStream, key, ','))
+			keys.push_back(key);
+	}
+
+	return keys;
 }
 
 // ==================== PRIVMSG Handler ====================
@@ -472,23 +466,6 @@ void Command::handlePART()
 		std::cout << std::endl;
 		#endif
 	}
-}
-
-const std::vector<std::string> Command::getChannelVector() const
-{
-	std::string channelList = m_params.front();
-	if (!channelList.empty() && channelList[0] == ':')
-		channelList = channelList.substr(1);
-
-	std::vector<std::string> channelVec;
-	std::istringstream channelStream(channelList);
-	std::string channelName;
-	while (std::getline(channelStream, channelName, ','))
-	{
-		if (!channelName.empty())
-			channelVec.push_back(channelName);
-	}
-	return channelVec;
 }
 
 const std::string Command::getPartReason() const
@@ -783,7 +760,7 @@ void	Command::handleMODE()
 	}
 
 	// Needs to print only the mode changes that are different, and need to add the parameters that are passed for k and l (if present)
-	std::string response { m_user->getPrefix() + " MODE " + channelName + " " + modes };
+	std::string response { m_user->getPrefix() + " MODE " + channelName + " " + modes + "\r\n" };
 	channel->broadcast(response, m_server);
 
 	#ifdef DEBUG
@@ -1001,6 +978,21 @@ Note that there is a maximum limit of three (3) changes per command for modes th
 
 
 // ==================== Misc Helpers ====================
+
+const std::vector<std::string> Command::getChannelVector() const
+{
+	std::string channelList = ValidationHelper::removeLeadingColon(m_params.front());
+
+	std::vector<std::string> channelVec;
+	std::istringstream channelStream(channelList);
+	std::string channelName;
+	while (std::getline(channelStream, channelName, ','))
+	{
+		if (!channelName.empty())
+			channelVec.push_back(channelName);
+	}
+	return channelVec;
+}
 
 void Command::removeEmptyChannel(Channel* channel, const std::string& channelName)
 {
