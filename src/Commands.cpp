@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 13:53:02 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:07:16 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -515,7 +515,7 @@ void Command::handleTOPIC()
 		return;
 
 	if (m_params.size() == 1)
-		return sendCurrentTopicResponse(channel, channelName);
+		return m_responseHandler.sendCurrentTopicResponse(m_user, channel, channelName);
 
 	if (channel->isTopicRestricted() && !channel->isOperator(m_user->getFd()))
 		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_CHANOPRIVSNEEDED, m_user->getNickname(), channelName + " :You're not channel operator");
@@ -526,7 +526,7 @@ void Command::handleTOPIC()
 	channel->setTopicSetBy(m_user->getPrefix().substr(1));
 	channel->setTopicSetTime();
 
-	sendTopicChangeResponse(channel, channelName, newTopic);
+	m_responseHandler.sendTopicChangeResponse(m_user, channel, channelName, newTopic);
 }
 
 const std::string Command::getNewTopic() const
@@ -541,37 +541,6 @@ const std::string Command::getNewTopic() const
 		newTopic += " " + *it;
 
 	return newTopic;
-}
-
-void Command::sendCurrentTopicResponse(Channel* channel, const std::string& channelName)
-{
-	const std::string& currentTopic = channel->getTopic();
-
-	if (currentTopic.empty())
-		m_responseHandler.sendNumericReply(m_user->getFd(), RPL_NOTOPIC, m_user->getNickname(), channelName + " :No topic is set");
-	else
-		m_responseHandler.sendTopicMessage(m_user, channel);
-
-	#ifdef DEBUG
-	std::cout << "User " << m_user->getNickname() << " viewed topic of " << channelName << std::endl;
-	#endif
-}
-
-void Command::sendTopicChangeResponse(Channel* channel, const std::string& channelName, const std::string& newTopic)
-{
-	std::string topicChangeMsg = m_user->getPrefix() + " TOPIC " + channelName + " :" + newTopic;
-
-	const std::map<int, User*>& members = channel->getMembers();
-	for (auto memIt = members.begin(); memIt != members.end(); ++memIt)
-	{
-		m_responseHandler.sendResponse(memIt->second->getFd(), topicChangeMsg);
-	}
-
-	#ifdef DEBUG
-	std::cout << "User " << m_user->getNickname()
-			  << " changed topic of " << channelName
-			  << " to: " << newTopic << std::endl;
-	#endif
 }
 
 // ==================== INVITE Handler ====================

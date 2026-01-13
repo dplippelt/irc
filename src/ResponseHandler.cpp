@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:47:35 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 13:25:48 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:09:53 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,6 +126,23 @@ void ResponseHandler::sendJoinMessages(User* user, Channel* channel)
 	#endif
 }
 
+void ResponseHandler::sendNameMessage(User* user, Channel* channel)
+{
+	std::ostringstream namesMsg;
+	namesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_NAMREPLY
+			 << " " << user->getNickname() << " = " << channel->getName() << " :"
+			 << channel->getMemberList();
+	sendResponse(user->getFd(), namesMsg.str());
+
+	std::ostringstream endNamesMsg;
+	endNamesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES
+				<< " " << user->getNickname() << " "
+				<< channel->getName() << " :End of /NAMES list";
+	sendResponse(user->getFd(), endNamesMsg.str());
+}
+
+// ==================== TOPIC Command Messages ====================
+
 void ResponseHandler::sendTopicMessage(User* user, Channel* channel)
 {
 	if (!channel->getTopic().empty())
@@ -146,17 +163,31 @@ void ResponseHandler::sendTopicMessage(User* user, Channel* channel)
 	}
 }
 
-void ResponseHandler::sendNameMessage(User* user, Channel* channel)
+void ResponseHandler::sendCurrentTopicResponse(User* user, Channel* channel, const std::string& channelName)
 {
-	std::ostringstream namesMsg;
-	namesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_NAMREPLY
-			 << " " << user->getNickname() << " = " << channel->getName() << " :"
-			 << channel->getMemberList();
-	sendResponse(user->getFd(), namesMsg.str());
+	const std::string& currentTopic = channel->getTopic();
 
-	std::ostringstream endNamesMsg;
-	endNamesMsg << ":ft_irc " << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES
-				<< " " << user->getNickname() << " "
-				<< channel->getName() << " :End of /NAMES list";
-	sendResponse(user->getFd(), endNamesMsg.str());
+	if (currentTopic.empty())
+		sendNumericReply(user->getFd(), RPL_NOTOPIC, user->getNickname(), channelName + " :No topic is set");
+	else
+		sendTopicMessage(user, channel);
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname() << " viewed topic of " << channelName << std::endl;
+	#endif
+}
+
+void ResponseHandler::sendTopicChangeResponse(User* user, Channel* channel, const std::string& channelName, const std::string& newTopic)
+{
+	std::string topicChangeMsg = user->getPrefix() + " TOPIC " + channelName + " :" + newTopic;
+
+	const std::map<int, User*>& members = channel->getMembers();
+	for (auto memIt = members.begin(); memIt != members.end(); ++memIt)
+		sendResponse(memIt->second->getFd(), topicChangeMsg);
+
+	#ifdef DEBUG
+	std::cout << "User " << user->getNickname()
+			  << " changed topic of " << channelName
+			  << " to: " << newTopic << std::endl;
+	#endif
 }

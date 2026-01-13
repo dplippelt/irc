@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 13:47:33 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 13:00:23 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 14:11:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ class ResponseHandler
 		void sendWelcome(User* user);
 		void sendJoinMessages(User* user, Channel* channel);
 		void sendTopicMessage(User* user, Channel* channel);
+		void sendCurrentTopicResponse(User* user, Channel* channel, const std::string& channelName);
+		void sendTopicChangeResponse(User* user, Channel* channel, const std::string& channelName, const std::string& newTopic);
 };
 
 #endif
