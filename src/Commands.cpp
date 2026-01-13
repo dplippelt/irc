@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 11:38:18 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 11:52:58 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -759,7 +759,7 @@ void	Command::handleMODE()
 			modeOperateToggle(modes[i], sign);
 		else if (k_mode_set_param.find(modes[i]) != std::string::npos)
 		{
-			if (m_params.size() < MINIMUM_PARAMS_MODE + 1 + static_cast<std::size_t>(modeSettingIdxOffset))
+			if (sign != '-' && m_params.size() < MINIMUM_PARAMS_MODE + 1 + static_cast<std::size_t>(modeSettingIdxOffset))
 			{
 				m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NEEDMOREPARAMS, m_user->getNickname(), "MODE :Not enough parameters");
 				return;
@@ -780,9 +780,9 @@ void	Command::handleMODE()
 		}
 	}
 
-	// temp response
+	// Needs to print only the mode changes that are different, and need to add the parameters that are passed for k and l (if present)
 	std::string response { m_user->getPrefix() + " MODE " + channelName + " " + modes };
-	m_responseHandler.sendResponse(m_user->getFd(), response);
+	channel->broadcast(response, m_server);
 
 	#ifdef DEBUG
 	m_server.printModeStates();
