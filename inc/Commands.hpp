@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2025/12/18 17:43:46 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 11:01:48 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,9 +100,6 @@ class Command
 		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
 		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
 
-		void		informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
-		std::string	getKickReason();
-
 		void handlePASS();
 		void handleNICK();
 		void handleUSER();
@@ -116,6 +113,15 @@ class Command
 		void handleQUIT();
 		void handleWHOIS();
 		void handleMODE(); // [Takato]: added for mode operation
+
+		void							informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
+		const std::string				getKickReason() const;
+		const std::vector<std::string>	getChannelVector() const;
+		const std::string				getPartReason() const;
+		const std::string				getPartMessage(const std::string& currentChannel) const;
+		void							sendPartResponse(Channel* channel, const std::string& partMsg);
+		
+		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
 
 	public:
 		Command() = delete;

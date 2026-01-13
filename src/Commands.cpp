@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/12 12:44:07 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/13 11:38:18 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -419,21 +419,14 @@ void Command::handleKICK()
 	targetUser->leaveChannel(channelName);
 
 	if (channel->isEmpty())
-	{
-		m_server.getChannels().erase(channelName);
-		delete channel;
-
-		#ifdef DEBUG
-		std::cout << "Channel " << channelName << " deleted as it became empty." << std::endl;
-		#endif
-	}
+		removeEmptyChannel(channel, channelName);
 
 	#ifdef DEBUG
 	std::cout << "User " << targetNick << " was kicked from channel " << channelName << " by " << m_user->getNickname() << std::endl;
 	#endif
 }
 
-std::string	Command::getKickReason()
+const std::string	Command::getKickReason() const
 {
 	if ( m_params.size() == 2 )
 		return m_user->getNickname();
@@ -455,11 +448,49 @@ void Command::handlePART()
 	if (!Validation::validatePART(m_user, m_params, m_responseHandler))
 		return;
 
+	for ( const auto& currentChannel : getChannelVector() )
+	{
+		Channel* channel = Validation::validateCanPart(m_user, currentChannel, m_server, m_responseHandler);
+		if (!channel)
+			continue;
+
+		sendPartResponse(channel, getPartMessage(currentChannel));
+
+		channel->removeMember(m_user->getFd());
+		m_user->leaveChannel(currentChannel);
+
+		if (channel->isEmpty())
+			removeEmptyChannel(channel, currentChannel);
+
+		#ifdef DEBUG
+		std::cout << "User " << m_user->getNickname() << " left channel " << currentChannel;
+		if (!getPartReason().empty())
+			std::cout << " (reason: " << getPartReason() << ")";
+		std::cout << std::endl;
+		#endif
+	}
+}
+
+const std::vector<std::string> Command::getChannelVector() const
+{
 	std::string channelList = m_params.front();
 	if (!channelList.empty() && channelList[0] == ':')
 		channelList = channelList.substr(1);
 
-	std::string reason;
+	std::vector<std::string> channelVec;
+	std::istringstream channelStream(channelList);
+	std::string channelName;
+	while (std::getline(channelStream, channelName, ','))
+	{
+		if (!channelName.empty())
+			channelVec.push_back(channelName);
+	}
+	return channelVec;
+}
+
+const std::string Command::getPartReason() const
+{
+	std::string reason {};
 	if (m_params.size() > 1)
 	{
 		std::vector<std::string>::const_iterator it = m_params.begin();
@@ -470,55 +501,25 @@ void Command::handlePART()
 		for (++it; it != m_params.end(); ++it)
 			reason += " " + *it;
 	}
+	return reason;
+}
 
-	std::vector<std::string> channelVec;
-	std::istringstream channelStream(channelList);
-	std::string channelName;
-	while (std::getline(channelStream, channelName, ','))
-	{
-		if (!channelName.empty())
-			channelVec.push_back(channelName);
-	}
+const std::string Command::getPartMessage(const std::string& currentChannel) const
+{
+	std::string partMsg { m_user->getPrefix() + " PART " + currentChannel };
 
-	for (size_t i = 0; i < channelVec.size(); ++i)
-	{
-		std::string currentChannel = channelVec[i];
+	std::string reason { getPartReason() };
+	if (!reason.empty())
+		partMsg += " :" + reason;
 
-		Channel* channel = Validation::validateCanPart(m_user, currentChannel, m_server, m_responseHandler);
-		if (!channel)
-			continue;
+	return partMsg;
+}
 
-		std::string partMsg = m_user->getPrefix() + " PART " + currentChannel;
-		if (!reason.empty())
-			partMsg += " :" + reason;
-
-		auto members = channel->getMembers();
-		for (auto it = members.begin(); it != members.end(); ++it)
-		{
-			if (it->second->getFd() != m_user->getFd())
-				m_responseHandler.sendResponse(it->second->getFd(), partMsg);
-		}
-
-		channel->removeMember(m_user->getFd());
-		m_user->leaveChannel(currentChannel);
-
-		if (channel->isEmpty())
-		{
-			m_server.getChannels().erase(currentChannel);
-			delete channel;
-
-			#ifdef DEBUG
-			std::cout << "Channel " << currentChannel << " deleted as it became empty." << std::endl;
-			#endif
-		}
-
-		#ifdef DEBUG
-		std::cout << "User " << m_user->getNickname() << " left channel " << currentChannel;
-		if (!reason.empty())
-			std::cout << " (reason: " << reason << ")";
-		std::cout << std::endl;
-		#endif
-	}
+void Command::sendPartResponse(Channel* channel, const std::string& partMsg)
+{
+	auto members = channel->getMembers();
+	for (auto it = members.begin(); it != members.end(); ++it)
+		m_responseHandler.sendResponse(it->second->getFd(), partMsg);
 }
 
 // ==================== TOPIC Handler ====================
@@ -713,6 +714,8 @@ void Command::handleQUIT()
 	m_server.removeClient(m_user->getFd(), quitMsg);
 }
 
+// ==================== MODE Handler ====================
+
 // [Takato]: added from here
 // Edited by Dominique
 void	Command::handleMODE()
@@ -776,6 +779,10 @@ void	Command::handleMODE()
 			}
 		}
 	}
+
+	// temp response
+	std::string response { m_user->getPrefix() + " MODE " + channelName + " " + modes };
+	m_responseHandler.sendResponse(m_user->getFd(), response);
 
 	#ifdef DEBUG
 	m_server.printModeStates();
@@ -989,3 +996,16 @@ Note that there is a maximum limit of three (3) changes per command for modes th
  */
 
 // [Takato]: added to here
+
+
+// ==================== Misc Helpers ====================
+
+void Command::removeEmptyChannel(Channel* channel, const std::string& channelName)
+{
+	m_server.getChannels().erase(channelName);
+	delete channel;
+
+	#ifdef DEBUG
+	std::cout << "Channel " << channelName << " deleted as it became empty." << std::endl;
+	#endif
+}
