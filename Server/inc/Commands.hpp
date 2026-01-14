@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 14:11:56 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/14 15:43:01 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,9 @@ class Command
 		int			changeChannelModeLimit(Channel* channel, const t_mode_elems &mode_param_pairs);
 		std::string	generateModeResponse(Channel* channel, const std::vector<t_mode_elems> &mode_param_pairs);
 
-
+		void	formatModeParamToResponse(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs);
+		void	formatParamForModeKey(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs);
+		void	formatParamForModeLimit(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs);
 
 	public:
 		Command() = delete;

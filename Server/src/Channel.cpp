@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 10:31:56 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 13:35:30 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 16:21:49 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,8 +131,6 @@ void Channel::setHasKey(bool value)
 void Channel::setHasUserLimit(bool value)
 {
 	_hasUserLimit = value;
-	if (!value)
-		_userLimit = 0;
 }
 
 void Channel::addMember(User* user)

@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 14:22:52 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/14 16:19:00 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -631,6 +631,7 @@ void	Command::handleMODE()
 
 	if (mode_param_pairs_done.empty())
 		return ;
+	formatModeParamToResponse(channel, mode_param_pairs_done);
 	response = generateModeResponse(channel, mode_param_pairs_done);
 	channel->broadcast(response, m_server);
 
@@ -664,6 +665,44 @@ std::string	Command::generateModeResponse(Channel* channel, const std::vector<t_
 	response += m_user->getPrefix() + " MODE " + channel->getName() + " ";
 	response += modes_done + " " + params_done + "\r\n";
 	return response;
+}
+
+void	Command::formatModeParamToResponse(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs)
+{
+	formatParamForModeKey(channel, mode_param_pairs);
+	formatParamForModeLimit(channel, mode_param_pairs);
+}
+
+void	Command::formatParamForModeKey(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs)
+{
+	std::size_t	negative_sign_pos{ mode_param_pairs.size() };
+
+	for (std::size_t i{}; i < mode_param_pairs.size(); ++i)
+	{
+		if (mode_param_pairs[i].mode != 'k')
+			continue ;
+		if (mode_param_pairs[i].sign == '+')
+			mode_param_pairs[i].param = channel->getKey();
+		else
+			negative_sign_pos = i;
+	}
+	if (negative_sign_pos == mode_param_pairs.size())
+		return ;
+	for (std::size_t i{}; i < negative_sign_pos + 1; ++i)
+	{
+		if (mode_param_pairs[i].mode != 'k')
+			continue ;
+		mode_param_pairs[i].param = "*"; 
+	}
+}
+
+void	Command::formatParamForModeLimit(Channel* channel, std::vector<t_mode_elems> &mode_param_pairs)
+{
+	for (auto &pair : mode_param_pairs)
+	{
+		if (pair.sign == '+' && pair.mode == 'l')
+			pair.param = std::to_string(channel->getUserLimit());
+	}
 }
 
 int	Command::createSignModePairs(std::vector<t_mode_elems> &mode_param_pairs, const std::string &signs_modes)
@@ -884,13 +923,15 @@ int	Command::changeChannelModePrivilege(Channel* channel, const t_mode_elems &mo
 	{
 		m_responseHandler.sendNumericReply(
 			m_user->getFd(), ERR_USERNOTINCHANNEL, m_user->getNickname(),
-			target->getNickname() + " " + channel->getName() + " :They aren't on that channel"
+			mode_param_pairs.param + " " + channel->getName() + " :They aren't on that channel"
 		);
 		return 1;
 	}
 	switch (mode_param_pairs.sign)
 	{
 	case '+':
+		if (target == m_user)
+			return 1;
 		channel->addOperator(target->getFd());
 		return 0;
 	case '-':
