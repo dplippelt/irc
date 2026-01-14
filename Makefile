@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+         #
+#    By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/27 11:02:13 by dlippelt          #+#    #+#              #
-#    Updated: 2025/11/20 11:26:30 by dlippelt         ###   ########.fr        #
+#    Updated: 2026/01/14 15:03:19 by tmitsuya         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,21 +20,22 @@ VALG =			valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 CXXSTD =		-std=c++17
 CXXFLAGS =		-Wall -Werror -Wextra -g3 -DDEBUG
-IFLAGS =		-I$(INCDIR) -I$(BOTDIR)/$(INCDIR)
+IFLAGS =		-I$(SERVDIR)/$(INCDIR) -I$(BOTDIR)/$(INCDIR)
 DEPFLAGS =		-MMD -MP
 COMPILE =		-c
 OUTPUT =		-o
 
+SERVDIR =		./Server
 BOTDIR =		./Bot
 
 SRCDIR =		./src
 INCDIR =		./inc
 OBJDIR =		./obj
 
-SRCS =			$(shell find $(SRCDIR) -name "*.cpp" | sed 's|$(SRCDIR)/||')
+SRCS =			$(shell find $(SERVDIR)/$(SRCDIR) -name "*.cpp" | sed 's|$(SERVDIR)/$(SRCDIR)/||')
 SRCS_BOT =		$(shell find $(BOTDIR)/$(SRCDIR) -name "*.cpp" | sed 's|$(BOTDIR)/$(SRCDIR)/||')
 
-OBJS =			$(addprefix $(OBJDIR)/, $(SRCS:.cpp=.o))
+OBJS =			$(addprefix $(SERVDIR)/$(OBJDIR)/, $(SRCS:.cpp=.o))
 OBJS_BOT =		$(addprefix $(BOTDIR)/$(OBJDIR)/, $(SRCS_BOT:.cpp=.o))
 
 DEPS =			$(OBJS:.o=.d)
@@ -57,14 +58,14 @@ $(NAME): $(OBJDIRS) $(OBJS)
 $(NAME_BOT): $(OBJDIRS_BOT) $(OBJS_BOT)
 	@$(CXX) $(CXXFLAGS) $(OBJS_BOT) $(OUTPUT) $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+$(SERVDIR)/$(OBJDIR)/%.o: $(SERVDIR)/$(SRCDIR)/%.cpp
 	@$(CXX) $(CXXSTD) $(CXXFLAGS) $(DEPFLAGS) $(IFLAGS) $(COMPILE) $< $(OUTPUT) $@
 
 $(BOTDIR)/$(OBJDIR)/%.o: $(BOTDIR)/$(SRCDIR)/%.cpp
 	@$(CXX) $(CXXSTD) $(CXXFLAGS) $(DEPFLAGS) $(IFLAGS) $(COMPILE) $< $(OUTPUT) $@
 
 clean:
-	@$(RM) $(OBJDIR)
+	@$(RM) $(SERVDIR)/$(OBJDIR)
 	@$(RM) $(BOTDIR)/$(OBJDIR)
 	@$(RM) *.xml
 
