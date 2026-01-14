@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 11:53:19 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 12:08:40 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -876,6 +876,13 @@ Note that there is a maximum limit of three (3) changes per command for modes th
 
 
 // ==================== Misc Helpers ====================
+
+Command::CommandType Command::getCmdType() const
+{
+	auto it { k_commands.find(m_command) };
+
+	return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
+}
 
 const User* Command::getTargetUser(const std::string& targetNick) const
 {

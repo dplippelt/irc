@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 11:29:55 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 12:09:42 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,33 +79,16 @@ class Command
 			{"MODE", CMD_MODE}
 		};
 
-		CommandType getCmdType()
-		{
-			auto it { k_commands.find(m_command) };
-
-			return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
-		}
-
-		Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
-
 		static inline const size_t		k_max_mode_num{ 3 }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_toggle{ "it" }; // [Takato]: added for mode operation
 		static inline const std::string k_mode_set_param{ "kol" }; // [Takato]: added for mode operation
-
-		void	modeOperateToggle(char mode, char sign); // [Takato]: added for mode operation
-		void	modeOperateToggleInvite(char sign); // [Takato]: added for mode operation
-		void	modeOperateToggleTopic(char sign); // [Takato]: added for mode operation
-		void	modeOperateParam(char mode, char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamPrivilege(char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
 
 		void handlePASS(); //tested
 		void handleNICK(); //tested
 		void handleUSER(); //tested
 		void handlePING(); //tested
 		void handleJOIN(); //tested
-		void handlePRIVMSG();
+		void handlePRIVMSG(); //tested
 		void handleKICK(); //tested
 		void handlePART(); //tested
 		void handleTOPIC(); //tested
@@ -114,6 +97,7 @@ class Command
 		void handleWHOIS(); //tested
 		void handleMODE(); // [Takato]: added for mode operation
 
+		CommandType						getCmdType() const;
 		void							informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
 		const std::string				getKickReason() const;
 		void							sendKickResponse(Channel* channel, const std::string& channelName, const std::string& targetNick);
@@ -126,9 +110,17 @@ class Command
 		const User*						getTargetUser(const std::string& targetNick) const;
 		void							sendPrivMsgToChannel(const std::string& target, const std::string& message);
 		void							sendPrivMsgToUser(const std::string& target, const std::string& message);
-
+		Channel*						getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
+
+		void	modeOperateToggle(char mode, char sign); // [Takato]: added for mode operation
+		void	modeOperateToggleInvite(char sign); // [Takato]: added for mode operation
+		void	modeOperateToggleTopic(char sign); // [Takato]: added for mode operation
+		void	modeOperateParam(char mode, char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamPrivilege(char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
+		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
 
 	public:
 		Command() = delete;
