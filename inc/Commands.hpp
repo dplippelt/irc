@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 18:04:34 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 11:29:55 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,8 @@ class Command
 		const std::string				getNewTopic() const;
 		const std::string				getQuitReason( const std::vector<std::string>& params ) const;
 		const User*						getTargetUser(const std::string& targetNick) const;
+		void							sendPrivMsgToChannel(const std::string& target, const std::string& message);
+		void							sendPrivMsgToUser(const std::string& target, const std::string& message);
 
 		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
@@ -137,12 +139,5 @@ class Command
 
 		void executeCommand();
 };
-
-// try to use struct to make code more readable
-typedef struct s_cmd_data
-{
-	Channel*	channel {};
-	User*		user {};
-}				t_cmd_data;
 
 #endif

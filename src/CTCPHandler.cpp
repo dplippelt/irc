@@ -1,21 +1,48 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   CTCPHandler.cpp                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: spyun <spyun@student.codam.nl>               +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/12/12 11:35:32 by spyun         #+#    #+#                 */
-/*   Updated: 2025/12/12 15:27:22 by spyun         ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   CTCPHandler.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/12 11:35:32 by spyun             #+#    #+#             */
+/*   Updated: 2026/01/14 11:53:07 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CTCPHandler.hpp"
-#include <sstream>
 
-CTCPHandler::CTCPHandler() {}
+// ==================== Public Interface ====================
 
-CTCPHandler::~CTCPHandler() {}
+void CTCPHandler::debugDCC(User* user, const std::string& target, const std::string& message)
+{
+	if ( CTCPHandler::isCTCPMessage(message) )
+	{
+		std::string ctcpCommand { CTCPHandler::extractCTCPCommand(message) };
+
+		if ( CTCPHandler::isDCCCommand(ctcpCommand) )
+		{
+			std::string filename {};
+			unsigned long ip {};
+			unsigned int port {};
+			unsigned long filesize {};
+
+			if ( CTCPHandler::parseDCCSend(ctcpCommand, filename, ip, port, filesize) )
+			{
+				std::string ipStr { CTCPHandler::ipIntToString(ip) };
+
+				std::cout << "DCC SEND detected: " << user->getNickname()
+							<< " → " << target << std::endl;
+				std::cout << "  File: " << filename << std::endl;
+				std::cout << "  IP: " << ipStr << " (" << ip << ")" << std::endl;
+				std::cout << "  Port: " << port << std::endl;
+				std::cout << "  Size: " << filesize << " bytes" << std::endl;
+			}
+		}
+	}
+}
+
+// ==================== Private Helpers ====================
 
 bool CTCPHandler::isCTCPMessage(const std::string& message)
 {

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/13 17:58:59 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 11:53:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,33 +18,15 @@
 // =================== Constructor & Destructor ==================
 
 Command::Command(Server& server, User* user, Message& msg)
-	: m_server {server}
-	, m_responseHandler {server}
-	, m_user {user}
+	: m_server { server }
+	, m_responseHandler { server }
+	, m_user { user }
 	, m_command { msg.getCommandName() }
 	, m_params { msg.getParamsList() }
 {
 }
 
 Command::~Command() = default;
-
-// ==================== Channel Helper ====================
-
-Channel* Command::getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels)
-{
-	std::map<std::string, Channel*>::iterator it = channels.find(channelName);
-	if (it != channels.end())
-		return it->second;
-
-	Channel* newChannel = new Channel(channelName);
-	channels[channelName] = newChannel;
-
-	#ifdef DEBUG
-	std::cout << "Created new channel: " << channelName << std::endl;
-	#endif
-
-	return newChannel;
-}
 
 // ==================== Main Execute Command ====================
 
@@ -279,7 +261,7 @@ const std::vector<std::string> Command::getKeyVector() const
 	std::string keyList {};
 	if ( m_params.size() > 1 )
 	{
-		auto it = std::next(m_params.begin(), 1);
+		auto it { std::next(m_params.begin(), 1) };
 		keyList = ValidationHelper::removeLeadingColon(*it);
 	}
 
@@ -296,89 +278,71 @@ const std::vector<std::string> Command::getKeyVector() const
 	return keys;
 }
 
+Channel* Command::getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels)
+{
+	auto it { channels.find(channelName) };
+	if (it != channels.end())
+		return it->second;
+
+	Channel* newChannel { new Channel(channelName) };
+	channels[channelName] = newChannel;
+
+	#ifdef DEBUG
+	std::cout << "Created new channel: " << channelName << std::endl;
+	#endif
+
+	return newChannel;
+}
+
 // ==================== PRIVMSG Handler ====================
 
 void Command::handlePRIVMSG()
 {
-	if (!Validation::validatePRIVMSG(m_user, m_params, m_responseHandler))
+	if ( !Validation::validatePRIVMSG(m_user, m_params, m_responseHandler) )
 		return;
 
-	std::vector<std::string>::const_iterator it = m_params.begin();
-	std::string target = *it++;
-	std::string message = *it;
+	auto it { m_params.begin() };
+	std::string target { *it++ };
+	std::string message { *it };
 
-	if (!message.empty() && message[0] == ':')
-		message = message.substr(1) + "\r\n";
+	if ( !message.empty() )
+		message = message[0] == ':' ? (message.substr(1) + "\r\n") : (message + "\r\n");
 
-	if (CTCPHandler::isCTCPMessage(message))
-	{
-		std::string ctcpCommand = CTCPHandler::extractCTCPCommand(message);
-		if (CTCPHandler::isDCCCommand(ctcpCommand))
-		{
-			std::string filename;
-			unsigned long ip;
-			unsigned int port;
-			unsigned long filesize;
+	#ifdef DEBUG
+	CTCPHandler::debugDCC(m_user, target, message.substr(0, message.length() - 2));
+	#endif
 
-			if (CTCPHandler::parseDCCSend(ctcpCommand, filename, ip, port, filesize))
-            {
-				#ifdef DEBUG
-				std::string ipStr = CTCPHandler::ipIntToString(ip);
-				std::cout << "DCC SEND detected: " << m_user->getNickname()
-							<< " → " << target << std::endl;
-				std::cout << "  File: " << filename << std::endl;
-				std::cout << "  IP: " << ipStr << " (" << ip << ")" << std::endl;
-				std::cout << "  Port: " << port << std::endl;
-				std::cout << "  Size: " << filesize << " bytes" << std::endl;
-				#endif
-			}
-		}
-	}
+	if ( target[0] == '#' || target[0] == '&' )
+		return sendPrivMsgToChannel(target, message);
+	sendPrivMsgToUser(target, message);
+}
 
-	if (target[0] == '#' || target[0] == '&')
-	{
-		Channel* channel = Validation::validateCanSendMsg(m_user, target, m_server, m_responseHandler);
+void Command::sendPrivMsgToChannel(const std::string& target, const std::string& message)
+{
+	Channel* channel { Validation::validateCanSendMsg(m_user, target, m_server, m_responseHandler) };
+	if ( !channel )
+		return;
 
-		if (!channel)
-			return;
+	std::string privmsgToChannel { m_user->getPrefix() + " PRIVMSG " + target + " :" + message };
+	channel->broadcast(privmsgToChannel, m_server, m_user->getFd());
 
-		std::string privmsgToChannel = m_user->getPrefix() + " PRIVMSG " + target + " :" + message;
-		channel->broadcast(privmsgToChannel, m_server, m_user->getFd());
+	#ifdef DEBUG
+	std::cout << "User " << m_user->getNickname() << " sent message to channel " << target << std::endl;
+	#endif
+}
 
-		#ifdef DEBUG
-		std::cout << "User " << m_user->getNickname()
-				  << " sent message to channel " << target << std::endl;
-		#endif
-	}
-	else
-	{
-		User* targetUser = nullptr;
+void Command::sendPrivMsgToUser(const std::string& target, const std::string& message)
+{
+	const User* targetUser { getTargetUser(target) };
+	if ( targetUser == nullptr )
+		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), target + " :No such nick/channel");
 
-		const std::map<int, User*>& users = m_server.getUsers();
-		for (std::map<int, User*>::const_iterator it = users.begin();
-			 it != users.end(); ++it)
-		{
-			if (it->second->getNickname() == target)
-			{
-				targetUser = it->second;
-				break;
-			}
-		}
+	std::string privmsgToUser { m_user->getPrefix() + " PRIVMSG " + target + " :" + message };
+	m_server.sendToClient(targetUser->getFd(), privmsgToUser);
 
-		if (targetUser == nullptr)
-		{
-			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHNICK, m_user->getNickname(), target + " :No such nick/channel");
-			return;
-		}
-
-		std::string privmsgToUser = m_user->getPrefix() + " PRIVMSG " + target + " :" + message;
-		m_server.sendToClient(targetUser->getFd(), privmsgToUser);
-
-		#ifdef DEBUG
-		std::cout << "User " << m_user->getNickname()
-				  << " sent DM to " << target << ": " << message << std::endl;
-		#endif
-	}
+	#ifdef DEBUG
+	std::cout << "User " << m_user->getNickname() << " sent DM to " << target << ": " << message << std::endl;
+	#endif
 }
 
 // ==================== KICK Handler ====================
@@ -592,17 +556,6 @@ void Command::handleWHOIS()
 	#ifdef DEBUG
 	std::cout << "User " << m_user->getNickname() << " requested WHOIS for " << targetNick << std::endl;
 	#endif
-}
-
-const User* Command::getTargetUser(const std::string& targetNick) const
-{
-	const std::map<int, User*>& users { m_server.getUsers() };
-
-	for ( auto it = users.begin(); it != users.end(); ++it )
-		if (it->second->getNickname() == targetNick)
-			return it->second;
-
-	return nullptr;
 }
 
 // ==================== QUIT Handler ====================
@@ -923,6 +876,17 @@ Note that there is a maximum limit of three (3) changes per command for modes th
 
 
 // ==================== Misc Helpers ====================
+
+const User* Command::getTargetUser(const std::string& targetNick) const
+{
+	const std::map<int, User*>& users { m_server.getUsers() };
+
+	for ( auto it = users.begin(); it != users.end(); ++it )
+		if (it->second->getNickname() == targetNick)
+			return it->second;
+
+	return nullptr;
+}
 
 const std::vector<std::string> Command::getChannelVector() const
 {
