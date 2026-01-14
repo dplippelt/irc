@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 12:09:42 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 13:58:43 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,14 @@ class Command
 			{"MODE", CMD_MODE}
 		};
 
-		static inline const size_t		k_max_mode_num{ 3 }; // [Takato]: added for mode operation
-		static inline const std::string k_mode_set_toggle{ "it" }; // [Takato]: added for mode operation
-		static inline const std::string k_mode_set_param{ "kol" }; // [Takato]: added for mode operation
+		CommandType getCmdType()
+		{
+			auto it { k_commands.find(m_command) };
+
+			return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
+		}
+
+		Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 
 		void handlePASS(); //tested
 		void handleNICK(); //tested
@@ -114,13 +119,31 @@ class Command
 		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
 
-		void	modeOperateToggle(char mode, char sign); // [Takato]: added for mode operation
-		void	modeOperateToggleInvite(char sign); // [Takato]: added for mode operation
-		void	modeOperateToggleTopic(char sign); // [Takato]: added for mode operation
-		void	modeOperateParam(char mode, char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamPrivilege(char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamKey(char sign, int idxOffset); // [Takato]: added for mode operation
-		void	modeOperateParamLimit(char sign, int idxOffset); // [Takato]: added for mode operation
+		static inline const std::string k_mode_available{ "itkol" };
+		static inline const std::string k_modes_without_param{ "it" };
+		static inline const std::string k_modes_with_param{ "kol" };
+
+		typedef struct s_modes
+		{
+			char		sign;
+			char		mode;
+			std::string	param;
+		}	t_mode_elems;
+
+		// handleMode() utilities
+	
+		int			createSignModePairs(std::vector<t_mode_elems> &mode_param_pairs, const std::string &base);
+		void		assignParamsToModes(std::vector<t_mode_elems> &mode_param_pairs);
+		int			checkModeparamPairValidation(const std::vector<t_mode_elems> &mode_param_pairs);
+		int			changeChannelMode(Channel* channel, const t_mode_elems &mode_param_pairs);
+		int			changeChannelModeInvite(Channel* channel, const t_mode_elems &mode_param_pairs);
+		int			changeChannelModeTopic(Channel* channel, const t_mode_elems &mode_param_pairs);
+		int			changeChannelModeKey(Channel* channel, const t_mode_elems &mode_param_pairs);
+		int			changeChannelModePrivilege(Channel* channel, const t_mode_elems &mode_param_pairs);
+		int			changeChannelModeLimit(Channel* channel, const t_mode_elems &mode_param_pairs);
+		std::string	generateModeResponse(Channel* channel, const std::vector<t_mode_elems> &mode_param_pairs);
+
+
 
 	public:
 		Command() = delete;

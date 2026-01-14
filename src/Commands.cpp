@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 12:08:40 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 13:55:38 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -593,12 +593,9 @@ const std::string Command::getQuitReason( const std::vector<std::string>& params
 
 // ==================== MODE Handler ====================
 
-// [Takato]: added from here
-// Edited by Dominique
 void	Command::handleMODE()
 {
 	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
-
 	std::string		channelName {};
 	Channel* 		channel { Validation::validateMODE(m_user, m_params, m_server, channelName, m_responseHandler) };
 
@@ -612,53 +609,35 @@ void	Command::handleMODE()
 		// Irssi still auto-appends the current channel and sends "MODE #currentchannel".
 		// However, Irssi then rejects/doesn't display the (correctly formatted) server response.
 		// Unless you can find a solution this seems to be an irssi quirk we should just accept.
-		m_responseHandler.sendNumericReply(m_user->getFd(), RPL_CHANNELMODEIS, m_user->getNickname(), channelName + " " + channel->getModeString());
+		m_responseHandler.sendNumericReply(
+			m_user->getFd(), RPL_CHANNELMODEIS, m_user->getNickname(),
+			channelName + " " + channel->getModeString()
+		);
 		return;
 	}
 
 	if (!Validation::validateCanChangeModes(m_user, channel, channelName, m_responseHandler))
 		return;
 
-	const std::string	&modes{ m_params[1] };
-	const char 			sign{ modes.front() };
+	std::vector<t_mode_elems>	mode_param_pairs{};
+	std::vector<t_mode_elems>	mode_param_pairs_done{};
+	std::string 				response{};
 
-	if (!Validation::validateModes(m_user, modes, m_responseHandler))
-		return;
-
-	int	modeSettingIdxOffset {};
-
-	for (int i{ 1 }; i < static_cast<int>(std::min(modes.size(), k_max_mode_num + 1)); ++i)
+	if (createSignModePairs(mode_param_pairs, m_params[1]))
+		return ;
+	assignParamsToModes(mode_param_pairs);
+	if (checkModeparamPairValidation(mode_param_pairs))
+		return ;
+	
+	for (auto &pair : mode_param_pairs)
 	{
-		if (!Validation::validateModeCharacter(m_user, modes[i], k_mode_set_param + k_mode_set_toggle, m_responseHandler))
-			return;
-
-		if (k_mode_set_toggle.find(modes[i]) != std::string::npos)
-			modeOperateToggle(modes[i], sign);
-		else if (k_mode_set_param.find(modes[i]) != std::string::npos)
-		{
-			if (sign != '-' && m_params.size() < MINIMUM_PARAMS_MODE + 1 + static_cast<std::size_t>(modeSettingIdxOffset))
-			{
-				m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NEEDMOREPARAMS, m_user->getNickname(), "MODE :Not enough parameters");
-				return;
-			}
-			try
-			{
-				modeOperateParam(modes[i], sign, modeSettingIdxOffset);
-				if (!(sign == '-' && modes[i] == 'l'))
-					modeSettingIdxOffset++;
-			}
-			catch ( IrcNumericCodes error_code )
-			{
-				Validation::handleModeOperationError(m_user, channelName, error_code, m_responseHandler);
-				if (!(sign == '-' && modes[i] == 'l'))
-					modeSettingIdxOffset++;
-				continue;
-			}
-		}
+		if (!changeChannelMode(channel, pair))
+			mode_param_pairs_done.push_back(pair);
 	}
-
-	// Needs to print only the mode changes that are different, and need to add the parameters that are passed for k and l (if present)
-	std::string response { m_user->getPrefix() + " MODE " + channelName + " " + modes + "\r\n" };
+	// for safety reason
+	if (mode_param_pairs_done.empty())
+		return ;
+	response = generateModeResponse(channel, mode_param_pairs_done);
 	channel->broadcast(response, m_server);
 
 	#ifdef DEBUG
@@ -666,152 +645,288 @@ void	Command::handleMODE()
 	#endif
 }
 
-void	Command::modeOperateToggle(char mode, char sign)
+std::string	Command::generateModeResponse(Channel* channel, const std::vector<t_mode_elems> &mode_param_pairs)
 {
-	switch (mode)
+	std::string	response{};
+	std::string	modes_done{};
+	std::string	params_done{};
+	char		current_sign{};
+
+	for (auto &pair : mode_param_pairs)
 	{
-	case 'i':
-		modeOperateToggleInvite(sign);
-		break ;
-	case 't':
-		modeOperateToggleTopic(sign);
-		break ;
-	default:
-		break ;
-	}
-}
-
-void	Command::modeOperateParam(char mode, char sign, int idxOffset)
-{
-	switch (mode)
-	{
-	case 'k':
-		modeOperateParamKey(sign, idxOffset);
-		break ;
-	case 'o':
-		modeOperateParamPrivilege(sign, idxOffset);
-		break;
-	case 'l':
-		modeOperateParamLimit(sign, idxOffset);
-		break;
-	default:
-		break;
-	}
-}
-
-void	Command::modeOperateToggleInvite(char sign)
-{
-	const std::string	&channel_name { m_params[0] };
-	Channel				*channel { m_server.getChannels().at(channel_name)};
-
-	switch (sign)
-	{
-	case '+':
-		channel->setInviteOnly(true);
-		break ;
-	case '-':
-		channel->setInviteOnly(false);
-		break ;
-	default:
-		break ;
-	}
-}
-
-void	Command::modeOperateToggleTopic(char sign)
-{
-	const std::string	&channel_name { m_params[0] };
-	Channel				*channel { m_server.getChannels().at(channel_name)};
-
-	switch (sign)
-	{
-	case '+':
-		channel->setTopicRestricted(true);
-		break;
-	case '-':
-		channel->setTopicRestricted(false);
-		break;
-	default:
-		break;
-	}
-}
-
-void	Command::modeOperateParamKey(char sign, int idxOffset)
-{
-	const std::string	&channel_name { m_params[0] };
-	const std::string	&param { m_params[MINIMUM_PARAMS_MODE + idxOffset] };
-	Channel				*channel { m_server.getChannels().at(channel_name) };
-
-	switch (sign)
-	{
-	case '+':
-		if (channel->hasKey())
-			throw ERR_KEYSET;
-		channel->setKey(param);
-		channel->setHasKey(true);
-		break;
-	case '-':
-		channel->setHasKey(false);
-		break;
-	default:
-		break;
-	}
-}
-
-void	Command::modeOperateParamPrivilege(char sign, int idxOffset)
-{
-	const std::string	&channel_name { m_params[0] };
-	const std::string	&param { m_params[MINIMUM_PARAMS_MODE + idxOffset] };
-	Channel				*channel { m_server.getChannels().at(channel_name) };
-	User				*user {};
-
-	for (auto it{ m_server.getUsers().begin() }; it != m_server.getUsers().end(); ++it)
-	{
-		if (it->second->getNickname() == param)
+		if (current_sign != pair.sign)
 		{
-			user = it->second;
+			current_sign = pair.sign;
+			modes_done.push_back(pair.sign);
+		}
+		modes_done.push_back(pair.mode);
+		if (!pair.param.empty())
+		{
+			params_done += pair.param + " ";
+		}
+	}
+	if (!params_done.empty())
+		params_done.pop_back();
+	response += m_user->getPrefix() + " MODE " + channel->getName() + " ";
+	response += modes_done + " " + params_done + "\r\n";
+	return response;
+}
+
+int	Command::createSignModePairs(std::vector<t_mode_elems> &mode_param_pairs, const std::string &signs_modes)
+{
+	t_mode_elems	mode_param_pair{};
+
+	for (char c : signs_modes)
+	{
+		if (k_mode_available.find(c) == std::string::npos)
+		{
+			if (c == '+' || c == '-')
+			{
+				mode_param_pair.sign = c;
+			}
+			else
+			{
+				m_responseHandler.sendNumericReply(
+					m_user->getFd(), ERR_UNKNOWNMODE, m_user->getNickname(),
+					std::string(1, c) + " :is unknown mode char to me"
+				);
+				return 1;
+			}
+		}
+		else
+		{
+			if (mode_param_pair.sign)
+			{
+				mode_param_pair.mode = c;
+				mode_param_pairs.push_back(mode_param_pair);
+			}
+			else
+			{
+				m_responseHandler.sendNumericReply(
+					m_user->getFd(), ERR_UNKNOWNMODE, m_user->getNickname(),
+					std::string(1, c) + " :is unknown mode char to me"
+				);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void		Command::assignParamsToModes(std::vector<t_mode_elems> &mode_param_pairs)
+{
+	const std::size_t	nparam{ m_params.size() };
+	std::size_t			i{ 2 };
+
+	for (auto &pair : mode_param_pairs)
+	{
+		if (k_modes_without_param.find(pair.mode) != std::string::npos)
+			continue ;
+		if (pair.mode == 'l' && pair.sign == '-')
+			continue ;
+		if (i < nparam)
+			pair.param = m_params[i++];
+	}
+}
+
+int	Command::checkModeparamPairValidation(const std::vector<t_mode_elems> &mode_param_pairs)
+{
+	for (auto &pair : mode_param_pairs)
+	{
+		switch (pair.mode)
+		{
+		case 'k':
+		case 'o':
+			if (pair.param.empty())
+			{
+				m_responseHandler.sendNumericReply(
+					m_user->getFd(), ERR_NEEDMOREPARAMS, m_user->getNickname(),
+					"MODE :Not enough parameters"
+				);
+				return 1;
+			}
+			break ;
+		case 'l':
+			if (pair.sign == '+')
+			{
+				if (pair.param.empty())
+				{
+					m_responseHandler.sendNumericReply(
+						m_user->getFd(), ERR_NEEDMOREPARAMS, m_user->getNickname(),
+						"MODE :Not enough parameters"
+					);
+					return 1;
+				}
+				try
+				{
+					if (std::stoi(pair.param) < 0)
+					{
+						m_responseHandler.sendNumericReply(
+							m_user->getFd(), ERR_UNKNOWNMODE, m_user->getNickname(),
+							std::string(1, pair.param.front()) + " :is unknown mode char to me"
+						);
+						return 1;
+					}
+				}
+				catch(const std::exception& e)
+				{
+					m_responseHandler.sendNumericReply(
+						m_user->getFd(), ERR_UNKNOWNMODE, m_user->getNickname(),
+						std::string(1, pair.param.front()) + " :is unknown mode char to me"
+					);
+					return 1;
+				}
+			}
+			break ;
+		default:
 			break ;
 		}
 	}
-	if (!user || !user->isInChannel(channel_name))
-		throw ERR_NOTONCHANNEL;
-	switch (sign)
+	return 0;
+}
+
+int		Command::changeChannelMode(Channel* channel, const t_mode_elems &mode_param_pairs)
+{
+	switch (mode_param_pairs.mode)
+	{
+	case 'i':
+		return changeChannelModeInvite(channel, mode_param_pairs);
+	case 't':
+		return changeChannelModeTopic(channel, mode_param_pairs);
+	case 'k':
+		return changeChannelModeKey(channel, mode_param_pairs);
+	case 'o':
+		return changeChannelModePrivilege(channel, mode_param_pairs);
+	case 'l':
+		return changeChannelModeLimit(channel, mode_param_pairs);
+	default:
+		break;
+	}
+	return 1;
+}
+
+int	Command::changeChannelModeInvite(Channel* channel, const t_mode_elems &mode_param_pairs)
+{
+	switch (mode_param_pairs.sign)
+	{
+	case '+':
+		if (!channel->isInviteOnly())
+		{
+			channel->setInviteOnly(true);
+			return 0;
+		}
+		break ;
+	case '-':
+		if (channel->isInviteOnly())
+		{
+			channel->setInviteOnly(false);
+			return 0;
+		}
+		break ;
+	default:
+		break ;
+	}
+	return 1;
+}
+
+int	Command::changeChannelModeTopic(Channel* channel, const t_mode_elems &mode_param_pairs)
+{
+	switch (mode_param_pairs.sign)
+	{
+	case '+':
+		if (!channel->isTopicRestricted())
+		{
+			channel->setTopicRestricted(true);
+			return 0;
+		}
+		break ;
+	case '-':
+		if (channel->isTopicRestricted())
+		{
+			channel->setTopicRestricted(false);
+			return 0;
+		}
+		break ;
+	default:
+		break ;
+	}
+	return 1;
+}
+
+int	Command::changeChannelModeKey(Channel* channel, const t_mode_elems &mode_param_pairs)
+{
+	switch (mode_param_pairs.sign)
+	{
+	case '+':
+		channel->setKey(mode_param_pairs.param);
+		channel->setHasKey(true);
+		return 0;
+	case '-':
+		if (channel->hasKey())
+		{
+			channel->setHasKey(false);
+			return 0;
+		}
+		break ;
+	default:
+		break ;
+	}
+	return 1;
+}
+
+int	Command::changeChannelModePrivilege(Channel* channel, const t_mode_elems &mode_param_pairs)
+{
+	const User	*target {};
+
+	for (auto &member : channel->getMembers())
+	{
+		if (member.second->getNickname() == mode_param_pairs.param)
+		{
+			target = member.second;
+			break ;
+		}
+	}
+	if (!target)
+	{
+		m_responseHandler.sendNumericReply(
+			m_user->getFd(), ERR_USERNOTINCHANNEL, m_user->getNickname(),
+			target->getNickname() + " " + channel->getName() + " :They aren't on that channel"
+		);
+		return 1;
+	}
+	switch (mode_param_pairs.sign)
 	{
 	case '+':
 		channel->addOperator(m_user->getFd());
-		break ;
+		return 0;
 	case '-':
 		channel->removeOperator(m_user->getFd());
-		break ;
+		return 0;
 	default:
 		break ;
 	}
+	return 1;
 }
 
-void	Command::modeOperateParamLimit(char sign, int idxOffset)
+int	Command::changeChannelModeLimit(Channel* channel, const t_mode_elems &mode_param_pairs)
 {
-	const std::string	&channel_name { m_params[0] };
-	const std::string	&param { m_params[MINIMUM_PARAMS_MODE + idxOffset] };
-	Channel				*channel { m_server.getChannels().at(channel_name) };
-
-	switch (sign)
+	switch (mode_param_pairs.sign)
 	{
 	case '+':
-		try
-		{
-			channel->setUserLimit(std::stoi(param));
-		}
-		catch(const std::exception& e)
-		{
-			throw ERR_NEEDMOREPARAMS;
-		}
+		channel->setUserLimit(std::stoi(mode_param_pairs.param));
 		channel->setHasUserLimit(true);
-		break ;
+		return 0;
 	case '-':
-		channel->setHasUserLimit(false);
+		if (channel->hasUserLimit())
+		{
+			channel->setHasUserLimit(false);
+			return 0;
+		}
 		break ;
 	default:
 		break ;
 	}
+	return 1;
 }
 
 /* Channel Namespace
