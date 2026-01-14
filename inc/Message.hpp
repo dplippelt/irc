@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/06 09:29:24 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/25 12:12:58 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 14:02:34 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,6 @@ public:
 	~Message();
 
 	void	print() const;
-	// void	operateCommand(Server &server, User *user) const;
 
 	const std::string				&getCommandName() const;
 	const std::vector<std::string>	&getParamsList() const;

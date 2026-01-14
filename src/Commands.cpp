@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 13:55:38 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/14 14:22:52 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -595,7 +595,6 @@ const std::string Command::getQuitReason( const std::vector<std::string>& params
 
 void	Command::handleMODE()
 {
-	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
 	std::string		channelName {};
 	Channel* 		channel { Validation::validateMODE(m_user, m_params, m_server, channelName, m_responseHandler) };
 
@@ -604,11 +603,6 @@ void	Command::handleMODE()
 
 	if (m_params.size() == 1)
 	{
-		// Dominique:
-		// NOTE: In Irssi, typing just '/mode' triggers client-side "Irssi: not enough parameters" warning, but
-		// Irssi still auto-appends the current channel and sends "MODE #currentchannel".
-		// However, Irssi then rejects/doesn't display the (correctly formatted) server response.
-		// Unless you can find a solution this seems to be an irssi quirk we should just accept.
 		m_responseHandler.sendNumericReply(
 			m_user->getFd(), RPL_CHANNELMODEIS, m_user->getNickname(),
 			channelName + " " + channel->getModeString()
@@ -634,7 +628,7 @@ void	Command::handleMODE()
 		if (!changeChannelMode(channel, pair))
 			mode_param_pairs_done.push_back(pair);
 	}
-	// for safety reason
+
 	if (mode_param_pairs_done.empty())
 		return ;
 	response = generateModeResponse(channel, mode_param_pairs_done);
@@ -897,10 +891,10 @@ int	Command::changeChannelModePrivilege(Channel* channel, const t_mode_elems &mo
 	switch (mode_param_pairs.sign)
 	{
 	case '+':
-		channel->addOperator(m_user->getFd());
+		channel->addOperator(target->getFd());
 		return 0;
 	case '-':
-		channel->removeOperator(m_user->getFd());
+		channel->removeOperator(target->getFd());
 		return 0;
 	default:
 		break ;

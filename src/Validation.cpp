@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Validation.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 15:41:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/14 12:26:59 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 14:17:53 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -457,25 +457,6 @@ bool	Validation::validateCanChangeModes( User* user, Channel* channel, const std
 	if (!channel->isOperator(user->getFd()))
 	{
 		responseHandler.sendNumericReply(user->getFd(), ERR_CHANOPRIVSNEEDED, user->getNickname(), channelName + " :You're not channel operator");
-		return false;
-	}
-
-	return true;
-}
-
-bool	Validation::validateModes(User *user, const std::string &modes, ResponseHandler& responseHandler)
-{
-	// Dominique
-	// NOTE: This might reject "MODE #channel +" which some servers actually allow apparently (and just doesn't do anything)
-	if (modes.size() < 2)
-	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), modes + " :is unknown mode char to me");
-		return false;
-	}
-
-	if (!(modes.front() == '+' || modes.front() == '-'))
-	{
-		responseHandler.sendNumericReply(user->getFd(), ERR_UNKNOWNMODE, user->getNickname(), std::string(1, modes.front())  + " :is unknown mode char to me");
 		return false;
 	}
 

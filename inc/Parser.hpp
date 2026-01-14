@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/29 13:41:54 by tmitsuya          #+#    #+#             */
-/*   Updated: 2025/11/25 12:14:55 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/14 14:02:24 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 # include <string>
 # include "Message.hpp"
 
-// To rename this class to something like 'MessageList'
 class Parser
 {
 

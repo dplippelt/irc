@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 13:58:43 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/14 14:11:56 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,28 +79,19 @@ class Command
 			{"MODE", CMD_MODE}
 		};
 
-		CommandType getCmdType()
-		{
-			auto it { k_commands.find(m_command) };
-
-			return ( it != k_commands.end() ? it->second : CMD_UNKNOWN );
-		}
-
-		Channel* getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
-
-		void handlePASS(); //tested
-		void handleNICK(); //tested
-		void handleUSER(); //tested
-		void handlePING(); //tested
-		void handleJOIN(); //tested
-		void handlePRIVMSG(); //tested
-		void handleKICK(); //tested
-		void handlePART(); //tested
-		void handleTOPIC(); //tested
-		void handleINVITE(); //tested
-		void handleQUIT(); //tested
-		void handleWHOIS(); //tested
-		void handleMODE(); // [Takato]: added for mode operation
+		void handlePASS();
+		void handleNICK();
+		void handleUSER();
+		void handlePING();
+		void handleJOIN();
+		void handlePRIVMSG();
+		void handleKICK();
+		void handlePART();
+		void handleTOPIC();
+		void handleINVITE();
+		void handleQUIT();
+		void handleWHOIS();
+		void handleMODE();
 
 		CommandType						getCmdType() const;
 		void							informUsersOfNickChange(const std::string& oldPrefix, const std::string& newNick);
