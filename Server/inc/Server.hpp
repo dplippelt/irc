@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:04:53 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 16:41:09 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 17:59:11 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@
 #include <signal.h>
 #include "User.hpp"
 #include "Channel.hpp"
-#include "Commands.hpp"
 #include "Parser.hpp"
 #include "ResponseHandler.hpp"
 

@@ -6,20 +6,21 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/13 15:53:31 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 18:00:08 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "ResponseHandler.hpp"
+#include "Commands.hpp"
 
 /* ==================== Constructors & Destructors ==================== */
 
 Server::~Server()
 {
-	for ( std::map<int, User*>::iterator it = m_users.begin(); it != m_users.end(); ++it )
+	for ( auto it = m_users.begin(); it != m_users.end(); ++it )
 		delete it->second;
-	for ( std::map<std::string, Channel*>::iterator it = m_channels.begin(); it != m_channels.end(); ++it )
+	for ( auto it = m_channels.begin(); it != m_channels.end(); ++it )
 		delete it->second;
 	if ( m_addr != nullptr )
 		freeaddrinfo(m_addr);
@@ -136,7 +137,7 @@ void	Server::acceptConn()
 	User* newUser = new User(client_fd);
 	m_users.insert( { client_fd, newUser } );
 	m_pollfds.push_back( {client_fd, POLLIN, 0} );
-	m_messagesList.emplace(client_fd, Parser{}); // [Takato]: added
+	m_messagesList.emplace(client_fd, Parser{});
 
 	#ifdef DEBUG
 	std::cout << "Accepted client connection (client fd: " << client_fd << ")" << std::endl;

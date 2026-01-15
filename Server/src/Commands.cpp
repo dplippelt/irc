@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/15 14:11:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 17:54:57 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 Command::Command(Server& server, User* user, Message& msg)
 	: m_server { server }
 	, m_responseHandler { server }
+	, m_validator { server, user, msg.getParamsList() }
 	, m_user { user }
 	, m_command { msg.getCommandName() }
 	, m_params { msg.getParamsList() }
@@ -89,13 +90,11 @@ void Command::executeCommand()
 
 void Command::handlePASS()
 {
-	Validator validator { m_server, m_user, m_params };
-
-	if ( !validator.validatePASS() )
+	if ( !m_validator.validatePASS() )
 		return;
 
 	std::string providedPassword { removeLeadingColon(m_params.front()) };
-	if ( !validator.isValidPassword(providedPassword) )
+	if ( !m_validator.isValidPassword(providedPassword) )
 		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password contains invalid characters");
 	if ( !Authentication::validatePassword(providedPassword, m_server.getPassword()) )
 		return m_responseHandler.sendNumericReply(m_user->getFd(), ERR_PASSWDMISMATCH, m_user->getNickname(), ":Password incorrect");
@@ -114,10 +113,9 @@ void Command::handlePASS()
 
 void Command::handleNICK()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	newNick {};
 
-	if ( !validator.validateNICK(newNick))
+	if ( !m_validator.validateNICK(newNick))
 		return;
 
 	std::string oldNick { m_user->getNickname() };
@@ -174,9 +172,7 @@ void Command::informUsersOfNickChange( const std::string& oldPrefix, const std::
 
 void Command::handleUSER()
 {
-	Validator validator { m_server, m_user, m_params };
-
-	if ( !validator.validateUSER() )
+	if ( !m_validator.validateUSER() )
 		return;
 
 	auto it { m_params.begin() };
@@ -223,9 +219,7 @@ void Command::handlePING()
 
 void Command::handleJOIN()
 {
-	Validator validator { m_server, m_user, m_params };
-
-	if ( !validator.validateJOIN() )
+	if ( !m_validator.validateJOIN() )
 		return;
 
 	std::map<std::string, Channel*>& channels { m_server.getChannels() };
@@ -237,7 +231,7 @@ void Command::handleJOIN()
 		std::string currentChannel { channelVec[i] };
 		std::string channelKey { (i < keys.size()) ? keys[i] : "" };
 
-		if ( !validator.isValidChannelName(currentChannel) )
+		if ( !m_validator.isValidChannelName(currentChannel) )
 		{
 			m_responseHandler.sendNumericReply(m_user->getFd(), ERR_NOSUCHCHANNEL, m_user->getNickname(), currentChannel + " :No such channel");
 			continue;
@@ -245,7 +239,7 @@ void Command::handleJOIN()
 
 		Channel* channel { getOrCreateChannel(currentChannel, channels) };
 
-		if ( !validator.validateCanJoin(channel, channelKey))
+		if ( !m_validator.validateCanJoin(channel, channelKey))
 			continue;
 
 		channel->addMember(m_user);
@@ -305,9 +299,7 @@ Channel* Command::getOrCreateChannel(const std::string& channelName, std::map<st
 
 void Command::handlePRIVMSG()
 {
-	Validator validator { m_server, m_user, m_params };
-
-	if ( !validator.validatePRIVMSG() )
+	if ( !m_validator.validatePRIVMSG() )
 		return;
 
 	auto it { m_params.begin() };
@@ -322,13 +314,13 @@ void Command::handlePRIVMSG()
 	#endif
 
 	if ( target[0] == '#' || target[0] == '&' )
-		return sendPrivMsgToChannel(target, message, validator);
+		return sendPrivMsgToChannel(target, message);
 	sendPrivMsgToUser(target, message);
 }
 
-void Command::sendPrivMsgToChannel(const std::string& target, const std::string& message, Validator& validator)
+void Command::sendPrivMsgToChannel(const std::string& target, const std::string& message)
 {
-	Channel* channel { validator.validateCanSendMsg(target) };
+	Channel* channel { m_validator.validateCanSendMsg(target) };
 	if ( !channel )
 		return;
 
@@ -358,18 +350,17 @@ void Command::sendPrivMsgToUser(const std::string& target, const std::string& me
 
 void Command::handleKICK()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	targetNick {};
 	std::string	channelName {};
 
-	if ( !validator.validateKICK(targetNick, channelName) )
+	if ( !m_validator.validateKICK(targetNick, channelName) )
 		return;
 
-	Channel* channel { validator.validateCanKick(channelName) };
+	Channel* channel { m_validator.validateCanKick(channelName) };
 	if( !channel )
 		return;
 
-	User* targetUser { validator.validateCanKickTarget(channel, targetNick) };
+	User* targetUser { m_validator.validateCanKickTarget(channel, targetNick) };
 	if( !targetUser )
 		return;
 
@@ -411,14 +402,12 @@ void Command::sendKickResponse(Channel* channel, const std::string& channelName,
 
 void Command::handlePART()
 {
-	Validator	validator { m_server, m_user, m_params };
-
-	if ( !validator.validatePART() )
+	if ( !m_validator.validatePART() )
 		return;
 
 	for ( const auto& currentChannel : getChannelVector() )
 	{
-		Channel* channel { validator.validateCanPart(currentChannel) };
+		Channel* channel { m_validator.validateCanPart(currentChannel) };
 		if (!channel)
 			continue;
 
@@ -476,13 +465,12 @@ void Command::sendPartResponse(Channel* channel, const std::string& currentChann
 
 void Command::handleTOPIC()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	channelName {};
 
-	if ( !validator.validateTOPIC(channelName))
+	if ( !m_validator.validateTOPIC(channelName))
 		return;
 
-	Channel* channel { validator.validateCanChangeTopic(channelName) };
+	Channel* channel { m_validator.validateCanChangeTopic(channelName) };
 	if( !channel )
 		return;
 
@@ -519,18 +507,17 @@ const std::string Command::getNewTopic() const
 
 void Command::handleINVITE()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	targetNick {};
 	std::string	channelName {};
 
-	if ( !validator.validateINVITE(targetNick, channelName) )
+	if ( !m_validator.validateINVITE(targetNick, channelName) )
 		return;
 
-	Channel* channel { validator.validateCanInvite(channelName) };
+	Channel* channel { m_validator.validateCanInvite(channelName) };
 	if( !channel )
 		return;
 
-	User* targetUser { validator.validateCanInviteTarget(channel, channelName, targetNick) };
+	User* targetUser { m_validator.validateCanInviteTarget(channel, channelName, targetNick) };
 	if( !targetUser )
 		return;
 
@@ -549,10 +536,9 @@ void Command::handleINVITE()
 
 void Command::handleWHOIS()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	targetNick {};
 
-	if ( !validator.validateWHOIS(targetNick))
+	if ( !m_validator.validateWHOIS(targetNick))
 		return;
 
 	const User* targetUser { getTargetUser(targetNick) };
@@ -610,10 +596,9 @@ const std::string Command::getQuitReason( const std::vector<std::string>& params
 
 void	Command::handleMODE()
 {
-	Validator	validator { m_server, m_user, m_params };
 	std::string	channelName {};
 
-	Channel*	channel { validator.validateMODE(channelName) };
+	Channel* channel { m_validator.validateMODE(channelName) };
 	if (!channel)
 		return;
 
@@ -626,7 +611,7 @@ void	Command::handleMODE()
 		return;
 	}
 
-	if ( !validator.validateCanChangeModes(channel, channelName))
+	if ( !m_validator.validateCanChangeModes(channel, channelName))
 		return;
 
 	std::vector<t_mode_elems>	mode_param_pairs{};

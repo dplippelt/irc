@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/15 12:55:42 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/15 14:07:12 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 17:44:19 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,10 @@
 #include <vector>
 #include <string>
 #include "User.hpp"
-#include "Commands.hpp"
 #include "Server.hpp"
 #include "IrcNumericCodes.hpp"
 
 class User;
-class Command;
 class Server;
 class ResponseHandler;
 

@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/15 14:18:18 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 17:58:26 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@
 #include "IrcNumericCodes.hpp"
 
 class Server;
-class Validator;
 class Message;
 
 class Command
@@ -39,6 +38,7 @@ class Command
 	private:
 		Server&							m_server;
 		ResponseHandler					m_responseHandler;
+		Validator						m_validator;
 		User*							m_user;
 		const std::string&				m_command;
 		const std::vector<std::string>&	m_params;
@@ -103,7 +103,7 @@ class Command
 		const std::string				getNewTopic() const;
 		const std::string				getQuitReason( const std::vector<std::string>& params ) const;
 		const User*						getTargetUser(const std::string& targetNick) const;
-		void							sendPrivMsgToChannel(const std::string& target, const std::string& message, Validator& validator);
+		void							sendPrivMsgToChannel(const std::string& target, const std::string& message);
 		void							sendPrivMsgToUser(const std::string& target, const std::string& message);
 		Channel*						getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 		const std::vector<std::string>	getChannelVector() const;
