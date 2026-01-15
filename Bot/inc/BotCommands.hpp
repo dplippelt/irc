@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:06:14 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 18:14:34 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 14:23:23 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ class BotCommands
 		static inline const std::vector<std::pair<std::string, std::string>> k_help_content
 		{
 			{COLOR YELLOW "!help" RESET, "Show the current help menu."},
-			{COLOR YELLOW "!start" RESET, "Start playing a single player battlehips."},
+			{COLOR YELLOW "!start" RESET, "Start playing a single player battlehips game."},
 			{COLOR YELLOW "!newgame" RESET, "Start a fresh single player game (will abort your currently running game)."},
 			{COLOR YELLOW "!fire <target>" RESET, "Fire a shot at the board in single player (e.g. '!fire B3')."},
 			{COLOR YELLOW "!board" RESET, "Show your current game board in single player."},

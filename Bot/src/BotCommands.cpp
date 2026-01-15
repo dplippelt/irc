@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/15 12:31:16 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 14:37:38 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,6 +236,7 @@ void BotCommands::help()
 	if ( !m_channel.empty() )
 		m_responseHandler->sendResponse(m_username, m_channel, "An overview of available commands was sent to your DMs, " COLOR RED + m_username + RESET ".");
 
+	m_responseHandler->sendResponse(m_username, "",	COLOR LIGHT_CYAN "=== Available Commands ===" RESET);
 	for ( const auto& cmd : k_help_content )
 		m_responseHandler->sendHelp(m_username, cmd);
 }
@@ -373,6 +374,7 @@ void	BotCommands::shoot()
 		break;
 	}
 
+	m_responseHandler->sendPlayerGrid(opponent, *mp_game->getPlayerShotsGridObject(opponent), m_responseHandler->GridType::TRACKING, m_username);
 	m_responseHandler->sendTurnInfo(m_username, opponent, mp_game);
 }
 
@@ -477,7 +479,6 @@ void BotCommands::startMPGame( const std::string& challenger, const std::string&
 	m_responseHandler->sendPlayerGrid(challenged, *mp_game->getPlayerShotsGridObject(challenged), m_responseHandler->GridType::TRACKING, challenger);
 
 	m_responseHandler->sendTurnInfo(challenger, challenged, mp_game);
-
 }
 
 
