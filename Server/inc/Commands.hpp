@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/28 11:10:22 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 15:43:01 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/15 14:18:18 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,12 @@
 #include "Channel.hpp"
 #include "ResponseHandler.hpp"
 #include "Authentication.hpp"
-#include "ValidationHelper.hpp"
-#include "Validation.hpp"
+#include "Validator.hpp"
 #include "Server.hpp"
 #include "IrcNumericCodes.hpp"
 
 class Server;
-class Validation;
+class Validator;
 class Message;
 
 class Command
@@ -104,11 +103,12 @@ class Command
 		const std::string				getNewTopic() const;
 		const std::string				getQuitReason( const std::vector<std::string>& params ) const;
 		const User*						getTargetUser(const std::string& targetNick) const;
-		void							sendPrivMsgToChannel(const std::string& target, const std::string& message);
+		void							sendPrivMsgToChannel(const std::string& target, const std::string& message, Validator& validator);
 		void							sendPrivMsgToUser(const std::string& target, const std::string& message);
 		Channel*						getOrCreateChannel(const std::string& channelName, std::map<std::string, Channel*>& channels);
 		const std::vector<std::string>	getChannelVector() const;
 		void							removeEmptyChannel(Channel* channel, const std::string& channelName);
+		std::string						removeLeadingColon(const std::string& str) const;
 
 		static inline const std::string k_mode_available{ "itkol" };
 		static inline const std::string k_modes_without_param{ "it" };
@@ -121,8 +121,8 @@ class Command
 			std::string	param;
 		}	t_mode_elems;
 
-		// handleMode() utilities
-	
+
+		// handleMODE() Utilities
 		int			createSignModePairs(std::vector<t_mode_elems> &mode_param_pairs, const std::string &base);
 		void		assignParamsToModes(std::vector<t_mode_elems> &mode_param_pairs);
 		int			checkModeparamPairValidation(const std::vector<t_mode_elems> &mode_param_pairs);
