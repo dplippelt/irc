@@ -6,7 +6,7 @@
 /*   By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/14 16:19:00 by tmitsuya         ###   ########.fr       */
+/*   Updated: 2026/01/15 11:06:31 by tmitsuya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1021,9 +1021,6 @@ Note that there is a maximum limit of three (3) changes per command for modes th
     support channel modes, no member can therefore have the status of channel operator.
 
  */
-
-// [Takato]: added to here
-
 
 // ==================== Misc Helpers ====================
 
