@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════════════════
+                          GAME COMMANDS
+═══════════════════════════════════════════════════════════════════════
+
+STARTING & MANAGING GAMES
+
+!start
+  Start playing a single player battlehips game.
+
+!newgame
+  Start a fresh single player game (will abort your currently running game).
+
+!challenge <username>
+  Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!
+
+!accept <username>
+  Accept another user's challenge to a game of battleships (e.g. '!accept alice).
+
+!surrender <username>
+  Surrender to another player. This will immediately end your game with them (e.g. '!surrender bob' to surrender to bob).
+
+
+ATTACKING
+
+!fire <target>
+  Fire a shot at the board in single player (e.g. '!fire B3').
+
+!shoot <username> <target>
+  Take a shot at another user's board (e.g. '!shoot bob H4')
+
+
+INFORMATION COMMANDS
+
+!board
+  Show your current game board in single player.
+
+!fleet <username>
+  Show your current fleet against another player (e.g. '!fleet bob'). Will be visible to only you.
+
+!shots <username>
+  Show your current shots grid against another player (e.g. '!shots bob'). Will be visible to only you.
+
+!solution
+  Show the single player board with all ships visible (i.e. cheat sheet).
+
+!files
+  List available files for download.
+
+!file <filename>
+  Download a specific file (e.g. '!file rules.txt').
+
+!help
+  Display available commands

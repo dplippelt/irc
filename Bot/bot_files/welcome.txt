@@ -1,0 +1,23 @@
+═══════════════════════════════════════════════════════════════════════
+                            WELCOME MESSAGE
+═══════════════════════════════════════════════════════════════════════
+
+Hello, I am the BattleshipsBot!
+To start a single player game type !start and !fire <target> (e.g., !fire B3) to shoot at a target on the grid.
+To challenge another user to a multiplayer match type !challenge <username> (e.g., !challenge bob). To accept another
+users challenge type !accept <username>. In multiplayer use the command !shoot <username> <target> to take a shot at
+another player's fleet (e.g., !shoot bob A3).
+For a full list of commands type !help.
+
+
+═══════════════════════════════════════════════════════════════════════
+                            AVAILABLE FILES
+═══════════════════════════════════════════════════════════════════════
+
+welcome.txt - Welcome message and file list
+rules.txt - Complete game rules and commands
+tips.txt - Strategy tips and tactics
+commands.txt - Full command reference
+
+Use !file <filename> to download.
+Example: !file rules.txt

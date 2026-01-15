@@ -1,0 +1,258 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                    BATTLESHIPS GAME RULES                          ║
+║                      BattleshipsBot v1.0                           ║
+╚════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════
+                            OBJECTIVE
+═══════════════════════════════════════════════════════════════════════
+
+Sink all of your opponent's ships before they sink yours! Each player has
+a fleet of ships placed secretly on their grid. Take turns calling out
+coordinates to attack. The first player to destroy all enemy ships wins!
+
+
+═══════════════════════════════════════════════════════════════════════
+                           GAME MODES
+═══════════════════════════════════════════════════════════════════════
+
+SINGLE PLAYER MODE
+  • Play against the bot
+  • Command: !start
+  • Practice your skills and learn strategies
+
+MULTIPLAYER MODE
+  • Challenge other users on the server
+  • Command: !challenge <username>
+  • Accept challenges: !accept <username>
+  • Competitive gameplay with friends
+
+
+═══════════════════════════════════════════════════════════════════════
+                          THE FLEET
+═══════════════════════════════════════════════════════════════════════
+
+Each player controls a fleet of 5 ships:
+
+  Ship Name        | Symbol | Length
+  ─────────────────┼────────┼────────
+  Carrier          |   K    |   5
+  Battleship       |   B    |   4
+  Cruiser          |   C    |   3
+  Submarine        |   S    |   3
+  Destroyer        |   D    |   2
+
+
+═══════════════════════════════════════════════════════════════════════
+                         THE GAME GRID
+═══════════════════════════════════════════════════════════════════════
+
+The ocean grid is 8x8, labeled with:
+  • Columns: 1 through 8 (horizontal)
+  • Rows: A through H (vertical)
+
+Example grid positions:
+
+        A
+        B
+        C
+        D
+        E
+        F
+        G
+        H
+12345678
+
+Legend:
+     ' '    = Water (unexplored)
+      0     = Miss (you've shot here, but hit nothing)
+      X     = Hit (you've damaged a ship)
+  K/B/C/S/D = Sunk ship
+
+
+═══════════════════════════════════════════════════════════════════════
+                           SHIP PLACEMENT
+═══════════════════════════════════════════════════════════════════════
+
+AUTOMATIC PLACEMENT
+  • Ships are placed randomly on your grid at game start
+  • Ships can be horizontal or vertical
+  • Ships cannot overlap
+  • Ships cannot extend beyond the grid boundaries
+
+PLACEMENT RULES
+  • Each ship occupies consecutive squares
+  • Ships must be placed in a straight line
+  • No diagonal placement
+  • Ships can touch, but cannot overlap
+
+
+═══════════════════════════════════════════════════════════════════════
+                             GAMEPLAY
+═══════════════════════════════════════════════════════════════════════
+
+TAKING YOUR TURN
+
+Single Player:
+  !fire <target>
+  Example: !fire B5
+
+Multiplayer:
+  !shoot <username> <target>
+  Example: !shoot alice C7
+
+
+SHOT RESULTS
+
+HIT (X)
+  • You've struck part of an enemy ship
+  • Your turn ends
+  • Opponent's turn begins
+
+MISS (0)
+  • Your shot hit only water
+  • Your turn ends
+  • Opponent's turn begins
+
+SUNK
+  • All squares of a ship have been hit
+  • The ship is destroyed and the HIT markers (X) are replaced with the ship's symbols (K/B/C/S/D)
+
+
+═══════════════════════════════════════════════════════════════════════
+                       COORDINATE SYSTEM
+═══════════════════════════════════════════════════════════════════════
+
+Valid Coordinates:
+  • Letter (A-H) + Number (1-8)
+  • Letter must come first
+  • Case insensitive: "a1" = "A1"
+
+Examples of Valid Shots:
+  ✓ A1, A8, H1, J8
+  ✓ B5, D7, H3, E6
+  ✓ a1, c4, g8 (lowercase works too)
+
+Examples of Invalid Shots:
+  ✗ 1A (number first - incorrect order)
+  ✗ K5 (column K doesn't exist)
+  ✗ B11 (row 11 doesn't exist)
+  ✗ BB (no number provided)
+  ✗ 55 (no letter provided)
+
+
+═══════════════════════════════════════════════════════════════════════
+                        WINNING THE GAME
+═══════════════════════════════════════════════════════════════════════
+
+Victory Condition:
+  • Sink ALL 5 of your opponent's ships
+  • The first player to destroy the entire enemy fleet wins!
+
+After a ship is sunk:
+  • The game announces which ship was destroyed
+  • Continue attacking until all ships are eliminated
+
+
+═══════════════════════════════════════════════════════════════════════
+                          GAME COMMANDS
+═══════════════════════════════════════════════════════════════════════
+
+STARTING & MANAGING GAMES
+
+!start
+  Start playing a single player battlehips game.
+
+!newgame
+  Start a fresh single player game (will abort your currently running game).
+
+!challenge <username>
+  Challenge another user to a game of battleships (e.g. '!challenge bob). Please make sure to enter the username correctly or they will not receive the challenge!
+
+!accept <username>
+  Accept another user's challenge to a game of battleships (e.g. '!accept alice).
+
+!surrender <username>
+  Surrender to another player. This will immediately end your game with them (e.g. '!surrender bob' to surrender to bob).
+
+
+ATTACKING
+
+!fire <target>
+  Fire a shot at the board in single player (e.g. '!fire B3').
+
+!shoot <username> <target>
+  Take a shot at another user's board (e.g. '!shoot bob H4')
+
+
+INFORMATION COMMANDS
+
+!board
+  Show your current game board in single player.
+
+!fleet <username>
+  Show your current fleet against another player (e.g. '!fleet bob'). Will be visible to only you.
+
+!shots <username>
+  Show your current shots grid against another player (e.g. '!shots bob'). Will be visible to only you.
+
+!solution
+  Show the single player board with all ships visible (i.e. cheat sheet).
+
+!files
+  List available files for download.
+
+!file <filename>
+  Download a specific file (e.g. '!file rules.txt').
+
+!help
+  Display available commands
+
+
+═══════════════════════════════════════════════════════════════════════
+                      STRATEGY & FAIR PLAY
+═══════════════════════════════════════════════════════════════════════
+
+TIPS FOR BEGINNERS
+  • Start by spreading your shots across the grid
+  • When you get a hit, try adjacent squares
+  • Ships are in straight lines (horizontal or vertical)
+  • Larger ships are easier to find but harder to sink
+
+FAIR PLAY RULES
+  • No outside communication about ship positions
+  • Don't share your grid with opponents
+  • Be a good sport - it's just a game!
+  • Respect other players
+
+
+═══════════════════════════════════════════════════════════════════════
+                     MULTIPLAYER SPECIFICS
+═══════════════════════════════════════════════════════════════════════
+
+CHALLENGING PLAYERS
+  • Cannot challenge yourself
+
+DURING MULTIPLAYER
+  • Take turns shooting
+  • Game continues until one player's fleet is destroyed
+  • You'll be notified when it's your turn
+  • Don't keep others waiting too long!
+
+ENDING MULTIPLAYER GAMES
+  • Winner is announced to all participants
+
+
+═══════════════════════════════════════════════════════════════════════
+                        GETTING STARTED
+═══════════════════════════════════════════════════════════════════════
+
+Ready to play? Here's what to do:
+
+  1. Type !start to begin a single-player game, OR
+  2. Type !challenge <username> to play against another user
+  3. Follow the on-screen instructions
+  4. Have fun and may the best admiral win!
+
+Need more help? Type !help for a command list.
+Want strategy tips? Type !file tips.txt

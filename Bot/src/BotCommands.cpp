@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/25 17:08:37 by dlippelt          #+#    #+#             */
-/*   Updated: 2025/12/15 18:15:32 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/01/15 12:31:16 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -566,8 +566,6 @@ void BotCommands::files()
 		COLOR YELLOW "tips.txt" RESET " - Strategy tips and tactics");
 	m_responseHandler->sendResponse(m_username, "",
 		COLOR YELLOW "commands.txt" RESET " - Full command reference");
-	m_responseHandler->sendResponse(m_username, "",
-		COLOR YELLOW "history.txt" RESET " - History of Battleships game");
 	m_responseHandler->sendResponse(m_username, "", "");
 	m_responseHandler->sendResponse(m_username, "",
 		"Use " COLOR YELLOW "!file <filename>" RESET " to download.");
