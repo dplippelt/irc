@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/27 13:10:45 by dlippelt          #+#    #+#             */
-/*   Updated: 2026/01/13 15:53:31 by dlippelt         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
+/*   Updated: 2026/01/26 12:48:30 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,6 @@ Server::Server( const std::string& port, std::string_view pw )
 			freeaddrinfo(m_addr);
 		throw;
 	}
-
-	if ( listen(m_listening_socket_fd, s_listen_backlog) == -1 )
-		throw std::runtime_error("Error: failed to set socket as a passive socket listening for incoming connections");
 }
 
 /* ==================== Signal Handler ==================== */
@@ -246,6 +243,7 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 
 	delete user;
 	m_users.erase(it);
+	m_messagesList.erase(client_fd);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
