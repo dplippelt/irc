@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/27 13:10:45 by dlippelt      #+#    #+#                 */
-/*   Updated: 2026/01/26 12:48:30 by spyun         ########   odam.nl         */
+/*   Updated: 2026/01/26 15:55:13 by spyun         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,7 @@ void	Server::removeClient( int client_fd, const std::string& quitMessage )
 
 	delete user;
 	m_users.erase(it);
-	m_messagesList.erase(client_fd);
+	// m_messagesList.erase(client_fd);
 
 	if ( close(client_fd) == -1 )
 		std::cerr << "Warning: failed to close client file descriptor" << std::endl;
@@ -281,6 +281,7 @@ void	Server::processClientAct( int client_fd )
 		return;
 	}
 
+
 	buffer[bytes] = '\0';
 	processBuffer(buffer, client_fd);
 }
@@ -303,6 +304,8 @@ void	Server::processBuffer( const std::string& buffer, int client_fd )
 	{
 		Command command { *this, user, msg };
 		command.executeCommand();
+		if (m_users.find(client_fd) == m_users.end())
+			return;
 	}
 
 	messages.clear();
