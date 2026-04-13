@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   Parser.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: dlippelt <dlippelt@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/10/29 15:15:41 by tmitsuya      #+#    #+#                 */
-/*   Updated: 2025/11/27 11:31:47 by seungah       ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   Parser.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/29 15:15:41 by tmitsuya          #+#    #+#             */
+/*   Updated: 2026/04/13 16:22:56 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,23 +44,6 @@ std::list<Message>	&Parser::getMessages()
 	return m_messages;
 }
 
-/* Debug functions */
-
-void	Parser::print() const
-{
-	int	n{};
-	for (auto it{m_messages.begin()}; it != m_messages.end(); ++it)
-	{
-		std::cout << "== message [" << n << "]: ==\n";
-		(*it).print();
-		std::cout << "==\n";
-		++n;
-	}
-	std::cout << "=== m_buffer at the end ===\n";
-	std::cout << m_buffer << '\n';
-	std::cout << "===\n";
-}
-
 /* ==================== Private helpers ==================== */
 
 /*
@@ -78,8 +61,11 @@ void	Parser::print() const
 Parser	&Parser::parse(const std::string &input)
 {
 	m_buffer += input;
+
+	#ifdef DEBUG
 	std::cout << "=== m_buffer at the beginning ===\n";
 	std::cout << m_buffer << "\n===\n";
+	#endif
 
 	std::istringstream 	messages{ m_buffer };
 	std::string			message{};
@@ -121,3 +107,22 @@ Parser	&Parser::parse(const std::string &input)
    item separator, a reply must be sent for each item.
 */
 
+
+#ifdef DEBUG
+/* ==================== DEBUG Function ==================== */
+
+void	Parser::print() const
+{
+	int	n{};
+	for (auto it{m_messages.begin()}; it != m_messages.end(); ++it)
+	{
+		std::cout << "== message [" << n << "]: ==\n";
+		(*it).print();
+		std::cout << "==\n";
+		++n;
+	}
+	std::cout << "=== m_buffer at the end ===\n";
+	std::cout << m_buffer << '\n';
+	std::cout << "===\n";
+}
+#endif
