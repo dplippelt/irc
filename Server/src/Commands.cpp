@@ -6,7 +6,7 @@
 /*   By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/30 17:16:17 by spyun             #+#    #+#             */
-/*   Updated: 2026/01/15 14:11:00 by dlippelt         ###   ########.fr       */
+/*   Updated: 2026/04/22 08:00:54 by dlippelt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,7 +209,7 @@ void Command::handlePING()
 	else
 		pong_str = "PONG :ft_irc\r\n";
 
-	ssize_t sent = send(m_user->getFd(), pong_str.c_str(), pong_str.length(), 0);
+	[[maybe_unused]] ssize_t sent = send(m_user->getFd(), pong_str.c_str(), pong_str.length(), 0);
 
 	#ifdef DEBUG
 	if (sent < 0)

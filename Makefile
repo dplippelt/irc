@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: tmitsuya <tmitsuya@student.codam.nl>       +#+  +:+       +#+         #
+#    By: dlippelt <dlippelt@student.codam.nl>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/27 11:02:13 by dlippelt          #+#    #+#              #
-#    Updated: 2026/01/14 15:03:19 by tmitsuya         ###   ########.fr        #
+#    Updated: 2026/04/22 08:00:12 by dlippelt         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ MKDIR =			mkdir -p
 VALG =			valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 CXXSTD =		-std=c++17
-CXXFLAGS =		-Wall -Werror -Wextra -g3 -DDEBUG
+CXXFLAGS =		-Wall -Werror -Wextra -g3 #-DDEBUG
 IFLAGS =		-I$(SERVDIR)/$(INCDIR) -I$(BOTDIR)/$(INCDIR)
 DEPFLAGS =		-MMD -MP
 COMPILE =		-c
